@@ -1,5 +1,5 @@
 
-FIND_PACKAGE(OggVOrbis)
+FIND_PACKAGE(OggVorbis)
 
 # We have precompiled libs for windows
 IF (NOT OGGVORBIS_FOUND AND WIN32)
