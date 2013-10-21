@@ -14,6 +14,8 @@ PROJECT(FSO)
 ### Define options and editable variables in the section below:
 IF (WIN32)
 	OPTION(FSO_USE_SPEECH "Use Windows specific text-to-speach libraries" OFF)
+	
+	OPTION(FSO_USE_VOICEREC "Enable voice recognition support" OFF)
 ENDIF(WIN32)
 
 SET(FSO_INSTRUCTION_SET "" CACHE STRING "The instruction set enhancement to use, possible options are SSE, SSE2 and AVX")

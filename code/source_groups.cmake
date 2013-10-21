@@ -730,7 +730,6 @@ set (file_root_sound
 	sound/dscap.h
 	sound/fsspeech.cpp
 	sound/fsspeech.h
-	sound/grammar.h
 	sound/openal.cpp
 	sound/openal.h
 	sound/phrases.xml
