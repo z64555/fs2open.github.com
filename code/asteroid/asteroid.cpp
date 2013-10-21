@@ -12,7 +12,7 @@
 #include "asteroid/asteroid.h"
 #include "object/object.h"
 #include "object/objcollide.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "io/timer.h"
 #include "render/3d.h"
 #include "fireball/fireballs.h"

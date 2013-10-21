@@ -14,7 +14,7 @@
 
 #include "weapon/emp.h"
 #include "io/timer.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "globalincs/linklist.h"
 #include "hud/hudlock.h"
 #include "hud/hudtarget.h"

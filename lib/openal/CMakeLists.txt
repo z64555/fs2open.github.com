@@ -1,0 +1,10 @@
+
+FIND_PACKAGE(OpenAL)
+
+# We have precompiled libs for windows
+IF (NOT OPENAL_FOUND AND WIN32)
+
+	SET(OPENAL_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include CACHE INTERNAL "OpenAL include directory")
+	
+	SET(OPENAL_LIBRARY ${CMAKE_CURRENT_LIST_DIR}/libs/win32/openal32.lib CACHE INTERNAL "Ogg vorbis library files")
+ENDIF(NOT OPENAL_FOUND AND WIN32)

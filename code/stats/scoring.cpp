@@ -11,7 +11,7 @@
 
 
 #include "stats/scoring.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "object/object.h"
 #include "ship/ship.h"
 #include "playerman/player.h"

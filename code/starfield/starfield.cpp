@@ -14,7 +14,7 @@
 #include "math/vecmat.h"
 #include "render/3d.h"
 #include "starfield/starfield.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "io/timer.h"
 #include "starfield/nebula.h"
 #include "lighting/lighting.h"

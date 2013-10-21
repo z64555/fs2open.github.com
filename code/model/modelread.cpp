@@ -28,7 +28,7 @@
 #include "render/3dinternal.h"
 #include "globalincs/linklist.h"
 #include "io/timer.h"
-#include "freespace2/freespace.h"		// For flFrameTime
+#include "freespace.h"		// For flFrameTime
 #include "math/fvi.h"
 #include "ship/ship.h"
 #include "cfile/cfile.h"

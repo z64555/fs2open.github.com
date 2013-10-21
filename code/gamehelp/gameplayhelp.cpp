@@ -10,7 +10,7 @@
 
 
 #include "gamesequence/gamesequence.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "io/key.h"
 #include "controlconfig/controlsconfig.h"
 #include "ui/ui.h"

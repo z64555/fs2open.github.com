@@ -13,7 +13,7 @@
 #include "weapon/weapon.h"
 #include "ship/ship.h"
 #include "io/timer.h"
-#include "freespace2/freespace.h"	// for Missiontime
+#include "freespace.h"	// for Missiontime
 #include "object/object.h"
 
 

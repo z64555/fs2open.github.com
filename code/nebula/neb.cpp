@@ -13,7 +13,7 @@
 #include "render/3d.h"
 #include "bmpman/bmpman.h"
 #include "object/object.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "starfield/starfield.h"
 #include "parse/parselo.h"
 #include "pcxutils/pcxutils.h"

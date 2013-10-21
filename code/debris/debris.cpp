@@ -17,7 +17,7 @@
 #include "object/objectsnd.h"
 #include "globalincs/linklist.h"
 #include "particle/particle.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "object/objcollide.h"
 #include "io/timer.h"
 #include "species_defs/species_defs.h"

@@ -14,7 +14,7 @@
 #include "missionui/missionshipchoice.h"
 #include "mission/missioncampaign.h"
 #include "playerman/managepilot.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "io/key.h"
 #include "gamesequence/gamesequence.h"
 #include "ui/ui.h"

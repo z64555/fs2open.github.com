@@ -15,7 +15,7 @@
 #include <math.h>
 
 #include "physics/physics.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "io/timer.h"
 // for the damping issue
 #include "ai/ai_profiles.h"

@@ -10,7 +10,7 @@
 
 
 
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "missionui/missionscreencommon.h"
 #include "missionui/missionshipchoice.h"
 #include "mission/missiongoals.h"

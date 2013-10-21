@@ -10,7 +10,7 @@
 
 
 #include "starfield/supernova.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "math/vecmat.h"
 #include "starfield/starfield.h"
 #include "particle/particle.h"

@@ -16,7 +16,7 @@
 #include "io/joy.h"
 #include "io/mouse.h"
 #include "gamesnd/eventmusic.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 
 #define REDALERT_INTERNAL
 #include "missionui/redalert.h"

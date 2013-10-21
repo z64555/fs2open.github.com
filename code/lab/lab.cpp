@@ -13,7 +13,7 @@
 #include "gamesequence/gamesequence.h"
 #include "io/key.h"
 #include "io/timer.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "cmdline/cmdline.h"
 #include "ship/ship.h"
 #include "weapon/weapon.h"

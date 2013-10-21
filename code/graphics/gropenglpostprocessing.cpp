@@ -13,7 +13,7 @@
 #include "mod_table/mod_table.h"
 #include "globalincs/def_files.h"
 #include "ship/ship.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "lighting/lighting.h"
 
 

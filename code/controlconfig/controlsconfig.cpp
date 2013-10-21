@@ -10,7 +10,7 @@
 
 
 
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "controlconfig/controlsconfig.h"
 #include "gamesequence/gamesequence.h"
 #include "hud/hudsquadmsg.h"

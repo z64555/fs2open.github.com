@@ -3,7 +3,7 @@
 #include "globalincs/systemvars.h"
 #include "ship/ship.h"
 #include "weapon/weapon.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "asteroid/asteroid.h"
 #include "globalincs/linklist.h"
 #include "weapon/beam.h"

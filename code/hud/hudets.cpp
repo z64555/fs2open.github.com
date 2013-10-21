@@ -13,7 +13,7 @@
 #include "hud/hudets.h"
 #include "hud/hud.h"
 #include "ship/ship.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "io/timer.h"
 #include "gamesnd/gamesnd.h"
 #include "weapon/emp.h"

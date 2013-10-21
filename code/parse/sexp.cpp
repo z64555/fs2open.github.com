@@ -29,7 +29,7 @@
 #include "parse/parselo.h"
 #include "parse/sexp.h"
 #include "ship/ship.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "weapon/weapon.h"
 #include "mission/missionlog.h"
 #include "mission/missionparse.h"		// for p_object definition

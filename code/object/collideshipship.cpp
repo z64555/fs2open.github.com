@@ -12,7 +12,7 @@
 #include "object/objcollide.h"
 #include "object/object.h"
 #include "ship/ship.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "ship/shiphit.h"
 #include "gamesnd/gamesnd.h"
 #include "render/3d.h"			// needed for View_position, which is used when playing 3d sound

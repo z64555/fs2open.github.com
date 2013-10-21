@@ -25,7 +25,7 @@
 #include "gamesnd/gamesnd.h"
 #include "network/multi.h"
 #include "weapon/emp.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "localization/localize.h"
 #include "ship/awacs.h"
 #include "radar/radarsetup.h"

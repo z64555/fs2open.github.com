@@ -16,7 +16,7 @@
 #include "gamesnd/gamesnd.h"
 #include "gamesnd/eventmusic.h"
 #include "io/key.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "globalincs/alphacolors.h"
 
 

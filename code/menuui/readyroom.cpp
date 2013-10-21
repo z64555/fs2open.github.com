@@ -20,7 +20,7 @@
 #include "mission/missioncampaign.h"
 #include "gamesnd/gamesnd.h"
 #include "missionui/missionscreencommon.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "playerman/player.h"
 #include "playerman/managepilot.h"
 #include "pilotfile/pilotfile.h"

@@ -15,7 +15,7 @@
 #include "ship/ship.h"
 #include "parse/lua.h"
 #include "parse/scripting.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "stats/scoring.h"
 #include "network/multi.h"
 

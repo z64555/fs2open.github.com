@@ -15,7 +15,7 @@
 #include "globalincs/pstypes.h"
 #include "io/key.h"
 #include "io/mouse.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 
 #define CBLACK Color_black
 #define CGREEN Color_green

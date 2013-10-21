@@ -15,7 +15,7 @@
 #include "parse/parselo.h"
 #include "globalincs/linklist.h"
 #include "io/key.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "localization/localize.h"
 
 //Gobals

@@ -12,7 +12,7 @@
 #include "globalincs/pstypes.h"
 #include "mission/missionhotkey.h"
 #include "gamesequence/gamesequence.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "io/key.h"
 #include "io/timer.h"
 #include "gamesnd/gamesnd.h"

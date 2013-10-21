@@ -19,7 +19,7 @@
 #include "hud/hudtargetbox.h"
 #include "ship/ship.h"
 #include "ship/shipfx.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "gamesnd/gamesnd.h"
 #include "gamesequence/gamesequence.h"
 #include "mission/missionmessage.h"

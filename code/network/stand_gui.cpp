@@ -17,8 +17,8 @@
 #endif
 
 #include "network/stand_gui.h"
-#include "freespace2/freespace.h"
-#include "freespace2/freespaceresource.h"
+#include "freespace.h"
+#include "freespaceresource.h"
 #include "network/multi.h"
 #include "network/multimsgs.h"
 #include "network/multiutil.h"

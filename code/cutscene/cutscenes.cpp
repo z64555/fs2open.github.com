@@ -13,7 +13,7 @@
 #include "ui/ui.h"
 #include "gamesnd/gamesnd.h"
 #include "gamesequence/gamesequence.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "io/key.h"
 #include "movie.h"
 #include "popup/popup.h"

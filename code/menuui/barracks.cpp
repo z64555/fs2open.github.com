@@ -23,7 +23,7 @@
 #include "menuui/playermenu.h"
 #include "gamesequence/gamesequence.h"
 #include "gamehelp/contexthelp.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "io/mouse.h"
 #include "osapi/osregistry.h"
 #include "globalincs/alphacolors.h"

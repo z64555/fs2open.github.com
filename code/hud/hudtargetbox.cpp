@@ -18,7 +18,7 @@
 #include "debris/debris.h"
 #include "playerman/player.h"
 #include "gamesnd/gamesnd.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "io/timer.h"
 #include "ship/subsysdamage.h"
 #include "graphics/font.h"

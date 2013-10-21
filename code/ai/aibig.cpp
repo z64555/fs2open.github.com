@@ -14,7 +14,7 @@
 #include "object/object.h"
 #include "ship/ship.h"
 #include "ship/afterburner.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "weapon/weapon.h"
 #include "io/timer.h"
 #include "mission/missionparse.h"

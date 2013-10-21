@@ -23,7 +23,7 @@
 #include "io/joy_ff.h"
 #include "osapi/osregistry.h"
 #include "graphics/2d.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 
 #define THREADED	// to use the proper set of macros
 #include "osapi/osapi.h"

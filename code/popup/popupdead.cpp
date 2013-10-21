@@ -19,7 +19,7 @@
 
 #include "ui/ui.h"
 #include "io/key.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "gamesnd/gamesnd.h"
 #include "playerman/player.h"
 #include "popup/popupdead.h"

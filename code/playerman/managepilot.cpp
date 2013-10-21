@@ -8,7 +8,7 @@
 */
 
 #include "playerman/managepilot.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "hud/hudsquadmsg.h"
 #include "sound/sound.h"
 #include "gamesnd/eventmusic.h"

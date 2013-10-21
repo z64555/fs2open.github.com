@@ -15,7 +15,7 @@
 #include "graphics/font.h"
 #include "io/mouse.h"
 #include "gamesnd/gamesnd.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "globalincs/alphacolors.h"
 #include "cfile/cfile.h"
 #include "localization/localize.h"

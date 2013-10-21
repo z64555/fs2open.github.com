@@ -13,7 +13,7 @@
 #include "weapon/weapon.h"
 #include "io/key.h"
 #include "controlconfig/controlsconfig.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 
 //tehe. Declare the main event
 script_state Script_system("FS2_Open Scripting");

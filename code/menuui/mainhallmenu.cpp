@@ -27,7 +27,7 @@
 #include "cmdline/cmdline.h"
 #include "popup/popup.h"
 #include "menuui/playermenu.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "globalincs/alphacolors.h"
 #include "graphics/generic.h"
 #include "menuui/fishtank.h"

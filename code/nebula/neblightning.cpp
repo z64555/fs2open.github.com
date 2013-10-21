@@ -13,7 +13,7 @@
 #include "parse/parselo.h"
 #include "globalincs/linklist.h"
 #include "io/timer.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "gamesnd/gamesnd.h"
 #include "render/3d.h"
 #include "nebula/neb.h"

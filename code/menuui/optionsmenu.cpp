@@ -16,7 +16,7 @@
 #include "gamesequence/gamesequence.h"
 #include "io/key.h"
 #include "pilotfile/pilotfile.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "gamesnd/gamesnd.h"
 #include "gamesnd/eventmusic.h"
 #include "menuui/mainhallmenu.h"

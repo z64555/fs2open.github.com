@@ -17,7 +17,7 @@
 #include "io/timer.h"
 #include "render/3d.h"			// needed for View_position, which is used when playing a 3D sound
 #include "hud/hudets.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "network/multi.h"
 
 // ----------------------------------------------------------

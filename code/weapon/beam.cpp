@@ -16,7 +16,7 @@
 #include "object/objcollide.h"
 #include "object/objectshield.h"
 #include "ship/ship.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "render/3d.h"
 #include "io/timer.h"
 #include "debris/debris.h"

@@ -19,7 +19,7 @@
 #include "io/key.h"
 #include "playerman/managepilot.h"
 #include "pilotfile/pilotfile.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "gamesequence/gamesequence.h"
 #include "cmdline/cmdline.h"
 #include "osapi/osregistry.h"

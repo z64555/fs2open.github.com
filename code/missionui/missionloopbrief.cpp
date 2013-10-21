@@ -19,7 +19,7 @@
 #include "mission/missioncampaign.h"
 #include "mission/missionbriefcommon.h"
 #include "anim/animplay.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "sound/fsspeech.h"
 #include "popup/popup.h"
 

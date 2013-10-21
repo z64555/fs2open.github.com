@@ -24,7 +24,7 @@
 #include "globalincs/linklist.h"
 #include "weapon/weapon.h"
 #include "playerman/player.h"
-#include "freespace2/freespace.h"	// for flFrametime
+#include "freespace.h"	// for flFrametime
 #include "io/timer.h"
 #include "gamesnd/gamesnd.h"
 #include "debris/debris.h"

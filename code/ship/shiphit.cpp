@@ -22,7 +22,7 @@
 #include "mission/missionlog.h"
 #include "io/joy_ff.h"
 #include "playerman/player.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "globalincs/linklist.h"
 #include "hud/hudtarget.h"
 #include "gamesnd/gamesnd.h"

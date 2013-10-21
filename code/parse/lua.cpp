@@ -5,7 +5,7 @@
 #include "cfile/cfilesystem.h"
 #include "debris/debris.h"
 #include "cmdline/cmdline.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "gamesequence/gamesequence.h"
 #include "graphics/2d.h"
 #include "graphics/font.h"

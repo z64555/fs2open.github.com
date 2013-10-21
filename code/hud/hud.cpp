@@ -11,7 +11,7 @@
 #include "hud/hud.h"
 #include "asteroid/asteroid.h"
 #include "cmdline/cmdline.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "gamesnd/eventmusic.h"
 #include "gamesnd/gamesnd.h"
 #include "globalincs/alphacolors.h"

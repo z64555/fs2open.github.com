@@ -18,7 +18,7 @@
 #include "mission/missioncampaign.h"
 #include "mission/missionload.h"
 #include "playerman/player.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 
 
 // ------------------------------------------------------------------------------------------------------------------------

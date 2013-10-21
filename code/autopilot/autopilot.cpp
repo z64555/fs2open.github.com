@@ -13,7 +13,7 @@
 #include "object/objcollide.h"
 #include "object/waypoint.h"
 #include "parse/sexp.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "globalincs/linklist.h"
 #include "iff_defs/iff_defs.h"
 #include "sound/audiostr.h"

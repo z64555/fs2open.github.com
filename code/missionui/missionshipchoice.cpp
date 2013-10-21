@@ -15,7 +15,7 @@
 #include "mission/missionparse.h"
 #include "parse/parselo.h"
 #include "missionui/missionbrief.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "gamesequence/gamesequence.h"
 #include "ship/ship.h"
 #include "io/key.h"
