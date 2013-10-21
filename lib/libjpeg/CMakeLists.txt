@@ -44,7 +44,7 @@ IF (NOT JPEG_FOUND)
 		jpeglib.h
 		jversion.h)
 
-	ADD_LIBRARY(libjpeg ${JPEG_SOURCES})
+	ADD_LIBRARY(jpeg ${JPEG_SOURCES})
 	
 	SET(JPEG_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE INTERNAL "JPEG include directory")
 	

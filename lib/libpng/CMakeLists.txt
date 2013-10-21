@@ -26,7 +26,7 @@ IF (NOT PNG_FOUND)
 		pngpriv.h
 		pngstruct.h)
 
-	ADD_LIBRARY(libpng ${PNG_SOURCES})
+	ADD_LIBRARY(png ${PNG_SOURCES})
 	
 	INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIR})
 	
