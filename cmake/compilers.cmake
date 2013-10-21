@@ -1,6 +1,9 @@
 
 # File to execute compiler specific commands
 
+SET(COMPILER_INCLUDES "" CACHE INTERNAL "Compiler specific includes")
+SET(COMPILER_LBRARIES "" CACHE INTERNAL "Compiler specific libraries")
+
 IF (MSVC)
 	INCLUDE(msvc)
 ELSE(MSVC)
