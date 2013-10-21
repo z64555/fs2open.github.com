@@ -4,9 +4,6 @@
 IF (MSVC)
 	INCLUDE(msvc)
 ELSE(MSVC)
-	# Set additional libraries to an empty string
-	SET(ADDITIONAL_LIBRARIES "" CACHE INTERNAL)
-
 	MESSAGE(STATUS "No special handling for this compiler present, good luck!")
 	
 	IF (NOT FSO_INSTRUCTION_SET STREQUAL "")
