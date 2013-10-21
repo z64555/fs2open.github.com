@@ -1,4 +1,6 @@
 
+MESSAGE(STATUS "Doing configuration specific to visual studio...")
+
 INCLUDE(util)
 
 # Disable SAFESEH for visual studio

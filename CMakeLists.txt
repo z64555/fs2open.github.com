@@ -30,6 +30,7 @@ ENDIF()
 
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 INCLUDE(compilers)
+INCLUDE(platforms)
 
 INCLUDE(headers)
 

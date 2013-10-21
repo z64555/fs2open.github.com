@@ -28,21 +28,21 @@ set (file_root_anim
 
 # Asteroid files
 set (file_root_asteroid
-	Asteroid/asteroid.cpp
-	Asteroid/asteroid.h
+	asteroid/asteroid.cpp
+	asteroid/asteroid.h
 )
 
 # Autopilot files
 set (file_root_autopilot
-	Autopilot/autopilot.cpp
-	Autopilot/autopilot.h
+	autopilot/autopilot.cpp
+	autopilot/autopilot.h
 )
 
 # Bmpman files
 set (file_root_bmpman
 	bmpman/bm_internal.h
-	Bmpman/bmpman.cpp
-	Bmpman/bmpman.h
+	bmpman/bmpman.cpp
+	bmpman/bmpman.h
 )
 
 # Camera files
@@ -64,14 +64,14 @@ set (file_root_cfile
 
 # Cmdline files
 set (file_root_cmdline
-	Cmdline/cmdline.cpp
-	Cmdline/cmdline.h
+	cmdline/cmdline.cpp
+	cmdline/cmdline.h
 )
 
 # CMeasure files
 set (file_root_cmeasure
-	CMeasure/cmeasure.cpp
-	CMeasure/cmeasure.h
+	cmeasure/cmeasure.cpp
+	cmeasure/cmeasure.h
 )
 
 # ControlConfig files
@@ -83,8 +83,8 @@ set (file_root_controlconfig
 
 # Cutscene files
 set (file_root_cutscene
-	Cutscene/cutscenes.cpp
-	Cutscene/cutscenes.h
+	cutscene/cutscenes.cpp
+	cutscene/cutscenes.h
 	cutscene/decoder16.cpp
 	cutscene/decoder8.cpp
 	cutscene/movie.cpp
@@ -105,29 +105,29 @@ set (file_root_ddsutils
 
 # Debris files
 set (file_root_debris
-	Debris/debris.cpp
-	Debris/debris.h
+	debris/debris.cpp
+	debris/debris.h
 )
 
 # DebugConsole files
 set (file_root_debugconsole
-	DebugConsole/console.cpp
+	debugconsole/console.cpp
 )
 
 # DirectX files
 set (file_root_directx
-	DirectX/vasync.h
-	DirectX/vdinput.h
-	DirectX/vdplay.h
-	DirectX/vdplobby.h
-	DirectX/vdsetup.h
-	DirectX/vdvp.h
+	directx/vasync.h
+	directx/vdinput.h
+	directx/vdplay.h
+	directx/vdplobby.h
+	directx/vdsetup.h
+	directx/vdvp.h
 )
 
 # ExceptionHandler files
 set (file_root_exceptionhandler
 	exceptionhandler/exceptionhandler.cpp
-	ExceptionHandler/exceptionhandler.h
+	exceptionhandler/exceptionhandler.h
 )
 
 # ExternalDLL files
@@ -166,7 +166,7 @@ set (file_root_gamehelp_fs2netd
 # GameSequence files
 set (file_root_gamesequence
 	gamesequence/gamesequence.cpp
-	GameSequence/gamesequence.h
+	gamesequence/gamesequence.h
 )
 
 # GameSnd files
@@ -199,13 +199,19 @@ set (file_root_globalincs
 	globalincs/version.cpp
 	globalincs/version.h
 	globalincs/vmallocator.h
-	globalincs/windebug.cpp
 )
+
+IF (WIN32)
+set (file_root_globalincs
+	${file_root_globalincs}
+	globalincs/windebug.h
+)
+ENDIF(WIN32)
 
 # Graphics files
 set (file_root_graphics
 	graphics/2d.cpp
-	Graphics/2d.h
+	graphics/2d.h
 	graphics/grbatch.cpp
 	graphics/grbatch.h
 	graphics/grinternal.h
@@ -246,13 +252,13 @@ set (file_root_graphics_openglgr_opengl_headers
 
 # Graphics -> SoftwareGr files
 set (file_root_graphics_softwaregr
-	Graphics/font.cpp
-	Graphics/font.h
+	graphics/font.cpp
+	graphics/font.h
 	graphics/generic.cpp
 	graphics/generic.h
 	graphics/grstub.cpp
 	graphics/grstub.h
-	Graphics/line.h
+	graphics/line.h
 )
 
 # Hud files
@@ -312,23 +318,29 @@ set (file_root_inetfile
 
 # Io files
 set (file_root_io
-	io/joy.cpp
-	io/joy.h
-	io/joy_ff.cpp
-	io/joy_ff.h
 	io/key.cpp
 	io/key.h
 	io/keycontrol.cpp
 	io/keycontrol.h
 	io/mouse.cpp
 	io/mouse.h
+	io/timer.cpp
+	io/timer.h
+)	
+
+IF(WIN32)
+set (file_root_io
+	${file_root_io}
+	io/joy.cpp
+	io/joy.h
+	io/joy_ff.cpp
+	io/joy_ff.h
 	io/sw_error.hpp
 	io/sw_force.h
 	io/sw_guid.hpp
 	io/swff_lib.cpp
-	io/timer.cpp
-	io/timer.h
 )
+ENDIF(WIN32)
 
 # jpgutils files
 set (file_root_jpgutils
@@ -352,33 +364,33 @@ set (file_root_lab
 
 # Lighting files
 set (file_root_lighting
-	Lighting/lighting.cpp
-	Lighting/lighting.h
+	lighting/lighting.cpp
+	lighting/lighting.h
 )
 
 # Localization files
 set (file_root_localization
-	Localization/fhash.cpp
-	Localization/fhash.h
-	Localization/localize.cpp
-	Localization/localize.h
+	localization/fhash.cpp
+	localization/fhash.h
+	localization/localize.cpp
+	localization/localize.h
 )
 
 # Math files
 set (file_root_math
 	math/bitarray.h
-	Math/fix.cpp
-	Math/fix.h
-	Math/floating.cpp
-	Math/floating.h
-	Math/fvi.cpp
-	Math/fvi.h
-	Math/spline.cpp
-	Math/spline.h
-	Math/staticrand.cpp
-	Math/staticrand.h
-	Math/vecmat.cpp
-	Math/vecmat.h
+	math/fix.cpp
+	math/fix.h
+	math/floating.cpp
+	math/floating.h
+	math/fvi.cpp
+	math/fvi.h
+	math/spline.cpp
+	math/spline.h
+	math/staticrand.cpp
+	math/staticrand.h
+	math/vecmat.cpp
+	math/vecmat.h
 )
 
 # MenuUI files
@@ -583,27 +595,38 @@ set (file_root_object
 
 # Observer files
 set (file_root_observer
-	Observer/observer.cpp
-	Observer/observer.h
+	observer/observer.cpp
+	observer/observer.h
 )
 
 # OsApi files
 set (file_root_osapi
 	osapi/monopub.h
-	osapi/osapi.cpp
 	osapi/osapi.h
-	osapi/osapi_unix.cpp
-	osapi/osregistry.cpp
 	osapi/osregistry.h
-	osapi/osregistry_unix.cpp
-	osapi/outwnd.cpp
 	osapi/outwnd.h
 )
 
+IF(WIN32)
+set (file_root_osapi
+	${file_root_osapi}
+	osapi/osapi.cpp
+	osapi/osregistry.cpp
+	osapi/outwnd.cpp
+)
+ELSEIF(UNIX)
+set (file_root_osapi
+	${file_root_osapi}
+	osapi/osapi_unix.cpp
+	osapi/osregistry_unix.cpp
+	osapi/outwnd_unix.cpp
+)
+ENDIF(WIN32)
+
 # Palman files
 set (file_root_palman
-	Palman/palman.cpp
-	Palman/palman.h
+	palman/palman.cpp
+	palman/palman.h
 )
 
 # Parse files
@@ -624,32 +647,32 @@ set (file_root_parse
 
 # Particle files
 set (file_root_particle
-	Particle/particle.cpp
-	Particle/particle.h
+	particle/particle.cpp
+	particle/particle.h
 )
 
 # PcxUtils files
 set (file_root_pcxutils
-	PcxUtils/pcxutils.cpp
-	PcxUtils/pcxutils.h
+	pcxutils/pcxutils.cpp
+	pcxutils/pcxutils.h
 )
 
 # Physics files
 set (file_root_physics
-	Physics/physics.cpp
-	Physics/physics.h
+	physics/physics.cpp
+	physics/physics.h
 )
 
 # PilotFile files
 set (file_root_pilotfile
-	PilotFile/csg.cpp
-	PilotFile/csg_convert.cpp
-	PilotFile/pilotfile.cpp
-	PilotFile/pilotfile.h
-	PilotFile/pilotfile_convert.cpp
-	PilotFile/pilotfile_convert.h
-	PilotFile/plr.cpp
-	PilotFile/plr_convert.cpp
+	pilotfile/csg.cpp
+	pilotfile/csg_convert.cpp
+	pilotfile/pilotfile.cpp
+	pilotfile/pilotfile.h
+	pilotfile/pilotfile_convert.cpp
+	pilotfile/pilotfile_convert.h
+	pilotfile/plr.cpp
+	pilotfile/plr_convert.cpp
 )
 
 # Playerman files
@@ -676,8 +699,8 @@ set (file_root_popup
 
 # Radar files
 set (file_root_radar
-	Radar/radar.cpp
-	Radar/radar.h
+	radar/radar.cpp
+	radar/radar.h
 	radar/radardradis.cpp
 	radar/radardradis.h
 	radar/radarorb.cpp
@@ -757,28 +780,28 @@ set (file_root_species_defs
 
 # Starfield files
 set (file_root_starfield
-	Starfield/nebula.cpp
-	Starfield/nebula.h
-	Starfield/starfield.cpp
-	Starfield/starfield.h
-	Starfield/supernova.cpp
-	Starfield/supernova.h
+	starfield/nebula.cpp
+	starfield/nebula.h
+	starfield/starfield.cpp
+	starfield/starfield.h
+	starfield/supernova.cpp
+	starfield/supernova.h
 )
 
 # Stats files
 set (file_root_stats
-	Stats/medals.cpp
-	Stats/medals.h
-	Stats/scoring.cpp
+	stats/medals.cpp
+	stats/medals.h
+	stats/scoring.cpp
 	stats/scoring.h
-	Stats/stats.cpp
-	Stats/stats.h
+	stats/stats.cpp
+	stats/stats.h
 )
 
 # TgaUtils files
 set (file_root_tgautils
-	TgaUtils/tgautils.cpp
-	TgaUtils/tgautils.h
+	tgautils/tgautils.cpp
+	tgautils/tgautils.h
 )
 
 # Ui files
