@@ -5,7 +5,7 @@ SET(FREESPACE_SRC freespace.cpp
 				levelpaging.h
 				freespace.rc)
 
-ADD_EXECUTABLE(Freespace2 ${FREESPACE_SRC})
+ADD_EXECUTABLE(Freespace2 WIN32 ${FREESPACE_SRC})
 
 SET_TARGET_PROPERTIES(Freespace2 PROPERTIES DEBUG_POSTFIX "-DEBUG")
 
