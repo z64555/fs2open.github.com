@@ -204,7 +204,7 @@ set (file_root_globalincs
 IF (WIN32)
 set (file_root_globalincs
 	${file_root_globalincs}
-	globalincs/windebug.h
+	globalincs/windebug.cpp
 )
 ENDIF(WIN32)
 
