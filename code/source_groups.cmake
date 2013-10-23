@@ -202,10 +202,10 @@ set (file_root_globalincs
 )
 
 IF (WIN32)
-set (file_root_globalincs
-	${file_root_globalincs}
-	globalincs/windebug.cpp
-)
+	set (file_root_globalincs
+		${file_root_globalincs}
+		globalincs/windebug.cpp
+	)
 ENDIF(WIN32)
 
 # Graphics files
@@ -862,7 +862,11 @@ source_group("Cutscene"                           FILES ${file_root_cutscene})
 source_group("ddsutils"                           FILES ${file_root_ddsutils})
 source_group("Debris"                             FILES ${file_root_debris})
 source_group("DebugConsole"                       FILES ${file_root_debugconsole})
-source_group("DirectX"                            FILES ${file_root_directx})
+
+IF(WIN32)
+	source_group("DirectX"                        FILES ${file_root_directx})
+ENDIF(WIN32)
+
 source_group("ExceptionHandler"                   FILES ${file_root_exceptionhandler})
 source_group("ExternalDLL"                        FILES ${file_root_externaldll})
 source_group("Fireball"                           FILES ${file_root_fireball})
@@ -934,7 +938,6 @@ set (file_root
 	${file_root_ddsutils}
 	${file_root_debris}
 	${file_root_debugconsole}
-	${file_root_directx}
 	${file_root_exceptionhandler}
 	${file_root_externaldll}
 	${file_root_fireball}
@@ -989,3 +992,7 @@ set (file_root
 	${file_root_ui}
 	${file_root_weapon}
 )
+
+IF(WIN32)
+	set (file_root ${file_root} ${file_root_directx})
+ENDIF(WIN32)
