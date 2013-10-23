@@ -112,6 +112,9 @@ set (file_root_debris
 # DebugConsole files
 set (file_root_debugconsole
 	debugconsole/console.cpp
+	debugconsole/dbugfile.h
+	debugconsole/timerbar.cpp
+	debugconsole/timerbar.h
 )
 
 # DirectX files
@@ -187,8 +190,6 @@ set (file_root_globalincs
 	globalincs/fsmemory.h
 	globalincs/globals.h
 	globalincs/linklist.h
-	globalincs/mspdb_callstack.cpp
-	globalincs/mspdb_callstack.h
 	globalincs/profiling.cpp
 	globalincs/pstypes.h
 	globalincs/safe_strings.cpp
@@ -204,6 +205,8 @@ set (file_root_globalincs
 IF (WIN32)
 	set (file_root_globalincs
 		${file_root_globalincs}
+		globalincs/mspdb_callstack.cpp
+		globalincs/mspdb_callstack.h
 		globalincs/windebug.cpp
 	)
 ENDIF(WIN32)
@@ -326,20 +329,25 @@ set (file_root_io
 	io/mouse.h
 	io/timer.cpp
 	io/timer.h
+	io/joy.h
+	io/joy_ff.h
 )	
 
 IF(WIN32)
-set (file_root_io
-	${file_root_io}
-	io/joy.cpp
-	io/joy.h
-	io/joy_ff.cpp
-	io/joy_ff.h
-	io/sw_error.hpp
-	io/sw_force.h
-	io/sw_guid.hpp
-	io/swff_lib.cpp
-)
+	set (file_root_io
+		${file_root_io}
+		io/joy.cpp
+		io/joy_ff.cpp
+		io/sw_error.hpp
+		io/sw_force.h
+		io/sw_guid.hpp
+		io/swff_lib.cpp
+	)
+ELSEIF(UNIX)
+	set (file_root_io
+		${file_root_io}
+		io/joy-unix.cpp
+	)
 ENDIF(WIN32)
 
 # jpgutils files
@@ -601,7 +609,6 @@ set (file_root_observer
 
 # OsApi files
 set (file_root_osapi
-	osapi/monopub.h
 	osapi/osapi.h
 	osapi/osregistry.h
 	osapi/outwnd.h
@@ -610,6 +617,7 @@ set (file_root_osapi
 IF(WIN32)
 set (file_root_osapi
 	${file_root_osapi}
+	osapi/monopub.h
 	osapi/osapi.cpp
 	osapi/osregistry.cpp
 	osapi/outwnd.cpp
