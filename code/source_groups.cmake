@@ -846,6 +846,18 @@ set (file_root_weapon
 	weapon/weapons.cpp
 )
 
+# Windows stubs files
+set(file_root_windows_stubs
+	windows_stub/config.h
+)
+
+IF(UNIX)
+	SET(file_root_windows_stubs
+		${file_root_windows_stubs}
+		windows_stub/stubs.cpp
+	)
+ENDIF(UNIX)
+
 # the source groups
 source_group(""                                   FILES ${file_root})
 source_group("AI"                                 FILES ${file_root_ai})
@@ -920,6 +932,7 @@ source_group("Stats"                              FILES ${file_root_stats})
 source_group("TgaUtils"                           FILES ${file_root_tgautils})
 source_group("Ui"                                 FILES ${file_root_ui})
 source_group("Weapon"                             FILES ${file_root_weapon})
+source_group("Windows Stubs"                      FILES ${file_root_windows_stubs})
 
 # append all files to the file_root
 set (file_root
@@ -991,6 +1004,7 @@ set (file_root
 	${file_root_tgautils}
 	${file_root_ui}
 	${file_root_weapon}
+	${file_root_windows_stubs}
 )
 
 IF(WIN32)
