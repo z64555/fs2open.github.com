@@ -8,7 +8,7 @@ ADD_DEFINITIONS(-DNO_CD_CHECK)
 
 IF (MSVC)
 	INCLUDE(msvc)
-ELSEIF(CMAKE_GENERATOR STREQUAL "Unix Makefiles")
+ELSEIF(CMAKE_COMPILER_IS_GNUCC)
 	INCLUDE(gcc)
 ELSE(MSVC)
 	MESSAGE(STATUS "No special handling for this compiler present, good luck!")
