@@ -18,6 +18,8 @@ IF (WIN32)
 	OPTION(FSO_USE_VOICEREC "Enable voice recognition support" OFF)
 ENDIF(WIN32)
 
+OPTION(FSO_COPY_EXE "Copy executables to FS2PATH when the build is done" ON)
+
 SET(FSO_INSTRUCTION_SET "" CACHE STRING "The instruction set enhancement to use, possible options are SSE, SSE2 and AVX")
 
 IF (NOT FSO_INSTRUCTION_SET STREQUAL "SSE" AND NOT FSO_INSTRUCTION_SET STREQUAL "SSE2"
