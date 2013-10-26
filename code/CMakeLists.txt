@@ -17,6 +17,7 @@ IF(FSO_USE_VOICEREC)
 	ADD_CUSTOM_COMMAND(TARGET code
 		PRE_BUILD
 		COMMAND "${SOUND_DIR}/gc.exe" /h "${GRAMMAR_HEADER}" "${SOUND_DIR}/phrases.xml"
+		COMMENT "Compiling voice recognition files"
 		)
 ENDIF(FSO_USE_VOICEREC)
 
