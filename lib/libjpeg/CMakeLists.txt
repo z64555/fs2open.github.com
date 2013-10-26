@@ -2,6 +2,8 @@
 FIND_PACKAGE(JPEG QUIET)
 
 IF (NOT JPEG_FOUND)
+	MESSAGE(STATUS "Could not find jpeg libraries on system, using included source")
+
 	SET(JPEG_SOURCES 
 		jaricom.c
 		jcapimin.c

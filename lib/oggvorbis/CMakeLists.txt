@@ -9,6 +9,7 @@ ENDIF(WIN32)
 
 # We have precompiled libs for windows
 IF (NOT OGGVORBIS_FOUND AND WIN32)
+	MESSAGE(STATUS "Could not find ogg vorbis libraries on system, using included pre-built libraries")
 
 	SET(VORBIS_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include CACHE INTERNAL "Vorbis include directory")
 	SET(OGG_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include CACHE INTERNAL "Ogg include directory")
@@ -25,6 +26,7 @@ ELSE(NOT OGGVORBIS_FOUND AND WIN32)
 ENDIF(NOT OGGVORBIS_FOUND AND WIN32)
 
 IF (NOT THEORA_FOUND AND WIN32)
+	MESSAGE(STATUS "Could not find theora libraries on system, using included pre-built libraries")
 
 	SET(THEORA_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include CACHE INTERNAL "THEORA include directory")
 	

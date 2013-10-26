@@ -2,6 +2,8 @@
 FIND_PACKAGE(ZLIB QUIET)
 
 IF (NOT ZLIB_FOUND)
+	MESSAGE(STATUS "Could not find zlib libraries on system, using included source")
+	
 	SET(ZLIB_SOURCES
 		adler32.c
 		compress.c

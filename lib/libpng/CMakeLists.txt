@@ -2,6 +2,8 @@
 FIND_PACKAGE(PNG QUIET)
 
 IF (NOT PNG_FOUND)
+	MESSAGE(STATUS "Could not find png libraries on system, using included source")
+	
 	SET(PNG_SOURCES
 		png.c
 		pngerror.c

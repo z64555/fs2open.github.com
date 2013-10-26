@@ -2,6 +2,8 @@
 FIND_PACKAGE(Lua51 QUIET)
 
 IF (NOT LUA51_FOUND)
+	MESSAGE(STATUS "Could not find lua libraries on system, using included source")
+	
 	SET(LUA51_SOURCES
 		lapi.c
 		lauxlib.c
