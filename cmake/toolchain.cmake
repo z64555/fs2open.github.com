@@ -6,11 +6,13 @@ SET(COMPILER_LBRARIES "" CACHE INTERNAL "Compiler specific libraries")
 
 ADD_DEFINITIONS(-DNO_CD_CHECK)
 
-IF (MSVC)
-	INCLUDE(msvc)
-ELSEIF(CMAKE_COMPILER_IS_GNUCC)
-	INCLUDE(gcc)
-ELSE(MSVC)
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+	include(toolchain-gcc)
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+	include(toolchain-msvc)
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+	include(toolchain-clang)
+ELSE(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
 	MESSAGE(STATUS "No special handling for this compiler present, good luck!")
 	
 	IF (NOT FSO_INSTRUCTION_SET STREQUAL "")
@@ -18,4 +20,6 @@ ELSE(MSVC)
 	
 		SET(FSO_INSTRUCTION_SET "")
 	ENDIF(NOT FSO_INSTRUCTION_SET STREQUAL "")
-ENDIF(MSVC)
+ENDIF(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+
+

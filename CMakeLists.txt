@@ -5,20 +5,22 @@ SET(FSO_VERSION_MAJOR 3)
 SET(FSO_VERSION_MINOR 7)
 SET(FSO_VERSION_RELEASE 1)
 
-IF (NOT FSO_VERSION_REVISION)
-	SET(FSO_VERSION_REVISION 0)
-ENDIF(NOT FSO_VERSION_REVISION)
-
 PROJECT(FSO)
+
+set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING "Available configurations" FORCE)
 
 ### Define options and editable variables in the section below:
 IF (WIN32)
 	OPTION(FSO_USE_SPEECH "Use Windows specific text-to-speach libraries" OFF)
 	
 	OPTION(FSO_USE_VOICEREC "Enable voice recognition support" OFF)
+
+	OPTION(FSO_BUILD_FRED2 "Build FRED2 binary" OFF)
 ENDIF(WIN32)
 
 OPTION(FSO_COPY_EXE "Copy executables to FS2PATH when the build is done" ON)
+
+OPTION(FSO_BUILD_WXFRED2 "Build wxFRED2 binary" OFF)
 
 SET(FSO_INSTRUCTION_SET "" CACHE STRING "The instruction set enhancement to use, possible options are SSE, SSE2 and AVX")
 
@@ -31,7 +33,7 @@ IF (NOT FSO_INSTRUCTION_SET STREQUAL "SSE" AND NOT FSO_INSTRUCTION_SET STREQUAL 
 ENDIF()
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-INCLUDE(compilers)
+INCLUDE(toolchain)
 INCLUDE(platforms)
 INCLUDE(generators)
 
