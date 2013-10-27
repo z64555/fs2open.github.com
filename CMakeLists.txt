@@ -24,6 +24,8 @@ OPTION(FSO_BUILD_WXFRED2 "Build wxFRED2 binary" OFF)
 
 SET(FSO_INSTRUCTION_SET "" CACHE STRING "The instruction set enhancement to use, possible options are SSE, SSE2 and AVX")
 
+SET(FSO_FS2_PATH $ENV{FS2PATH} CACHE STRING "The path to FreeSpace 2, used for copying the binaries after building")
+
 IF (NOT FSO_INSTRUCTION_SET STREQUAL "SSE" AND NOT FSO_INSTRUCTION_SET STREQUAL "SSE2"
 	AND NOT FSO_INSTRUCTION_SET STREQUAL "AVX" AND NOT FSO_INSTRUCTION_SET STREQUAL "")
 
@@ -35,7 +37,6 @@ ENDIF()
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 INCLUDE(toolchain)
 INCLUDE(platforms)
-INCLUDE(generators)
 
 INCLUDE(headers)
 
