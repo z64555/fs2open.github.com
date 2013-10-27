@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include <string.h>
 #include "fred.h"
-#include "fred2/freddoc.h"
+#include "freddoc.h"
 #include "VoiceActingManager.h"
 #include "missionui/missioncmdbrief.h"
 #include "mission/missionbriefcommon.h"

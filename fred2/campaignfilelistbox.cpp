@@ -12,7 +12,7 @@
 
 #include "stdafx.h"
 #include "FRED.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "CampaignFilelistBox.h"
 #include "CampaignTreeWnd.h"
 #include "mission/missioncampaign.h"

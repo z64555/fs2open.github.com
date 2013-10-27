@@ -6,7 +6,7 @@ set_property(GLOBAL PROPERTY DEBUG_CONFIGURATIONS Debug)
 # Base
 set(CMAKE_C_FLAGS "/MP /GS- /analyze- /Zc:wchar_t /errorReport:prompt /WX- /Zc:forScope /Gd /EHsc /nologo")
 set(CMAKE_CXX_FLAGS "/MP  /GS- /analyze- /Zc:wchar_t /errorReport:prompt /WX- /Zc:forScope /Gd /EHsc /nologo")
-set(CMAKE_EXE_LINKER_FLAGS "/MANIFEST /DYNAMICBASE:NO /MAPINFO:EXPORTS /SAFESEH:NO /MANIFESTUAC:NO /ERRORREPORT:PROMPT /NOLOGO")
+set(CMAKE_EXE_LINKER_FLAGS "/MANIFEST /DYNAMICBASE:NO /MAPINFO:EXPORTS /SAFESEH:NO /MANIFESTUAC:NO /ERRORREPORT:PROMPT /NOLOGO /FORCE:MULTIPLE")
 
 # Release
 set(CMAKE_C_FLAGS_RELEASE "/GL /W2 /Gy- /Zi /O2 /Ob2 /fp:fast /GF /Oy /Oi /MT")

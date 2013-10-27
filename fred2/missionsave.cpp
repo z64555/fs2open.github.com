@@ -10,7 +10,7 @@
 
 
 #include "stdafx.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "MissionSave.h"
 #include "mission/missiongoals.h"
 #include "mission/missionmessage.h"
