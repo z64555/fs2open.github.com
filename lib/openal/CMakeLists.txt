@@ -9,9 +9,15 @@ ENDIF(WIN32)
 IF (NOT OPENAL_FOUND AND WIN32)
 	MESSAGE(STATUS "Could not find OpenAL libraries on system, using included pre-built libraries")
 	
+	add_library(openal STATIC IMPORTED)
+	set_target_properties(openal
+		PROPERTIES
+			IMPORTED_LOCATION libs/win32/openal32.lib
+	)
+
 	SET(OPENAL_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include CACHE INTERNAL "OpenAL include directory")
-	
-	SET(OPENAL_LIBRARY ${CMAKE_CURRENT_LIST_DIR}/libs/win32/openal32.lib CACHE INTERNAL "Ogg vorbis library files")
+
+	SET(OPENAL_LIBRARY openal CACHE INTERNAL "OpenAL library")
 ELSE(NOT OPENAL_FOUND AND WIN32)
 	INCLUDE(util)
 
