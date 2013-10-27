@@ -22,3 +22,7 @@ documentation/
 # Auto generated files
 code/sound/grammar.h
 code/sound/phrases.cfg
+
+# Temporary files
+*~
+
