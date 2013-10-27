@@ -48,6 +48,18 @@ IF (NOT JPEG_FOUND)
 
 	ADD_LIBRARY(jpeg ${JPEG_SOURCES})
 	
+	set_target_properties(jpeg
+		PROPERTIES
+			COMPILE_DEFINITIONS _CRT_SECURE_NO_WARNINGS
+	)
+
+	set_target_properties(jpeg
+		PROPERTIES
+			COMPILE_FLAGS "/W0"
+			FOLDER "3rdparty"
+			STATIC_LIBRARY_FLAGS "/LTCG"
+	)
+	
 	SET(JPEG_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE INTERNAL "JPEG include directory")
 	
 	SET(JPEG_LIBRARIES jpeg CACHE INTERNAL "JPEG library")

@@ -64,6 +64,18 @@ IF (NOT LUA51_FOUND)
 
 	ADD_LIBRARY(lua51 ${LUA51_SOURCES})
 	
+	set_target_properties(lua51
+		PROPERTIES
+			COMPILE_FLAGS _CRT_SECURE_NO_WARNINGS
+	)
+
+	set_target_properties(lua51
+		PROPERTIES
+			COMPILE_FLAGS "/W0"
+			FOLDER "3rdparty"
+			STATIC_LIBRARY_FLAGS "/LTCG"
+	)
+	
 	SET(LUA_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE INTERNAL "Lua 5.1 include directory")
 	
 	SET(LUA_LIBRARIES lua51 CACHE INTERNAL "Lua 5.1 library")
