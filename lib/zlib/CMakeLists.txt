@@ -28,6 +28,13 @@ IF (NOT ZLIB_FOUND)
 		zutil.h)
 
 	ADD_LIBRARY(zlib ${ZLIB_SOURCES})
+
+	set_target_properties(zlib
+		PROPERTIES
+			COMPILE_FLAGS "/W0"
+			FOLDER "3rdparty"
+			STATIC_LIBRARY_FLAGS "/LTCG"
+	)
 	
 	SET(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE INTERNAL "ZLIB include directory")
 	
