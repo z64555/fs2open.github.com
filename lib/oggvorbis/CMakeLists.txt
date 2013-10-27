@@ -1,16 +1,12 @@
 
-IF(WIN32)
-	FIND_PACKAGE(OggVorbis)
-	FIND_PACKAGE(Theora)
-ELSE(WIN32)
-	FIND_PACKAGE(OggVorbis REQUIRED)
-	FIND_PACKAGE(Theora REQUIRED)
-ENDIF(WIN32)
-
-# We have precompiled libs for windows
-IF (NOT OGGVORBIS_FOUND AND WIN32)
-	MESSAGE(STATUS "Could not find ogg vorbis libraries on system, using included pre-built libraries")
-
+IF(UNIX)
+	find_package(PkgConfig REQUIRED)
+	pkg_check_modules(OGG REQUIRED ogg)
+	pkg_check_modules(THEORA REQUIRED theora)
+	pkg_check_modules(VORBIS REQUIRED vorbis)
+	pkg_check_modules(VORBISFILE REQUIRED vorbisfile)
+ELSEIF (WIN32)
+	# We have precompiled libs for windows
 	add_library(ogg STATIC IMPORTED)
 	set_target_properties(ogg
 		PROPERTIES
@@ -36,16 +32,6 @@ IF (NOT OGGVORBIS_FOUND AND WIN32)
 	SET(OGG_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include CACHE INTERNAL "Ogg include directory")
 
 	SET(OGGVORBIS_LIBRARY ogg vorbis vorbisfile CACHE INTERNAL "OggVorbis library")
-ELSE(NOT OGGVORBIS_FOUND AND WIN32)
-	INCLUDE(util)
-
-	MAKE_CACHE_INTERNAL(VORBIS_INCLUDE_DIR)
-	MAKE_CACHE_INTERNAL(OGG_INCLUDE_DIR)
-	MAKE_CACHE_INTERNAL(OGGVORBIS_LIBRARIES)
-ENDIF(NOT OGGVORBIS_FOUND AND WIN32)
-
-IF (NOT THEORA_FOUND AND WIN32)
-	MESSAGE(STATUS "Could not find theora libraries on system, using included pre-built libraries")
 
 	add_library(theora STATIC IMPORTED)
 	set_target_properties(theora
@@ -57,10 +43,5 @@ IF (NOT THEORA_FOUND AND WIN32)
 	SET(THEORA_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include CACHE INTERNAL "THEORA include directory")
 
 	SET(THEORA_LIBRARY theora CACHE INTERNAL "Theora library")
-ELSE(NOT THEORA_FOUND AND WIN32)
-	INCLUDE(util)
-
-	MAKE_CACHE_INTERNAL(THEORA_INCLUDE_DIR)
-	MAKE_CACHE_INTERNAL(THEORA_LIBRARY)
-ENDIF(NOT THEORA_FOUND AND WIN32)
+ENDIF(UNIX)
 
