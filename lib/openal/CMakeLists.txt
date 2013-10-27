@@ -9,10 +9,10 @@ ENDIF(WIN32)
 IF (NOT OPENAL_FOUND AND WIN32)
 	MESSAGE(STATUS "Could not find OpenAL libraries on system, using included pre-built libraries")
 	
-	add_library(openal STATIC IMPORTED)
+	add_library(openal STATIC IMPORTED GLOBAL)
 	set_target_properties(openal
 		PROPERTIES
-			IMPORTED_LOCATION libs/win32/openal32.lib
+			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/libs/win32/openal32.lib
 	)
 
 	SET(OPENAL_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/include CACHE INTERNAL "OpenAL include directory")
