@@ -60,14 +60,14 @@ INCLUDE_DIRECTORIES(${THEORA_HEADERS})
 
 # Add install script to copy the executable to the FreeSpace path if possible and wanted
 IF(FSO_COPY_EXE)
-	IF(IS_DIRECTORY FSO_FS2_PATH)
+	IF(IS_DIRECTORY ${FSO_FS2_PATH})
 		INSTALL(
 			TARGETS Freespace2
 			RUNTIME
 			DESTINATION ${FSO_FS2_PATH}
 			CONFIGURATIONS Debug Release
 			)			
-	ELSE(IS_DIRECTORY FSO_FS2_PATH)
+	ELSE(IS_DIRECTORY ${FSO_FS2_PATH})
 		MESSAGE(STATUS "The path '${FSO_FS2_PATH}' of the variable FSO_FS2_PATH does not point to a directory!")
-	ENDIF(IS_DIRECTORY FSO_FS2_PATH)
+	ENDIF(IS_DIRECTORY ${FSO_FS2_PATH})
 ENDIF(FSO_COPY_EXE)
