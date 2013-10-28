@@ -69,12 +69,17 @@ set (file_root_misc
 	misc/dlgMissionStats.h
 )
 
+set(file_root_res
+	res/wxFREDicon.rc
+)
+
 # the source groups
 source_group(""                                   FILES ${file_root})
 source_group("Base"                               FILES ${file_root_base})
 source_group("Editors"                            FILES ${file_root_editors})
 source_group("Help"                               FILES ${file_root_help})
 source_group("Misc"                               FILES ${file_root_misc})
+source_group("Resources"                          FILES ${file_root_res})
 
 # append all files to the file_root
 set (file_root
@@ -83,4 +88,5 @@ set (file_root
 	${file_root_editors}
 	${file_root_help}
 	${file_root_misc}
+	${file_root_res}
 )
