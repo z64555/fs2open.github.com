@@ -72,7 +72,7 @@ set (file_root_misc
 # the source groups
 source_group(""                                   FILES ${file_root})
 source_group("Base"                               FILES ${file_root_base})
-source_group("Editors"                            FILES ${file_root_base})
+source_group("Editors"                            FILES ${file_root_editors})
 source_group("Help"                               FILES ${file_root_help})
 source_group("Misc"                               FILES ${file_root_misc})
 
