@@ -1,5 +1,6 @@
 # top-level files
 set (file_root
+	${GENERATED_SOURCE_DIR}/project.h
 )
 
 # AI files
