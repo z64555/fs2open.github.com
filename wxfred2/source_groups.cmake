@@ -1,5 +1,10 @@
 # top-level files
 set (file_root
+	frmFRED2.cpp
+	frmFRED2.h
+	glcViewport.h
+	wxfred2.cpp
+	wxfred2.h
 )
 
 # Base files
