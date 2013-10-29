@@ -12,6 +12,11 @@ PROJECT(FSO)
 set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING "Available configurations" FORCE)
 
 ### Define options and editable variables in the section below:
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Default build configuration used." FORCE)
+	message(WARNING "CMAKE_BUILD_TYPE was not specified, defaulting to Release configuration.")
+endif()
+	
 IF (WIN32)
 	OPTION(FSO_USE_SPEECH "Use Windows specific text-to-speach libraries" OFF)
 	
