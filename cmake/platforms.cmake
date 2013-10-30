@@ -2,7 +2,9 @@
 SET(PLATFORM_INCLUDES "" CACHE INTERNAL "Compiler specific includes")
 SET(PLATFORM_LBRARIES "" CACHE INTERNAL "Compiler specific libraries")
 
-INCLUDE(debug-vars)
+IF(FSO_CMAKE_DEBUG)
+	INCLUDE(debug-vars)
+ENDIF(FSO_CMAKE_DEBUG)
 
 IF(WIN32)
 	INCLUDE(platform-win32)
