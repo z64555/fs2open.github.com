@@ -1,6 +1,15 @@
 
 include(source_groups.cmake)
 
+IF(UNIX)
+	SET(wxWidgets_USE_DEBUG OFF)
+	SET(wxWidgets_USE_UNICODE ON)
+	SET(wxWidgets_USE_UNIVERSAL OFF)
+	SET(wxWidgets_USE_STATIC OFF)
+ELSEIF(WIN32)
+	set(wxWidgets_CONFIGURATION "msw" CACHE STRING "Release WxWidgets configuration" FORCE)
+ENDIF(UNIX)
+
 find_package(wxWidgets COMPONENTS gl core base REQUIRED)
 
 include(${wxWidgets_USE_FILE})
@@ -41,9 +50,7 @@ if(UNIX)
 		PROPERTIES
 			EXCLUDE_FROM_ALL TRUE
 	)
-elseif(MSVC)
-	#set(wxWidgets_CONFIGURATION "mswu" CACHE STRING "Release WxWidgets configuration" FORCE)
-	
+elseif(MSVC)	
 	STRING(REGEX REPLACE "/MT" "/MD" CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
 	STRING(REGEX REPLACE "/MT" "/MD" CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
 	
