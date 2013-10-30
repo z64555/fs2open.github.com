@@ -57,10 +57,15 @@ IF (FSO_BUILD_INCLUDED_LIBS OR NOT JPEG_FOUND)
 
 	set_target_properties(jpeg
 		PROPERTIES
-			COMPILE_FLAGS "/W0"
 			FOLDER "3rdparty"
-			STATIC_LIBRARY_FLAGS "/LTCG"
 	)
+	
+	IF(MSVC)
+		set_target_properties(jpeg
+			PROPERTIES
+				STATIC_LIBRARY_FLAGS "/LTCG"
+		)
+	ENDIF(MSVC)
 	
 	SET(JPEG_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE INTERNAL "JPEG include directory")
 	

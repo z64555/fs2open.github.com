@@ -73,10 +73,15 @@ IF (FSO_BUILD_INCLUDED_LIBS OR NOT LUA51_FOUND)
 
 	set_target_properties(lua51
 		PROPERTIES
-			COMPILE_FLAGS "/W0"
 			FOLDER "3rdparty"
-			STATIC_LIBRARY_FLAGS "/LTCG"
 	)
+	
+	IF(MSVC)
+		set_target_properties(lua51
+			PROPERTIES
+				STATIC_LIBRARY_FLAGS "/LTCG"
+		)
+	ENDIF(MSVC)
 	
 	SET(LUA_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE INTERNAL "Lua 5.1 include directory")
 	

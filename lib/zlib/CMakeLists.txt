@@ -33,10 +33,15 @@ IF (FSO_BUILD_INCLUDED_LIBS OR NOT ZLIB_FOUND)
 
 	set_target_properties(zlib
 		PROPERTIES
-			COMPILE_FLAGS "/W0"
 			FOLDER "3rdparty"
-			STATIC_LIBRARY_FLAGS "/LTCG"
 	)
+	
+	IF(MSVC)
+		set_target_properties(zlib
+			PROPERTIES
+				STATIC_LIBRARY_FLAGS "/LTCG"
+		)
+	ENDIF(MSVC)
 	
 	SET(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE INTERNAL "ZLIB include directory")
 	

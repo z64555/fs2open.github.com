@@ -40,10 +40,15 @@ IF (FSO_BUILD_INCLUDED_LIBS OR NOT PNG_FOUND)
 
 	set_target_properties(png
 		PROPERTIES
-			COMPILE_FLAGS "/W0"
 			FOLDER "3rdparty"
-			STATIC_LIBRARY_FLAGS "/LTCG"
 	)
+	
+	IF(MSVC)
+		set_target_properties(png
+			PROPERTIES
+				STATIC_LIBRARY_FLAGS "/LTCG"
+		)
+	ENDIF(MSVC)
 	
 	INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIR})
 	
