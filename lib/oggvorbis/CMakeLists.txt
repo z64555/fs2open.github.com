@@ -5,6 +5,12 @@ IF(UNIX)
 	pkg_check_modules(THEORA REQUIRED theora)
 	pkg_check_modules(VORBIS REQUIRED vorbis)
 	pkg_check_modules(VORBISFILE REQUIRED vorbisfile)
+	
+	INCLUDE(util)
+	PKG_CONFIG_LIB_RESOLVE(OGG)
+	PKG_CONFIG_LIB_RESOLVE(THEORA)
+	PKG_CONFIG_LIB_RESOLVE(VORBIS)
+	PKG_CONFIG_LIB_RESOLVE(VORBISFILE)
 ELSEIF (WIN32)
 	# We have precompiled libs for windows
 	add_library(ogg STATIC IMPORTED GLOBAL)
