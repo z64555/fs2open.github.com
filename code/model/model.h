@@ -636,6 +636,10 @@ public:
 
 	void Clear();
 	void ResetToOriginal();
+
+	texture_map()
+		: is_ambient(false), is_transparent(false)
+	{}
 };
 
 #define MAX_REPLACEMENT_TEXTURES MAX_MODEL_TEXTURES * TM_NUM_TYPES
@@ -924,6 +928,7 @@ void world_find_model_instance_point(vec3d *out, vec3d *world_pt, polymodel *pm,
 
 extern void find_submodel_instance_point(vec3d *outpnt, object *ship_obj, int submodel_num);
 extern void find_submodel_instance_point_normal(vec3d *outpnt, vec3d *outnorm, object *ship_obj, int submodel_num, vec3d *submodel_pnt, vec3d *submodel_norm);
+extern void find_submodel_instance_point_orient(vec3d *outpnt, matrix *outorient, object *ship_obj, int submodel_num, vec3d *submodel_pnt, matrix *submodel_orient);
 extern void find_submodel_instance_world_point(vec3d *outpnt, object *ship_obj, int submodel_num);
 
 // Given a polygon model index, find a list of rotating submodels to be used for collision
@@ -1182,7 +1187,7 @@ typedef struct mst_info {
 	float distortion_length_factor;
 	bool draw_distortion;
 
-	mst_info() : primary_bitmap(-1), primary_glow_bitmap(-1), secondary_glow_bitmap(-1), tertiary_glow_bitmap(-1),
+	mst_info() : primary_bitmap(-1), primary_glow_bitmap(-1), secondary_glow_bitmap(-1), tertiary_glow_bitmap(-1), distortion_bitmap(-1),
 					use_ab(false), glow_noise(1.0f), rotvel(NULL), length(vmd_zero_vector), glow_rad_factor(1.0f),
 					secondary_glow_rad_factor(1.0f), tertiary_glow_rad_factor(1.0f), glow_length_factor(1.0f), distortion_rad_factor(1.0f), distortion_length_factor(1.0f)
 				{}

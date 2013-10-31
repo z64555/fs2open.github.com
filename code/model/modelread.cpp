@@ -494,7 +494,7 @@ static void set_subsystem_info( model_subsystem *subsystemp, char *props, char *
 		mprintf(("Potential problem found: Unrecognized subsystem type '%s', believed to be in ship %s\n", dname, Global_filename));
 	}
 
-	if ( (p = strstr(props, "$triggered:")) != NULL ) {
+	if ( (strstr(props, "$triggered:")) != NULL ) {
 		subsystemp->flags |= MSS_FLAG_ROTATES;
 		subsystemp->flags |= MSS_FLAG_TRIGGERED;
 	}
@@ -1336,7 +1336,7 @@ int read_model_file(polymodel * pm, char *filename, int n_subsystems, model_subs
 				else
 					pm->submodel[n].collide_invisible = false;
 
-				if ( (p = strstr(props, "$gun_rotation:")) != NULL || (p = strstr(props, "$gun_rotation")) != NULL)
+				if (strstr(props, "$gun_rotation") != NULL)
 					pm->submodel[n].gun_rotation = true;
 				else
 					pm->submodel[n].gun_rotation = false;
@@ -2461,7 +2461,7 @@ int model_load(char *filename, int n_subsystems, model_subsystem *subsystems, in
 
 	pm = new polymodel;	
 	Polygon_models[num] = pm;
-	
+
 	pm->n_paths = 0;
 	pm->paths = NULL;
 
@@ -3766,6 +3766,8 @@ int model_rotate_gun(int model_num, model_subsystem *turret, matrix *orient, ang
 
 	// Check for a valid turret
 	Assert( turret->turret_num_firing_points > 0 );
+	// Check for a valid subsystem
+	Assert( ss != NULL );
 
 	//This should not happen
 	if ( base == gun ) {
@@ -4208,6 +4210,76 @@ void find_submodel_instance_point_normal(vec3d *outpnt, vec3d *outnorm, object *
 
 		vec3d tnorm = *outnorm;
 		vm_vec_unrotate(outnorm, &tnorm, &submodel_instance_matrix);
+
+		vm_vec_add2(outpnt, &offset);
+
+		mn = parent_model_num;
+	}
+}
+
+/**
+ * Same as find_submodel_instance_point_normal, except that this takes and
+ * returns matrices instead of normals.
+ *  
+ * Finds the current location and rotation (in the ship's frame of reference) of
+ * a submodel point, taking into account the rotations of the submodel and any
+ * parent submodels it might have.
+ *
+ * @param *outpnt Output point
+ * @param *outorient Output matrix
+ * @param *ship_obj Ship object
+ * @param submodel_num The number of the submodel we're interested in
+ * @param *submodel_pnt The point which's current position we want, in the submodel's frame of reference
+ * @param *submodel_orient The local matrix which's current orientation in the ship's frame of reference we want
+ */
+void find_submodel_instance_point_orient(vec3d *outpnt, matrix *outorient, object *ship_obj, int submodel_num, vec3d *submodel_pnt, matrix *submodel_orient)
+{
+	Assert(ship_obj->type == OBJ_SHIP);
+
+	*outorient = *submodel_orient;
+	vm_vec_zero(outpnt);
+	matrix submodel_instance_matrix, rotation_matrix, inv_orientation;
+
+	polymodel_instance *pmi = model_get_instance(Ships[ship_obj->instance].model_instance_num);
+	polymodel *pm = model_get(Ship_info[Ships[ship_obj->instance].ship_info_index].model_num);
+
+	int mn = submodel_num;
+	while ( (mn >= 0) && (pm->submodel[mn].parent >= 0) ) {
+		vec3d offset = pm->submodel[mn].offset;
+
+		if ( mn == submodel_num) {
+			vec3d submodel_pnt_offset = *submodel_pnt;
+
+			rotation_matrix = pm->submodel[submodel_num].orientation;
+			vm_rotate_matrix_by_angles(&rotation_matrix, &pmi->submodel[submodel_num].angs);
+
+			vm_copy_transpose_matrix(&inv_orientation, &pm->submodel[submodel_num].orientation);
+
+			vm_matrix_x_matrix(&submodel_instance_matrix, &rotation_matrix, &inv_orientation);
+
+			vec3d tvec = submodel_pnt_offset;
+			vm_vec_unrotate(&submodel_pnt_offset, &tvec, &submodel_instance_matrix);
+
+			matrix tnorm = *outorient;
+			vm_matrix_x_matrix(outorient, &tnorm, &submodel_instance_matrix);
+
+			vm_vec_add2(&offset, &submodel_pnt_offset);
+		}
+
+		int parent_model_num = pm->submodel[mn].parent;
+
+		rotation_matrix = pm->submodel[parent_model_num].orientation;
+		vm_rotate_matrix_by_angles(&rotation_matrix, &pmi->submodel[parent_model_num].angs);
+
+		vm_copy_transpose_matrix(&inv_orientation, &pm->submodel[parent_model_num].orientation);
+
+		vm_matrix_x_matrix(&submodel_instance_matrix, &rotation_matrix, &inv_orientation);
+
+		vec3d tvec = offset;
+		vm_vec_unrotate(&offset, &tvec, &submodel_instance_matrix);
+
+		matrix tnorm = *outorient;
+		vm_matrix_x_matrix(outorient, &tnorm, &submodel_instance_matrix);
 
 		vm_vec_add2(outpnt, &offset);
 

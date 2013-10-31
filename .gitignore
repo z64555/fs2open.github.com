@@ -1,28 +1,16 @@
-# Object files
 *.o
-
-# Libraries
-*.lib
 *.a
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# Doxygen
-documentation/
-
-# Auto generated files
-code/sound/grammar.h
-code/sound/phrases.cfg
-
-# Temporary files
-*~
-
+.deps/
+code/.deps/
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache/
+m4/
+config.*
+code/fs2_open_*
+configure
+depcomp
+install-sh
+missing
+.svn
