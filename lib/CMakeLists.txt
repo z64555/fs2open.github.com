@@ -15,8 +15,11 @@ IF (USE_SPEECH)
 	ADD_SUBDIRECTORY(speech)
 ENDIF(USE_SPEECH)
 
-ADD_SUBDIRECTORY(jansson)
+# These are only required for the web-ui which is non-Windows
+IF(UNIX)
+	ADD_SUBDIRECTORY(jansson)
 
-ADD_SUBDIRECTORY(mongoose)
+	ADD_SUBDIRECTORY(mongoose)
+ENDIF(UNIX)
 
 #ADD_SUBDIRECTORY(STLport-5.2.1)
