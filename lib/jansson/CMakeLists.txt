@@ -1,7 +1,7 @@
 
 IF(NOT FSO_BUILD_INCLUDED_LIBS AND UNIX)
 	find_package(PkgConfig REQUIRED)
-	pkg_check_modules(JANSSON REQUIRED jansson >= 2.2)
+	pkg_check_modules(JANSSON REQUIRED jansson>=2.2)
 	
 	INCLUDE(util)
 	PKG_CONFIG_LIB_RESOLVE(JANSSON JANSSON_LIBS)
