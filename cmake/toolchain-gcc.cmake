@@ -27,3 +27,8 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wextra -Wshadow")
 set(CMAKE_EXE_LINKER_FLAGS "-Wl,-O1 -Wl,--as-needed")
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-Wl,--strip-all")
 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+	SET(CMAKE_EXE_LINKER_FLAGS "-Wl,-zignore")
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+
+
