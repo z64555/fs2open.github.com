@@ -28,7 +28,10 @@ int main(int argc, char **argv)
 	std::string str;
 
 	inputStream.seekg(0, std::ios::end);
-	str.reserve((size_t) inputStream.tellg());
+
+	if (inputStream.tellg() != -1)
+		str.reserve((size_t) inputStream.tellg());
+
 	inputStream.seekg(0, std::ios::beg);
 
 	str.assign((std::istreambuf_iterator<char>(inputStream)),
@@ -53,7 +56,7 @@ int main(int argc, char **argv)
 	{
 		size_t found_pos = std::string::npos;
 
-		for(int i = 0; i < numEscapeCharacters; i++)
+		for(size_t i = 0; i < numEscapeCharacters; i++)
 		{
 			found_pos = std::min(found_pos, str.find(escapeCharacters[i], pos));
 		}
