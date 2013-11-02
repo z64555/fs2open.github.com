@@ -11,7 +11,7 @@ int main(int argc, char **argv)
 {
 	if (argc != 4)
 	{
-		std::cerr << "Usage: escaper <input> <output> <fieldname>";
+		std::cerr << "Usage: escaper <input> <output> <fieldname>" << std::endl;
 
 		return -1;
 	}
@@ -20,7 +20,7 @@ int main(int argc, char **argv)
 
 	if (inputStream.bad())
 	{
-		std::cerr << "Failed to open file to read: " << argv[1];
+		std::cerr << "Failed to open file to read: " << argv[1] << std::endl;
 
 		return -1;
 	}
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 
 	if (outputStream.bad())
 	{
-		std::cerr << "Failed to open file to write: " << argv[2];
+		std::cerr << "Failed to open file to write: " << argv[2] << std::endl;
 
 		return -1;
 	}
