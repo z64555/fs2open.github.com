@@ -117,6 +117,31 @@ set (file_root_debugconsole
 	debugconsole/timerbar.h
 )
 
+SET(file_root_def_files
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/ai_profiles.tbl
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/autopilot.tbl
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/blur-f.sdr
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/brightpass-f.sdr
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/controlconfigdefaults.tbl
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/fonts.tbl
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/fxaa-f.sdr
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/fxaa-v.sdr
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/fxaapre-f.sdr
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/game_settings.tbl
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/iff_defs.tbl
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/ls-f.sdr
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/main-f.sdr
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/main-v.sdr
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/objecttypes.tbl
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/particle-f.sdr
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/particle-v.sdr
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/post-f.sdr
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/post-v.sdr
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/post_processing.tbl
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/species_defs.tbl
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/video-f.sdr
+	${CMAKE_CURRENT_SOURCE_DIR}/def_files/video-v.sdr)
+
 # DirectX files
 set (file_root_directx
 	directx/vasync.h
@@ -894,6 +919,7 @@ source_group("Cutscene"                           FILES ${file_root_cutscene})
 source_group("ddsutils"                           FILES ${file_root_ddsutils})
 source_group("Debris"                             FILES ${file_root_debris})
 source_group("DebugConsole"                       FILES ${file_root_debugconsole})
+SOURCE_GROUP("Default files"                      FILES ${file_root_def_files})
 
 IF(WIN32)
 	source_group("DirectX"                        FILES ${file_root_directx})
@@ -971,6 +997,7 @@ set (file_root
 	${file_root_ddsutils}
 	${file_root_debris}
 	${file_root_debugconsole}
+	${file_root_def_files}
 	${file_root_exceptionhandler}
 	${file_root_externaldll}
 	${file_root_fireball}

@@ -1,0 +1,48 @@
+#ifdef FLAG_ENV_MAP
+uniform mat4 envMatrix;
+varying vec3 envReflect;
+#endif
+#ifdef FLAG_NORMAL_MAP
+varying mat3 tbnMatrix;
+#endif
+#ifdef FLAG_FOG
+varying float fogDist;
+#endif
+#ifdef FLAG_THRUSTER
+uniform float thruster_scale;
+#endif
+varying vec4 position;
+varying vec3 lNormal;
+void main()
+{
+	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
+	vec4 vertex = gl_Vertex;
+ #ifdef FLAG_THRUSTER
+	if(vertex.z < -1.5) {
+		vertex.z *= thruster_scale;
+	}
+ #endif
+	gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * vertex;
+	gl_FrontColor = gl_Color;
+	gl_FrontSecondaryColor = vec4(0.0, 0.0, 0.0, 1.0);
+ // Transform the normal into eye space and normalize the result.
+	position = gl_ModelViewMatrix * vertex;
+	vec3 normal = normalize(gl_NormalMatrix * gl_Normal);
+	lNormal = normal;
+ #ifdef FLAG_NORMAL_MAP
+ // Setup stuff for normal maps
+	vec3 t = normalize(gl_NormalMatrix * gl_MultiTexCoord1.xyz);
+	vec3 b = cross(normal, t) * gl_MultiTexCoord1.w;
+	tbnMatrix = mat3(t, b, normal);
+ #endif
+ #ifdef FLAG_ENV_MAP
+ // Environment mapping reflection vector.
+	envReflect = reflect(position.xyz, normal);
+	envReflect = vec3(envMatrix * vec4(envReflect, 0.0));
+	envReflect = normalize(envReflect);
+ #endif
+ #ifdef FLAG_FOG
+	fogDist = clamp((gl_Position.z - gl_Fog.start) * 0.75 * gl_Fog.scale, 0.0, 1.0);
+ #endif
+	gl_ClipVertex = (gl_ModelViewMatrix * vertex);
+}

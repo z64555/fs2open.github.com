@@ -3,7 +3,31 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/project.h.in ${GENERATED_SOURCE_DIR}/
 
 INCLUDE(source_groups.cmake)
 
-ADD_LIBRARY(code ${file_root})
+SET(DEF_OUT_FILES)
+FOREACH(file ${file_root_def_files})
+	FILE(RELATIVE_PATH FILE_NAME ${CMAKE_CURRENT_SOURCE_DIR} ${file})
+	
+	SET(OUTPUT "${GENERATED_SOURCE_DIR}${FILE_NAME}.h")
+
+	get_filename_component(FILENAME ${file} NAME)
+
+	STRING(REPLACE "-" "_" FILENAME ${FILENAME})
+	STRING(REPLACE "." "_" FILENAME ${FILENAME})
+	STRING(REPLACE "#" "_" FILENAME ${FILENAME})
+	
+	ADD_CUSTOM_COMMAND(
+		OUTPUT ${OUTPUT}
+		COMMAND escaper "${file}" "${OUTPUT}" "Default_${FILENAME}"
+		DEPENDS ${file}
+		COMMENT "Generating string file for ${file}"
+		)
+	
+	LIST(APPEND DEF_OUT_FILES ${OUTPUT})
+ENDFOREACH(file ${file_root_def_files})
+
+SOURCE_GROUP("Generated Files\\Default Files" FILES ${DEF_OUT_FILES})
+
+ADD_LIBRARY(code ${file_root} ${DEF_OUT_FILES})
 
 set_target_properties(code PROPERTIES
 	COMPILE_DEFINITIONS_RELEASE "NDEBUG"
@@ -54,4 +78,3 @@ IF(UNIX)
 	INCLUDE_DIRECTORIES(Freespace2 ${JANSSON_INCLUDE_DIR})
 	INCLUDE_DIRECTORIES(Freespace2 ${MONGOOSE_INCLUDE_DIR})
 ENDIF(UNIX)
-
