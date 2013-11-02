@@ -9,6 +9,10 @@ FOREACH(file ${file_root_def_files})
 	
 	SET(OUTPUT "${GENERATED_SOURCE_DIR}${FILE_NAME}.h")
 
+	# For some reason this is needed...
+	GET_FILENAME_COMPONENT(DIRECTORY_PATH ${OUTPUT} PATH)
+	FILE(MAKE_DIRECTORY ${DIRECTORY_PATH})
+
 	get_filename_component(FILENAME ${file} NAME)
 
 	STRING(REPLACE "-" "_" FILENAME ${FILENAME})
