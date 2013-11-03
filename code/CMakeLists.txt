@@ -31,20 +31,26 @@ ENDFOREACH(file ${file_root_def_files})
 
 SOURCE_GROUP("Generated Files\\Default Files" FILES ${DEF_OUT_FILES})
 
+SET(VOICE_REC_FILES)
 IF(FSO_USE_VOICEREC)
 	ADD_DEFINITIONS(-DFS2_VOICER)
 	
 	SET(SOUND_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sound")
-	SET(GRAMMAR_HEADER "${SOUND_DIR}/grammar.h")
-
-	ADD_CUSTOM_COMMAND(TARGET code
-		PRE_BUILD
-		COMMAND "${SOUND_DIR}/gc.exe" /h "${GRAMMAR_HEADER}" "${SOUND_DIR}/phrases.xml"
+	SET(VOICE_REC_FILES
+		"${GENERATED_SOURCE_DIR}/code/sound/grammar.h"
+		"${GENERATED_SOURCE_DIR}/code/sound/phrases.cfg")
+	
+	ADD_CUSTOM_COMMAND(
+		OUTPUT ${VOICE_REC_FILES}
+		COMMAND "${SOUND_DIR}/gc.exe" "/h" "${GENERATED_SOURCE_DIR}/code/sound/grammar.h" "${SOUND_DIR}/phrases.xml"
+		DEPENDS "${SOUND_DIR}/phrases.xml"
 		COMMENT "Compiling voice recognition files"
 		)
+
+	SOURCE_GROUP("Generated Files\\Voice Recognition files" FILES ${DEF_OUT_FILES})
 ENDIF(FSO_USE_VOICEREC)
 
-ADD_LIBRARY(code ${file_root} ${DEF_OUT_FILES})
+ADD_LIBRARY(code ${file_root} ${DEF_OUT_FILES} ${VOICE_REC_FILES})
 
 set_target_properties(code PROPERTIES
 	COMPILE_DEFINITIONS_RELEASE "NDEBUG"
