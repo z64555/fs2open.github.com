@@ -7,7 +7,7 @@ IF(UNIX)
 	SET(wxWidgets_USE_UNIVERSAL OFF)
 	SET(wxWidgets_USE_STATIC OFF)
 ELSEIF(WIN32)
-	set(wxWidgets_CONFIGURATION "msw" CACHE STRING "Release WxWidgets configuration" FORCE)
+	set(wxWidgets_CONFIGURATION "mswu" CACHE STRING "Release WxWidgets configuration" FORCE)
 ENDIF(UNIX)
 
 find_package(wxWidgets COMPONENTS gl core base REQUIRED)
@@ -74,6 +74,6 @@ elseif(MSVC)
 	)
 	
 	set_target_properties(wxfred2 PROPERTIES
-		COMPILE_DEFINITIONS_DEBUG "PDB_DEBUGGING=1;_HAS_ITERATOR_DEBUGGING=0"
+		COMPILE_DEFINITIONS_DEBUG "PDB_DEBUGGING=1;_HAS_ITERATOR_DEBUGGING=1"
 	)
 endif(UNIX)
