@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
 	inputStream.seekg(0, std::ios::end);
 
-	if (inputStream.tellg() != -1)
+	if ((int) inputStream.tellg() != -1)
 		str.reserve((size_t) inputStream.tellg());
 
 	inputStream.seekg(0, std::ios::beg);
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 			{
 				outputStream.write(str.c_str() + pos, delta);
 			}
-				
+
 			switch(str[found_pos])
 			{
 			case '\\':
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	outputStream << "\";";
+	outputStream << "\";" << std::endl;
 
 	outputStream.close();
 

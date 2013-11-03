@@ -74,8 +74,75 @@ set (file_root_misc
 	misc/dlgMissionStats.h
 )
 
+set(file_root_res_pngs
+	${CMAKE_CURRENT_SOURCE_DIR}/res/constx.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/constxy.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/constxz.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/consty.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/constyz.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/constz.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/fredknows.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/orbitsel.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/rotlocal.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/select.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/selectlist.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/selectlock.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/selectmove.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/selectrot.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/showdist.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/wingdisband.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/wingform.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/zoomext.png
+	${CMAKE_CURRENT_SOURCE_DIR}/res/zoomsel.png
+)
+
 set(file_root_res
+	${file_root_res_pngs}
+	res/bitmap1.xpm
+	res/black_do.xpm
+	res/bmp00001.xpm
+	res/chained.xpm
+	res/chained_directive.xpm
+	res/data.xpm
+	res/data00.xpm
+	res/data05.xpm
+	res/data10.xpm
+	res/data15.xpm
+	res/data20.xpm
+	res/data25.xpm
+	res/data30.xpm
+	res/data35.xpm
+	res/data40.xpm
+	res/data45.xpm
+	res/data50.xpm
+	res/data55.xpm
+	res/data60.xpm
+	res/data65.xpm
+	res/data70.xpm
+	res/data75.xpm
+	res/data80.xpm
+	res/data85.xpm
+	res/data90.xpm
+	res/data95.xpm
+	res/fred.ico
+	res/freddoc.ico
+	res/fred_app.xpm
+	res/fred_debug.xpm
+	res/fred_splash.xpm
+	res/green_do.xpm
+	res/play.xpm
+	res/root.xpm
+	res/root_directive.xpm
+	res/toolbar.xpm
+	res/toolbar1.xpm
+	res/toolbar1_x2.xpm
+	res/variable.xpm
+	res/V_fred.ico
+	res/V_fred.xpm
 	res/wxFREDicon.rc
+	res/wxFREDIcon.xpm
+	res/wxfred_icon-d.ico
+	res/wxfred_icon.ico
 )
 
 # the source groups

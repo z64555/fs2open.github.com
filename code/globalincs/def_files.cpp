@@ -77,7 +77,7 @@ def_file Default_files[] =
 static int Num_default_files = sizeof(Default_files) / sizeof(def_file);
 //**********
 
-const char *defaults_get_file(char *filename)
+char *defaults_get_file(char *filename)
 {
 	for(int i = 0; i < Num_default_files; i++)
 	{
