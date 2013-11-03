@@ -1,6 +1,34 @@
 
 include(source_groups.cmake)
 
+SET(PNG_OUT_FILES)
+FOREACH(file ${file_root_res_pngs})
+	FILE(RELATIVE_PATH FILE_NAME ${CMAKE_CURRENT_SOURCE_DIR} ${file})
+	
+	SET(OUTPUT "${GENERATED_SOURCE_DIR}wxfred2/${FILE_NAME}.h")
+
+	# For some reason this is needed...
+	GET_FILENAME_COMPONENT(DIRECTORY_PATH ${OUTPUT} PATH)
+	FILE(MAKE_DIRECTORY ${DIRECTORY_PATH})
+
+	get_filename_component(FILENAME ${file} NAME)
+
+	STRING(REPLACE "-" "_" FILENAME ${FILENAME})
+	STRING(REPLACE "." "_" FILENAME ${FILENAME})
+	STRING(REPLACE "#" "_" FILENAME ${FILENAME})
+	
+	ADD_CUSTOM_COMMAND(
+		OUTPUT ${OUTPUT}
+		COMMAND embedpng "${file}" "${OUTPUT}" "${FILENAME}"
+		DEPENDS ${file}
+		COMMENT "Generating png header for ${file}"
+		)
+	
+	LIST(APPEND PNG_OUT_FILES ${OUTPUT})
+ENDFOREACH(file ${file_root_res_pngs})
+
+SOURCE_GROUP("Generated Files\\PNG Files" FILES ${PNG_OUT_FILES})
+
 IF(UNIX)
 	SET(wxWidgets_USE_DEBUG OFF)
 	SET(wxWidgets_USE_UNICODE ON)
@@ -14,7 +42,7 @@ find_package(wxWidgets COMPONENTS gl core base REQUIRED)
 
 include(${wxWidgets_USE_FILE})
 
-add_executable(wxfred2 WIN32 ${file_root})
+add_executable(wxfred2 WIN32 ${file_root} ${PNG_OUT_FILES})
 
 set_target_properties(wxfred2
 	PROPERTIES
@@ -37,6 +65,7 @@ INCLUDE_DIRECTORIES(${CODE_HEADERS})
 INCLUDE_DIRECTORIES(${WXFRED_HEADERS})
 INCLUDE_DIRECTORIES(${wxWidgets_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${GENERATED_SOURCE_DIR})
+INCLUDE_DIRECTORIES(${GENERATED_SOURCE_DIR}/wxfred2)
 
 TARGET_LINK_LIBRARIES(wxfred2 ${wxWidgets_LIBRARIES})
 
