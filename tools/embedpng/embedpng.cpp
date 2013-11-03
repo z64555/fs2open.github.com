@@ -43,7 +43,7 @@ int main( int argc, char* argv[] )
 	std::string field_name(argv[3]);
 
 	// Create the file_in stream, and verify integrety
-	std::ifstream file_in(input_file, std::ios::binary);
+	std::ifstream file_in(input_file.c_str(), std::ios::binary);
 	if( file_in.bad() )
 	{
 		std::cerr << "Error opening file: " << input_file << std::endl;
@@ -68,7 +68,7 @@ int main( int argc, char* argv[] )
 	file_in.seekg(0, std::ios::beg);
 
 	// Before conditioning, use this a the name of the .h
-	std::ofstream file_out(output_file);
+	std::ofstream file_out(output_file.c_str());
 	if( file_out.bad() )
 	{
 		std::cerr << "Error opening file: " << output_file << std::endl;
