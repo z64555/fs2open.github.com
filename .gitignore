@@ -18,6 +18,3 @@ missing
 # Temporary files
 *~
 
-# Generated files
-code/sound/grammar.h
-code/sound/phrases.cfg
