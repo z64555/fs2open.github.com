@@ -19,7 +19,7 @@ FOREACH(file ${file_root_res_pngs})
 	
 	ADD_CUSTOM_COMMAND(
 		OUTPUT ${OUTPUT}
-		COMMAND embedpng "${file}" "${OUTPUT}" "${FILENAME}"
+		COMMAND embedfile -wx "${file}" "${OUTPUT}" "${FILENAME}"
 		DEPENDS ${file}
 		COMMENT "Generating png header for ${file}"
 		)

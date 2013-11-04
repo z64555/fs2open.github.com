@@ -1,3 +1,3 @@
 ADD_SUBDIRECTORY(escaper)
 
-ADD_SUBDIRECTORY(embedpng)
+ADD_SUBDIRECTORY(embedfile)

@@ -21,7 +21,7 @@ FOREACH(file ${file_root_def_files})
 	
 	ADD_CUSTOM_COMMAND(
 		OUTPUT ${OUTPUT}
-		COMMAND escaper "${file}" "${OUTPUT}" "Default_${FILENAME}"
+		COMMAND embedfile -text "${file}" "${OUTPUT}" "Default_${FILENAME}"
 		DEPENDS ${file}
 		COMMENT "Generating string file for ${file}"
 		)
