@@ -42,7 +42,7 @@ IF(FSO_USE_VOICEREC)
 	
 	ADD_CUSTOM_COMMAND(
 		OUTPUT ${VOICE_REC_FILES}
-		COMMAND "${SOUND_DIR}/gc.exe" "/h" "${GENERATED_SOURCE_DIR}/code/sound/grammar.h" "${SOUND_DIR}/phrases.xml"
+		COMMAND "${SOUND_DIR}/gc.exe" /o "${GENERATED_SOURCE_DIR}/code/sound/phrases.cfg" /h "${GENERATED_SOURCE_DIR}/code/sound/grammar.h" "${SOUND_DIR}/phrases.xml"
 		DEPENDS "${SOUND_DIR}/phrases.xml"
 		COMMENT "Compiling voice recognition files"
 		)
