@@ -7,9 +7,13 @@
 // Correct the code so that the program will properly output text to a target .h file
 // Correct the code so that the program will properly read bytes in and output as hexidecimal string values.
 
+#include <string.h>
+
 #if defined _MSC_VER
 	// Disable warning for stricmp
-	#pragma warning(disable: 4996)
+	#define stricmp(s1, s2) _stricmp((s1), (s2))
+#else
+	#define stricmp(s1, s2) strcasecmp((s1), (s2))
 #endif
 
 #include <fstream>
