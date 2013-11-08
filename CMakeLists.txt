@@ -7,6 +7,8 @@ SET(FSO_VERSION_MINOR 7)
 SET(FSO_VERSION_BUILD 1)
 SET(FSO_VERSION_REVISION 0)
 
+SET(FSO_PROJECT_DESCRIPTION "Open source project based on the original FreeSpace 2 source code.")
+
 PROJECT(FSO)
 
 set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING "Available configurations" FORCE)
@@ -25,11 +27,11 @@ IF (WIN32)
 	OPTION(FSO_BUILD_FRED2 "Build FRED2 binary" OFF)
 ENDIF(WIN32)
 
-OPTION(FSO_COPY_EXE "Copy executables to FS2PATH when the build is done" ON)
-
 OPTION(FSO_BUILD_WXFRED2 "Build wxFRED2 binary" OFF)
 
 OPTION(FSO_BUILD_INCLUDED_LIBS "Build and use the included libraries istead of using the system headers and libraries" OFF)
+
+OPTION(FSO_BUILD_PACKAGE "Build a distribution pacakge" OFF)
 
 SET(FSO_INSTRUCTION_SET "" CACHE STRING "The instruction set enhancement to use, possible options are SSE, SSE2 and AVX")
 
@@ -46,6 +48,8 @@ ENDIF()
 IF(NOT IS_DIRECTORY ${FSO_FS2_PATH})
 	MESSAGE(STATUS "The path '${FSO_FS2_PATH}' of the variable FSO_FS2_PATH does not point to a directory!")
 	SET(FSO_COPY_EXE FALSE)
+ELSE(NOT IS_DIRECTORY ${FSO_FS2_PATH})
+	SET(FSO_COPY_EXE TRUE)
 ENDIF(NOT IS_DIRECTORY ${FSO_FS2_PATH})
 
 OPTION(FSO_CMAKE_DEBUG "Enable cmake debugging in while generating build files" OFF)
@@ -78,3 +82,7 @@ ENDIF(FSO_BUILD_FRED2)
 IF(FSO_BUILD_WXFRED2)
 	ADD_SUBDIRECTORY(wxfred2)
 ENDIF(FSO_BUILD_WXFRED2)
+
+IF(FSO_BUILD_PACKAGE)
+	include(package)
+ENDIF(FSO_BUILD_PACKAGE)
