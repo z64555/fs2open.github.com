@@ -41,7 +41,11 @@ IF (FSO_USE_LUAJIT)
 	
 	SET(LUA_INCLUDE_DIR ${source_dir}/src CACHE INTERNAL "LuaJIT include directory")
 	
-	SET(LUA_LIBRARIES ${source_dir}/src/lua51.lib CACHE INTERNAL "LuaJIT library")
+	IF(WIN32)
+		SET(LUA_LIBRARIES ${source_dir}/src/lua51.lib CACHE INTERNAL "LuaJIT library")
+	ELSE(WIN32)
+		SET(LUA_LIBRARIES ${source_dir}/src/libluajit.a CACHE INTERNAL "LuaJIT library")
+	ENDIF(WIN32)
 ELSE(FSO_USE_LUAJIT)
 	ADD_SUBDIRECTORY(lua)
 ENDIF(FSO_USE_LUAJIT)
