@@ -39,6 +39,8 @@ SET(FSO_INSTRUCTION_SET "" CACHE STRING "The instruction set enhancement to use,
 
 SET(FSO_FS2_PATH $ENV{FS2PATH} CACHE STRING "The path to FreeSpace 2, used for copying the binaries after building")
 
+OPTION(FSO_USE_LUAJIT "Use LuaJIT for Lua scripting, needs a working internet connection!" OFF)
+
 IF (NOT FSO_INSTRUCTION_SET STREQUAL "SSE" AND NOT FSO_INSTRUCTION_SET STREQUAL "SSE2"
 	AND NOT FSO_INSTRUCTION_SET STREQUAL "AVX" AND NOT FSO_INSTRUCTION_SET STREQUAL "")
 
