@@ -37,12 +37,16 @@ IF (FSO_USE_LUAJIT)
 	
 	ExternalProject_Get_Property(luajit source_dir)
 	
-	MESSAGE(${source_dir})
-	
 	SET(LUA_INCLUDE_DIR ${source_dir}/src CACHE INTERNAL "LuaJIT include directory")
 	
 	IF(WIN32)
 		SET(LUA_LIBRARIES ${source_dir}/src/lua51.lib CACHE INTERNAL "LuaJIT library")
+		
+		IF(FSO_COPY_EXE)
+			INSTALL(FILES ${source_dir}/src/lua51.dll
+					DESTINATION ${BINARY_DESTINATION}
+				)
+		ENDIF(FSO_COPY_EXE)
 	ELSE(WIN32)
 		SET(LUA_LIBRARIES ${source_dir}/src/libluajit.a CACHE INTERNAL "LuaJIT library")
 	ENDIF(WIN32)
