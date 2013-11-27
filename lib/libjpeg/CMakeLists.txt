@@ -48,7 +48,7 @@ IF (FSO_BUILD_INCLUDED_LIBS OR NOT JPEG_FOUND)
 		jpeglib.h
 		jversion.h)
 
-	ADD_LIBRARY(jpeg ${JPEG_SOURCES})
+	ADD_LIBRARY(jpeg STATIC ${JPEG_SOURCES})
 	
 	set_target_properties(jpeg
 		PROPERTIES
