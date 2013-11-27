@@ -35,6 +35,11 @@ IF (FSO_USE_LUAJIT)
 		INSTALL_COMMAND ""
     )
 	
+	set_target_properties(luajit
+		PROPERTIES
+			FOLDER "3rdparty"
+	)
+	
 	ExternalProject_Get_Property(luajit source_dir)
 	
 	SET(LUA_INCLUDE_DIR ${source_dir}/src CACHE INTERNAL "LuaJIT include directory")
