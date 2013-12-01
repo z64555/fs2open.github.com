@@ -47,11 +47,9 @@ IF (FSO_USE_LUAJIT)
 	IF(WIN32)
 		SET(LUA_LIBRARIES ${source_dir}/src/lua51.lib CACHE INTERNAL "LuaJIT library")
 		
-		IF(FSO_COPY_EXE)
-			INSTALL(FILES ${source_dir}/src/lua51.dll
-					DESTINATION ${BINARY_DESTINATION}
-				)
-		ENDIF(FSO_COPY_EXE)
+		INSTALL(FILES ${source_dir}/src/lua51.dll
+				DESTINATION ${BINARY_DESTINATION}
+			)
 	ELSE(WIN32)
 		SET(LUA_LIBRARIES ${source_dir}/src/libluajit.a CACHE INTERNAL "LuaJIT library")
 	ENDIF(WIN32)

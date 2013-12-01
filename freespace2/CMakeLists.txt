@@ -88,10 +88,8 @@ IF(UNIX)
 ENDIF(UNIX)
 
 # Add install script to copy the executable to the FreeSpace path if possible and wanted
-IF(FSO_COPY_EXE)
-	INSTALL(
-		TARGETS Freespace2
-		RUNTIME DESTINATION ${BINARY_DESTINATION}
-		CONFIGURATIONS Debug Release
-		)
-ENDIF(FSO_COPY_EXE)
+INSTALL(
+	TARGETS Freespace2
+	RUNTIME DESTINATION ${BINARY_DESTINATION}
+	CONFIGURATIONS Debug Release
+	)

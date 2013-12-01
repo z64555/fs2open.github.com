@@ -12,7 +12,21 @@ SET(FSO_PROJECT_DESCRIPTION "Open source project based on the original FreeSpace
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE PATH "Executable output path")
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE PATH "Library output path")
 
+# CMAKE_INSTALL_PREFIX is defined but also overwritten by the PROJECT command so we need to set it later
+IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
+	SET(RESET_INSTALL_PREFIX TRUE)
+ENDIF(NOT DEFINED CMAKE_INSTALL_PREFIX)
+
 PROJECT(FSO)
+
+IF(RESET_INSTALL_PREFIX)
+	IF(NOT IS_DIRECTORY $ENV{FS2PATH})
+		MESSAGE(WARNING "The path '$ENV{FS2PATH}' of the environment variable FS2PATH does not point to a directory! Install prefix wasn't set.")
+	ELSE(NOT IS_DIRECTORY $ENV{FS2PATH})
+		SET(CMAKE_INSTALL_PREFIX "$ENV{FS2PATH}" CACHE FILEPATH "Install path" FORCE)
+		FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX} CMAKE_INSTALL_PREFIX)
+	ENDIF(NOT IS_DIRECTORY $ENV{FS2PATH})
+ENDIF(RESET_INSTALL_PREFIX)
 
 set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING "Available configurations" FORCE)
 
@@ -34,11 +48,7 @@ OPTION(FSO_BUILD_WXFRED2 "Build wxFRED2 binary" OFF)
 
 OPTION(FSO_BUILD_INCLUDED_LIBS "Build and use the included libraries istead of using the system headers and libraries" OFF)
 
-OPTION(FSO_BUILD_PACKAGE "Build a distribution pacakge" OFF)
-
 SET(FSO_INSTRUCTION_SET "" CACHE STRING "The instruction set enhancement to use, possible options are SSE, SSE2 and AVX")
-
-SET(FSO_FS2_PATH $ENV{FS2PATH} CACHE STRING "The path to FreeSpace 2, used for copying the binaries after building")
 
 OPTION(FSO_USE_LUAJIT "Use LuaJIT for Lua scripting, needs a working internet connection!" OFF)
 
@@ -50,16 +60,8 @@ IF (NOT FSO_INSTRUCTION_SET STREQUAL "SSE" AND NOT FSO_INSTRUCTION_SET STREQUAL 
 	SET(FSO_INSTRUCTION_SET "")
 ENDIF()
 
-IF(NOT IS_DIRECTORY ${FSO_FS2_PATH})
-	MESSAGE(STATUS "The path '${FSO_FS2_PATH}' of the variable FSO_FS2_PATH does not point to a directory!")
-	SET(FSO_COPY_EXE FALSE)
-ELSE(NOT IS_DIRECTORY ${FSO_FS2_PATH})
-	SET(FSO_COPY_EXE TRUE)
-ENDIF(NOT IS_DIRECTORY ${FSO_FS2_PATH})
-
 OPTION(FSO_CMAKE_DEBUG "Enable cmake debugging in while generating build files" OFF)
 
-MARK_AS_ADVANCED(FORCE FSO_BUILD_PACKAGE)
 MARK_AS_ADVANCED(FORCE FSO_CMAKE_DEBUG)
 MARK_AS_ADVANCED(FORCE FSO_BUILD_INCLUDED_LIBS)
 
@@ -99,6 +101,4 @@ IF(FSO_COPY_EXE)
 	INCLUDE(InstallRequiredSystemLibraries)
 ENDIF(FSO_COPY_EXE)
 
-IF(FSO_BUILD_PACKAGE)
-	include(package)
-ENDIF(FSO_BUILD_PACKAGE)
+include(package)
