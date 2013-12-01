@@ -1,4 +1,4 @@
-// Code snipped from http://stackoverflow.com/a/7495023
+// Code snippet from http://stackoverflow.com/a/7495023
 #ifdef _WIN32
 #include <intrin.h>
 //  Windows
