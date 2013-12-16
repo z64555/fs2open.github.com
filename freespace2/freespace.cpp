@@ -7092,25 +7092,6 @@ int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdSh
 	atexit(memblockinfo_output_memleak);
 #endif
 
-	//=====================================================
-	// Make sure we're running in the right directory.
-	char exe_dir[1024];
-	
-	if ( GetModuleFileName( hInst, exe_dir, 1023 ) > 0 )	{
-		char *p = exe_dir + strlen(exe_dir);
-		
-		// chop off the filename
-		while( (p>exe_dir) && (*p!='\\') && (*p!='/') && (*p!=':') )	{
-			p--;
-		}
-		*p = 0;
-		
-		// Set directory
-		if ( strlen(exe_dir) > 0 )	{ //-V805
-			SetCurrentDirectory(exe_dir);
-		}
-	}
-
 	SCP_mspdbcs_Initialise( );
 
 #ifdef GAME_ERRORLOG_TXT
