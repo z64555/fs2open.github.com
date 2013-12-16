@@ -44,15 +44,25 @@ IF (FSO_USE_LUAJIT)
 	
 	SET(LUA_INCLUDE_DIR ${source_dir}/src CACHE INTERNAL "LuaJIT include directory")
 	
+	add_library(luajit_lib SHARED IMPORTED GLOBAL)
 	IF(WIN32)
-		SET(LUA_LIBRARIES ${source_dir}/src/lua51.lib CACHE INTERNAL "LuaJIT library")
+		set_target_properties(luajit_lib
+			PROPERTIES
+				IMPORTED_LOCATION ${source_dir}/src/lua51.dll
+				IMPORTED_IMPLIB ${source_dir}/src/lua51.lib
+		)
 		
 		INSTALL(FILES ${source_dir}/src/lua51.dll
 				DESTINATION ${BINARY_DESTINATION}
 			)
 	ELSE(WIN32)
-		SET(LUA_LIBRARIES ${source_dir}/src/libluajit.a CACHE INTERNAL "LuaJIT library")
+		set_target_properties(luajit_lib
+			PROPERTIES
+				IMPORTED_LOCATION ${source_dir}/src/libluajit.a
+		)
 	ENDIF(WIN32)
+	
+	SET(LUA_LIBRARIES luajit_lib CACHE INTERNAL "LuaJIT library")
 ELSE(FSO_USE_LUAJIT)
 	ADD_SUBDIRECTORY(lua)
 ENDIF(FSO_USE_LUAJIT)
@@ -72,4 +82,3 @@ IF(UNIX)
 	ADD_SUBDIRECTORY(mongoose)
 ENDIF(UNIX)
 
-#ADD_SUBDIRECTORY(STLport-5.2.1)
