@@ -26,6 +26,7 @@
 #include "object/objcollide.h"
 #include "object/object.h"
 #include "object/objectdock.h"
+#include "object/deadobjectdock.h"
 #include "object/objectshield.h"
 #include "object/objectsnd.h"
 #include "observer/observer.h"
@@ -113,28 +114,8 @@ object::~object()
 {
 	objsnd_num.clear();
 
-	if (dock_list != NULL)
-	{
-		mprintf(("dock_list should have been cleared already!\n"));
-		dock_instance *ptr = dock_list;
-		while (ptr != NULL)
-		{
-			dock_instance *nextptr = ptr->next;
-			vm_free(ptr);
-			ptr = nextptr;
-		}
-	}
-	if (dead_dock_list != NULL)
-	{
-		mprintf(("dead_dock_list should have been cleared already!\n"));
-		dock_instance *ptr = dead_dock_list;
-		while (ptr != NULL)
-		{
-			dock_instance *nextptr = ptr->next;
-			vm_free(ptr);
-			ptr = nextptr;
-		}
-	}
+	dock_free_dock_list(this);
+	dock_free_dead_dock_list(this);
 }
 
 // DO NOT set next and prev to NULL because they keep the object on the free and used lists
@@ -148,12 +129,13 @@ void object::clear()
 	orient = last_orient = vmd_identity_matrix;
 	radius = hull_strength = sim_hull_strength = 0.0f;
 	physics_init( &phys_info );
-	memset(shield_quadrant, 0, MAX_SHIELD_SECTIONS * sizeof(float));
+	shield_quadrant.clear();
 	objsnd_num.clear();
 	net_signature = 0;
 
-	Assertion(dock_list == NULL, "dock_list should have been cleared already!");
-	Assertion(dead_dock_list == NULL, "dead_dock_list should have been cleared already!");
+	// just in case nobody called obj_delete last mission
+	dock_free_dock_list(this);
+	dock_free_dead_dock_list(this);
 }
 
 /**
@@ -277,7 +259,7 @@ float get_max_shield_quad(object *objp)
 		return 0.0f;
 	}
 
-	return Ships[objp->instance].ship_max_shield_strength / MAX_SHIELD_SECTIONS;
+	return Ships[objp->instance].ship_max_shield_strength / objp->n_quadrants;
 }
 
 // Goober5000
@@ -521,6 +503,8 @@ int obj_create(ubyte type,int parent_obj,int instance, matrix * orient,
 	}
 	obj->radius 				= radius;
 
+	obj->n_quadrants = DEFAULT_SHIELD_SECTIONS; // Might be changed by the ship creation code
+	obj->shield_quadrant.resize(obj->n_quadrants);
 	return objnum;
 }
 
@@ -616,6 +600,10 @@ void obj_delete(int objnum)
 	default:
 		Error( LOCATION, "Unhandled object type %d in obj_delete_all_that_should_be_dead", objp->type );
 	}
+
+	// delete any dock information we still have
+	dock_free_dock_list(objp);
+	dock_free_dead_dock_list(objp);
 
 	// if a persistant sound has been created, delete it
 	obj_snd_delete_type(OBJ_INDEX(objp));		

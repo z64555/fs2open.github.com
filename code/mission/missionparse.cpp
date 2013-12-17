@@ -72,6 +72,7 @@
 #include "popup/popupdead.h"
 #include "sound/sound.h"
 #include "sound/ds.h"
+#include "parse/scripting.h"
 
 LOCAL struct {
 	char docker[NAME_LENGTH];
@@ -96,7 +97,6 @@ int Num_parse_goals;
 int Player_starts = 1;
 int Num_teams;
 fix Entry_delay_time = 0;
-int Fred_num_texture_replacements = 0;
 
 int Num_unknown_ship_classes;
 int Num_unknown_weapon_classes;
@@ -142,14 +142,14 @@ team_data Team_data[MAX_TVT_TEAMS];
 // variables for player start in single player
 char		Player_start_shipname[NAME_LENGTH];
 int		Player_start_shipnum;
-p_object Player_start_pobject;
+p_object *Player_start_pobject;
 
 // name of all ships to use while parsing a mission (since a ship might be referenced by
 // something before that ship has even been loaded yet)
 char Parse_names[MAX_SHIPS + MAX_WINGS][NAME_LENGTH];
 int Num_parse_names;
 
-texture_replace *Fred_texture_replacements = NULL;
+SCP_vector<texture_replace> Fred_texture_replacements;
 
 int Num_path_restrictions;
 path_restriction_t Path_restrictions[MAX_PATH_RESTRICTIONS];
@@ -310,6 +310,7 @@ char *Parse_object_flags_2[MAX_PARSE_OBJECT_FLAGS_2] = {
 	"cloaked",
 	"ship-locked",
 	"weapons-locked",
+	"scramble-messages",
 };
 
 char *Mission_event_log_flags[MAX_MISSION_EVENT_LOG_FLAGS] = {
@@ -2083,12 +2084,7 @@ int parse_create_object_sub(p_object *p_objp)
 				for (j=k=0; j<MAX_SHIP_PRIMARY_BANKS; j++)
 				{
 					if ((sssp->primary_banks[j] >= 0) || Fred_running)
-					{
-						wp->primary_bank_weapons[k] = sssp->primary_banks[j];						
-
-						// next
-						k++;
-					}
+						wp->primary_bank_weapons[k++] = sssp->primary_banks[j];
 				}
 
 				if (Fred_running)
@@ -2118,8 +2114,10 @@ int parse_create_object_sub(p_object *p_objp)
 				{
 					wp->primary_bank_ammo[j] = sssp->primary_ammo[j];
 				}
-				else
+				else if (Weapon_info[wp->primary_bank_weapons[j]].wi_flags2 & WIF2_BALLISTIC)
 				{
+					Assert(Weapon_info[wp->primary_bank_weapons[j]].cargo_size > 0.0f);
+
 					int capacity = fl2i(sssp->primary_ammo[j]/100.0f * sip->primary_bank_ammo_capacity[j] + 0.5f);
 					wp->primary_bank_ammo[j] = fl2i(capacity / Weapon_info[wp->primary_bank_weapons[j]].cargo_size + 0.5f);
 				}
@@ -2133,6 +2131,8 @@ int parse_create_object_sub(p_object *p_objp)
 				}
 				else
 				{
+					Assert(Weapon_info[wp->secondary_bank_weapons[j]].cargo_size > 0.0f);
+
 					int capacity = fl2i(sssp->secondary_ammo[j]/100.0f * sip->secondary_bank_ammo_capacity[j] + 0.5f);
 					wp->secondary_bank_ammo[j] = fl2i(capacity / Weapon_info[wp->secondary_bank_weapons[j]].cargo_size + 0.5f);
 				}
@@ -2237,7 +2237,7 @@ int parse_create_object_sub(p_object *p_objp)
 		int max_allowed_sparks, num_sparks, iLoop;
 
 		Objects[objnum].hull_strength = p_objp->initial_hull * shipp->ship_max_hull_strength / 100.0f;
-		for (iLoop = 0; iLoop<MAX_SHIELD_SECTIONS; iLoop++)
+		for (iLoop = 0; iLoop<Objects[objnum].n_quadrants; iLoop++)
 		{
 			Objects[objnum].shield_quadrant[iLoop] = (float) (p_objp->initial_shields * get_max_shield_quad(&Objects[objnum]) / 100.0f);
 		}
@@ -2564,6 +2564,9 @@ void resolve_parse_flags(object *objp, int parse_flags, int parse_flags2)
 
 	if (parse_flags2 & P2_SF2_WEAPONS_LOCKED)
 		shipp->flags2 |= SF2_WEAPONS_LOCKED;
+
+	if (parse_flags2 & P2_SF2_SCRAMBLE_MESSAGES)
+		shipp->flags2 |= SF2_SCRAMBLE_MESSAGES;
 }
 
 void fix_old_special_explosions(p_object *p_objp, int variable_index) 
@@ -2607,6 +2610,16 @@ void fix_old_special_hits(p_object *p_objp, int variable_index)
 
 	p_objp->special_hitpoints = atoi(Block_variables[variable_index+HULL_STRENGTH].text);
 	p_objp->special_shield = atoi(Block_variables[variable_index+SHIELD_STRENGTH].text);
+}
+
+p_object::p_object()
+	: next(NULL), prev(NULL), dock_list(NULL), created_object(NULL)
+{}
+
+// this will be called when Parse_objects is cleared between missions and upon shutdown
+p_object::~p_object()
+{
+	dock_free_dock_list(this);
 }
 
 /**
@@ -2979,12 +2992,13 @@ int parse_object(mission *pm, int flag, p_object *p_objp)
 
 	if (optional_string("$Special Explosion:")) {
 		p_objp->use_special_explosion = true;
+		bool period_detected = false;
 
 		if (required_string("+Special Exp Damage:")) {
 			stuff_int(&p_objp->special_exp_damage);
 
 			if (*Mp == '.') {
-				Warning(LOCATION, "Special explosion damage has been returned to integer format");
+				period_detected = true;
 				advance_to_eoln(NULL);
 			}
 		}
@@ -2993,7 +3007,7 @@ int parse_object(mission *pm, int flag, p_object *p_objp)
 			stuff_int(&p_objp->special_exp_blast);
 
 			if (*Mp == '.') {
-				Warning(LOCATION, "Special explosion blast has been returned to integer format");
+				period_detected = true;
 				advance_to_eoln(NULL);
 			}
 		}
@@ -3002,7 +3016,7 @@ int parse_object(mission *pm, int flag, p_object *p_objp)
 			stuff_int(&p_objp->special_exp_inner);
 
 			if (*Mp == '.') {
-				Warning(LOCATION, "Special explosion inner radius has been returned to integer format");
+				period_detected = true;
 				advance_to_eoln(NULL);
 			}
 		}
@@ -3011,7 +3025,7 @@ int parse_object(mission *pm, int flag, p_object *p_objp)
 			stuff_int(&p_objp->special_exp_outer);
 
 			if (*Mp == '.') {
-				Warning(LOCATION, "Special explosion outer radius has been returned to integer format");
+				period_detected = true;
 				advance_to_eoln(NULL);
 			}
 		}
@@ -3021,13 +3035,17 @@ int parse_object(mission *pm, int flag, p_object *p_objp)
 			p_objp->use_shockwave = true;
 
 			if (*Mp == '.') {
-				Warning(LOCATION, "Special explosion shockwave speed has been returned to integer format");
+				period_detected = true;
 				advance_to_eoln(NULL);
 			}
 		}
 
 		if (optional_string("+Special Exp Death Roll Time:")) {
 			stuff_int(&p_objp->special_exp_deathroll_time);
+		}
+
+		if (period_detected) {
+			nprintf(("Warning", "Special explosion attributes have been returned to integer format"));
 		}
 	}
 
@@ -3233,12 +3251,14 @@ int parse_object(mission *pm, int flag, p_object *p_objp)
 			// *** account for FRED
 			if (Fred_running)
 			{
-				Assert( Fred_texture_replacements != NULL );
-				strcpy_s(Fred_texture_replacements[Fred_num_texture_replacements].ship_name, p_objp->name);
-				strcpy_s(Fred_texture_replacements[Fred_num_texture_replacements].old_texture, p_objp->replacement_textures[p_objp->num_texture_replacements].old_texture);
-				strcpy_s(Fred_texture_replacements[Fred_num_texture_replacements].new_texture, p_objp->replacement_textures[p_objp->num_texture_replacements].new_texture);
-				Fred_texture_replacements[Fred_num_texture_replacements].new_texture_id = -1;
-				Fred_num_texture_replacements++;
+				texture_replace tr;
+
+				strcpy_s(tr.ship_name, p_objp->name);
+				strcpy_s(tr.old_texture, p_objp->replacement_textures[p_objp->num_texture_replacements].old_texture);
+				strcpy_s(tr.new_texture, p_objp->replacement_textures[p_objp->num_texture_replacements].new_texture);
+				tr.new_texture_id = -1;
+
+				Fred_texture_replacements.push_back(tr);
 			}
 
 			// increment
@@ -3268,13 +3288,6 @@ int parse_object(mission *pm, int flag, p_object *p_objp)
 	p_objp->wing_status_wing_index = -1;
 	p_objp->wing_status_wing_pos = -1;
 	p_objp->respawn_count = 0;
-
-	// if this if the starting player ship, then copy if to Starting_player_pobject (used for ingame join)
-	if (!stricmp(p_objp->name, Player_start_shipname))
-	{
-		Player_start_pobject = *p_objp;
-	}
-	
 
 	// Goober5000 - preload stuff for certain object flags
 	// (done after parsing object, but before creating it)
@@ -3768,12 +3781,12 @@ void swap_parse_object(p_object *p_obj, int new_ship_class)
 
 p_object *mission_parse_get_parse_object(ushort net_signature)
 {
-	int i;
+	SCP_vector<p_object>::iterator ii;
 
 	// look for original ships
-	for (i = 0; i < (int)Parse_objects.size(); i++)
-		if(Parse_objects[i].net_signature == net_signature)
-			return &Parse_objects[i];
+	for (ii = Parse_objects.begin(); ii != Parse_objects.end(); ++ii)
+		if (ii->net_signature == net_signature)
+			return &(*ii);
 
 	// boo
 	return NULL;
@@ -3782,12 +3795,12 @@ p_object *mission_parse_get_parse_object(ushort net_signature)
 // Goober5000 - also get it by name
 p_object *mission_parse_get_parse_object(const char *name)
 {
-	int i;
+	SCP_vector<p_object>::iterator ii;
 
 	// look for original ships
-	for (i = 0; i < (int)Parse_objects.size(); i++)
-		if(!stricmp(Parse_objects[i].name, name))
-			return &Parse_objects[i];
+	for (ii = Parse_objects.begin(); ii != Parse_objects.end(); ++ii)
+		if (!stricmp(ii->name, name))
+			return &(*ii);
 
 	// boo
 	return NULL;
@@ -3857,7 +3870,7 @@ int parse_wing_create_ships( wing *wingp, int num_to_create, int force, int spec
 			if ( shipnum == -1 ) {
 				int num_remaining;
 				// since this wing cannot arrive from this place, we need to mark the wing as destroyed and
-				// set the wing variables appropriatly.  Good for directives.
+				// set the wing variables appropriately.  Good for directives.
 
 				// set the gone flag
 				wingp->flags |= WF_WING_GONE;
@@ -3946,11 +3959,11 @@ int parse_wing_create_ships( wing *wingp, int num_to_create, int force, int spec
 
 	// Goober5000 - we have to do this via the array because we have no guarantee we'll be able to iterate along the list
 	// (since created objects plus anything they're docked to will be removed from it)
-	for (i = 0; i < (int)Parse_objects.size(); i++)
+	for (SCP_vector<p_object>::iterator ii = Parse_objects.begin(); ii != Parse_objects.end(); ++ii)
 	{
 		int index;
 		ai_info *aip;
-		p_object *p_objp = &Parse_objects[i];
+		p_object *p_objp = &(*ii);
 
 		// ensure on arrival list
 		if (!parse_object_on_arrival_list(p_objp))
@@ -3986,17 +3999,15 @@ int parse_wing_create_ships( wing *wingp, int num_to_create, int force, int spec
 		}
 
 		// bash the ship name to be the name of the wing + some number if there is > 1 wave in this wing
+		wingp->total_arrived_count++;
+		if (wingp->num_waves > 1)
+			wing_bash_ship_name(p_objp->name, wingp->name, wingp->total_arrived_count);
+
 		// also, if multiplayer, set the parse object's net signature to be wing's net signature
 		// base + total_arrived_count (before adding 1)
 		if (Game_mode & GM_MULTIPLAYER)
 		{
 			p_objp->net_signature = (ushort) (wingp->net_signature + wingp->total_arrived_count);
-		}
-
-		wingp->total_arrived_count++;
-		if (wingp->num_waves > 1)
-		{
-			sprintf(p_objp->name, NOX("%s %d"), wingp->name, wingp->total_arrived_count);
 		}
 
 
@@ -4126,6 +4137,24 @@ int parse_wing_create_ships( wing *wingp, int num_to_create, int force, int spec
 
 		// possibly change the location where these ships arrive based on the wings arrival location
 		mission_set_wing_arrival_location( wingp, num_create_save );
+
+		for (it = 0; it < wingp->current_count; it++ ) {
+			int shipobjnum = Ships[wingp->ship_index[it]].objnum;
+			int anchor_objnum = -1;
+
+			if (wingp->arrival_anchor >= 0) {
+				int parentshipnum = ship_name_lookup(Parse_names[wingp->arrival_anchor]);
+				anchor_objnum = Ships[parentshipnum].objnum;
+			}
+
+			if (anchor_objnum >= 0)
+				Script_system.SetHookObjects(2, "Ship", &Objects[shipobjnum], "Parent", &Objects[anchor_objnum]);
+			else
+				Script_system.SetHookObjects(2, "Ship", &Objects[shipobjnum], "Parent", NULL);
+
+			Script_system.RunCondition(CHA_ONSHIPARRIVE, 0, NULL, &Objects[shipobjnum]);
+			Script_system.RemHookVars(2, "Ship", "Parent");
+		}
 
 		// if in multiplayer (and I am the host) and in the mission, send a wing create command to all
 		// other players
@@ -4553,14 +4582,11 @@ void resolve_path_masks(int anchor, int *path_mask)
 void post_process_path_stuff()
 {
 	int i;
-	p_object *pobjp;
 	wing *wingp;
 
 	// take care of parse objects (ships)
-	for (i = 0; i < (int)Parse_objects.size(); i++)
+	for (SCP_vector<p_object>::iterator pobjp = Parse_objects.begin(); pobjp != Parse_objects.end(); ++pobjp)
 	{
-		pobjp = &Parse_objects[i];
-
 		resolve_path_masks(pobjp->arrival_anchor, &pobjp->arrival_path_mask);
 		resolve_path_masks(pobjp->departure_anchor, &pobjp->departure_path_mask);
 	}
@@ -4592,9 +4618,9 @@ void post_process_ships_wings()
 	// Goober5000 - now create all objects that we can.  This must be done before any ship stuff
 	// but can't be done until the dock references are resolved.  This was originally done
 	// in parse_object().
-	for (i = 0; i < (int)Parse_objects.size(); i++)
+	for (SCP_vector<p_object>::iterator ii = Parse_objects.begin(); ii != Parse_objects.end(); ++ii)
 	{
-		mission_parse_maybe_create_parse_object(&Parse_objects[i]);
+		mission_parse_maybe_create_parse_object(&(*ii));
 	}
 
 
@@ -5379,7 +5405,6 @@ int parse_mission(mission *pm, int flags)
 	Player_starts = Num_cargo = Num_goals = Num_wings = 0;
 	Player_start_shipnum = -1;
 	*Player_start_shipname = 0;		// make the string 0 length for checking later
-	Player_start_pobject.Reset( );
 	clear_texture_replacements();
 
 	// initialize the initially_docked array.
@@ -5508,8 +5533,9 @@ void post_process_mission()
 
 	// the player_start_shipname had better exist at this point!
 	Player_start_shipnum = ship_name_lookup( Player_start_shipname );
-	Assert ( Player_start_shipnum != -1 );
-	Assert ( !stricmp(Player_start_pobject.name, Player_start_shipname) );
+	Assert( Player_start_shipnum != -1 );
+	Player_start_pobject = mission_parse_get_parse_object( Player_start_shipname );
+	Assert( Player_start_pobject != NULL );
 
 	// Assign objnum, shipnum, etc. to the player structure
 	objnum = Ships[Player_start_shipnum].objnum;
@@ -5870,6 +5896,7 @@ int parse_main(const char *mission_name, int flags)
 	return rval;
 }
 
+// Note, this is currently only called from game_shutdown()
 void mission_parse_close()
 {
 	// free subsystems
@@ -5879,11 +5906,8 @@ void mission_parse_close()
 		Subsys_status = NULL;
 	}
 
-	// free parse object dock lists
-	for (size_t i = 0; i < Parse_objects.size(); i++)
-	{
-		dock_free_instances(&Parse_objects[i]);
-	}
+	// the destructor for each p_object will clear its dock list
+	Parse_objects.clear();
 }
 
 /**
@@ -6089,9 +6113,9 @@ void parse_object_clear_handled_flag_helper(p_object *pobjp, p_dock_function_inf
 void parse_object_clear_all_handled_flags()
 {
 	// clear flag for all ships
-	for (size_t i = 0; i < Parse_objects.size(); i++)
+	for (SCP_vector<p_object>::iterator ii = Parse_objects.begin(); ii != Parse_objects.end(); ++ii)
 	{
-		p_object *pobjp = &Parse_objects[i];
+		p_object *pobjp = &(*ii);
 		p_dock_function_info dfi;
 
 		// since we're going through all objects, this object may not be docked
@@ -6162,9 +6186,9 @@ void mission_parse_set_up_initial_docks()
 	}
 
 	// now resolve the leader of each tree
-	for (i = 0; i < (int)Parse_objects.size(); i++)
+	for (SCP_vector<p_object>::iterator ii = Parse_objects.begin(); ii != Parse_objects.end(); ++ii)
 	{
-		p_object *pobjp = &Parse_objects[i];
+		p_object *pobjp = &(*ii);
 		p_dock_function_info dfi;
 
 		// since we're going through all objects, this object may not be docked
@@ -6582,6 +6606,20 @@ void mission_maybe_make_ship_arrive(p_object *p_objp)
 		mission_parse_support_arrived(objnum);
 	else
 		list_remove(&Ship_arrival_list, p_objp);
+
+	int anchor_objnum = -1;
+	if (p_objp->arrival_anchor >= 0) {
+		int shipnum = ship_name_lookup(Parse_names[p_objp->arrival_anchor]);
+		anchor_objnum = Ships[shipnum].objnum;
+	}
+
+	if (anchor_objnum >= 0)
+		Script_system.SetHookObjects(2, "Ship", &Objects[objnum], "Parent", &Objects[anchor_objnum]);
+	else
+		Script_system.SetHookObjects(2, "Ship", &Objects[objnum], "Parent", NULL);
+
+	Script_system.RunCondition(CHA_ONSHIPARRIVE, 0, NULL, &Objects[objnum]);
+	Script_system.RemHookVars(2, "Ship", "Parent");
 }
 
 // Goober5000
@@ -6695,9 +6733,9 @@ void mission_eval_arrivals()
 	// check the arrival list
 	// Goober5000 - we can't run through the list the usual way because we might
 	// remove a bunch of objects and completely screw up the list linkage
-	for (i = 0; i < (int)Parse_objects.size(); i++)
+	for (SCP_vector<p_object>::iterator ii = Parse_objects.begin(); ii != Parse_objects.end(); ++ii)
 	{
-		p_object *pobjp = &Parse_objects[i];
+		p_object *pobjp = &(*ii);
 
 		// make sure we're on the arrival list
 		if (!parse_object_on_arrival_list(pobjp))
@@ -7943,8 +7981,5 @@ void restore_one_secondary_bank(int *ship_secondary_weapons, int *default_second
 
 void clear_texture_replacements() 
 {
-	for (int i=0; i < Fred_num_texture_replacements; i++) {
-		memset(Fred_texture_replacements, '\0', sizeof(texture_replace)); 
-	}
-	Fred_num_texture_replacements = 0; 
+	Fred_texture_replacements.clear();
 }
