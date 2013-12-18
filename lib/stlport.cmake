@@ -20,10 +20,10 @@ ExternalProject_Add(stlport
 	# Downloading
 	URL http://sourceforge.net/projects/stlport/files/STLport/STLport-5.2.1/STLport-5.2.1.tar.gz # Full path or URL of source
 	URL_MD5 b20ace9f4a487b2614dfbb205bee112c               # MD5 checksum of file at URL
-	# Configuring
-	CONFIGURE_COMMAND configure msvc6 -p ${STL_PLATFORM} ${STL_RUNTIME_LIBRARY}
+	# Configuring, we need to use cmd as configure calls exit
+	CONFIGURE_COMMAND cmd /C configure msvc6 -p ${STL_PLATFORM} ${STL_RUNTIME_LIBRARY}
 	# Building
-	BUILD_COMMAND ""
+	BUILD_COMMAND cd build/lib && nmake install
 	BUILD_IN_SOURCE 1
 	# Installing
 	INSTALL_COMMAND ""
@@ -33,3 +33,8 @@ set_target_properties(stlport
 	PROPERTIES
 		FOLDER "3rdparty"
 )
+	
+ExternalProject_Get_Property(stlport source_dir)
+
+SET(STLPORT_INCLUDE_DIRS "${source_dir}/stlport" CACHE INTERNAL)
+SET(STLPORT_INCLUDE_LIB_DIRS "${source_dir}/lib" CACHE INTERNAL)
