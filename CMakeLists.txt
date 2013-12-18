@@ -20,6 +20,8 @@ ENDIF(NOT DEFINED CMAKE_INSTALL_PREFIX)
 PROJECT(FS2_Open)
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/external/rpavlik-cmake-modules")
+
 IF(NOT DEFINED FSO_INSTRUCTION_SET)
 	INCLUDE(cpufeatures)
 ENDIF(NOT DEFINED FSO_INSTRUCTION_SET)
@@ -56,6 +58,9 @@ OPTION(FSO_BUILD_INCLUDED_LIBS "Build and use the included libraries istead of u
 SET(FSO_INSTRUCTION_SET "" CACHE STRING "The instruction set enhancement to use, possible options are SSE, SSE2 and AVX")
 
 OPTION(FSO_USE_LUAJIT "Use LuaJIT for Lua scripting, needs a working internet connection!" OFF)
+
+file(TO_CMAKE_PATH "$ENV{FS2PATH}" TEMP_PATH)
+SET(FSO_FREESPACE_PATH "${TEMP_PATH}" CACHE STRING "The path of the FreeSpace directory you want to use. Please note that you will have to change CMAKE_INSTALL_PREFIX if you change this at some point.")
 
 IF (NOT FSO_INSTRUCTION_SET STREQUAL "SSE" AND NOT FSO_INSTRUCTION_SET STREQUAL "SSE2"
 	AND NOT FSO_INSTRUCTION_SET STREQUAL "AVX" AND NOT FSO_INSTRUCTION_SET STREQUAL "")

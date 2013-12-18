@@ -110,3 +110,7 @@ INSTALL(
 	RUNTIME DESTINATION ${BINARY_DESTINATION}
 	CONFIGURATIONS Debug Release
 )
+
+include(CreateLaunchers)
+create_target_launcher(wxfred2
+	WORKING_DIRECTORY ${FSO_FREESPACE_PATH})
