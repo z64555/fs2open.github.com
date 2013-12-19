@@ -42,7 +42,7 @@ find_package(wxWidgets COMPONENTS gl core base REQUIRED)
 
 include(${wxWidgets_USE_FILE})
 
-add_executable(wxfred2 WIN32 MACOSX_BUNDLE ${file_root} ${PNG_OUT_FILES})
+add_executable(wxfred2 ${EXE_GUI_TYPE} ${file_root} ${PNG_OUT_FILES})
 
 set_target_properties(wxfred2
 	PROPERTIES
