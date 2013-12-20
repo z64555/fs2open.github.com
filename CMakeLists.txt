@@ -38,10 +38,11 @@ ENDIF(RESET_INSTALL_PREFIX)
 set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING "Available configurations" FORCE)
 
 ### Define options and editable variables in the section below:
-if(NOT CMAKE_BUILD_TYPE)
+# This is only needed for single configuration generators so don't annoy others
+if(NOT CMAKE_BUILD_TYPE AND NOT DEFINED CMAKE_CONFIGURATION_TYPES)
 	set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Default build configuration used." FORCE)
 	message(WARNING "CMAKE_BUILD_TYPE was not specified, defaulting to Release configuration.")
-endif()
+endif(NOT CMAKE_BUILD_TYPE AND NOT DEFINED CMAKE_CONFIGURATION_TYPES)
 	
 IF (WIN32)
 	OPTION(FSO_USE_SPEECH "Use Windows specific text-to-speach libraries" OFF)
