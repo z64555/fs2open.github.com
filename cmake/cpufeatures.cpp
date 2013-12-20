@@ -32,9 +32,6 @@ int main( int argc, char* argv[] )
 	cpuid(info, 0);
 	int nIds = info[0];
 
-	cpuid(info, 0x80000000);
-	int nExIds = info[0];
-
 	//  Detect Instruction Set
 	if (nIds >= 1){
 		cpuid(info,0x00000001);

@@ -4,6 +4,8 @@ SET(MONGOOSE_SOURCES
 	mongoose.h)
 
 ADD_LIBRARY(mongoose ${MONGOOSE_SOURCES})
+	
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
 set_target_properties(mongoose
 	PROPERTIES
