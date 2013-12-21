@@ -54,10 +54,11 @@ ELSEIF (WIN32)
 	SET(THEORA_INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}/include CACHE INTERNAL "THEORA include directory")
 	SET(THEORA_LIBS theora CACHE INTERNAL "Theora library")
 ELSEIF(APPLE)
+	# We also have precompiled libs for windows
 	add_library(ogg STATIC IMPORTED GLOBAL)
 	set_target_properties(ogg
 		PROPERTIES
-			IMPORTED_LOCATION ${FSO_MAC_FRAMEWORKS}/Ogg.framework
+			IMPORTED_LOCATION ${FSO_MAC_FRAMEWORKS}/Ogg.framework/Ogg
 	)
 	SET(OGG_INCLUDE_DIRS "${FSO_MAC_FRAMEWORKS}/Ogg.framework/Headers" CACHE INTERNAL "Ogg include directory")
 	SET(OGG_LIBS ogg CACHE INTERNAL "OggVorbis library")
@@ -65,7 +66,7 @@ ELSEIF(APPLE)
 	add_library(vorbis STATIC IMPORTED GLOBAL)
 	set_target_properties(vorbis
 		PROPERTIES
-			IMPORTED_LOCATION ${FSO_MAC_FRAMEWORKS}/Vorbis.framework
+			IMPORTED_LOCATION ${FSO_MAC_FRAMEWORKS}/Vorbis.framework/Vorbis
 	)
 	SET(VORBIS_INCLUDE_DIRS "${FSO_MAC_FRAMEWORKS}/Vorbis.framework/Headers" CACHE INTERNAL "Vorbis include directory")
 	SET(VORBIS_LIBS vorbis CACHE INTERNAL "OggVorbis library")
@@ -76,7 +77,7 @@ ELSEIF(APPLE)
 	add_library(theora STATIC IMPORTED GLOBAL)
 	set_target_properties(theora
 		PROPERTIES
-			IMPORTED_LOCATION ${FSO_MAC_FRAMEWORKS}/Theora.framework
+			IMPORTED_LOCATION ${FSO_MAC_FRAMEWORKS}/Theora.framework/Theora
 	)
 	SET(THEORA_INCLUDE_DIRS "${FSO_MAC_FRAMEWORKS}/Theora.framework/Headers" CACHE INTERNAL "THEORA include directory")
 	SET(THEORA_LIBS theora CACHE INTERNAL "Theora library")
