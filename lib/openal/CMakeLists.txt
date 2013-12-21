@@ -2,13 +2,21 @@
 IF(FSO_USE_OPENALSOFT)
 	INCLUDE(ExternalProject)
 	MESSAGE(STATUS "Using OpenAL Soft for OpenAL support")
+	
+	SET(CONFIG Release)
 	ExternalProject_Add(OpenALsoft
 		PREFIX OpenALsoft
 		# Downloading
 		URL http://kcat.strangesoft.net/openal-releases/openal-soft-1.15.1.tar.bz2 # Full path or URL of source
 		URL_MD5 ea83dec3b9655a27d28e7bc7cae9cd71               # MD5 checksum of file at URL
 		
-		CMAKE_CACHE_ARGS -DUTILS:BOOL=OFF -DEXAMPLES:BOOL=OFF -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>/\\\${BUILD_TYPE}
+		
+		CMAKE_CACHE_ARGS -DUTILS:BOOL=OFF -DEXAMPLES:BOOL=OFF
+							-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DCMAKE_BUILD_TYPE:STRING=${CONFIG}
+		
+		BUILD_COMMAND "${CMAKE_COMMAND}" --build <BINARY_DIR> --config ${CONFIG}
+		
+		INSTALL_COMMAND "${CMAKE_COMMAND}" --build <BINARY_DIR> --config ${CONFIG} --target install
 	)
 
 	set_target_properties(OpenALsoft
@@ -16,9 +24,35 @@ IF(FSO_USE_OPENALSOFT)
 			FOLDER "3rdparty"
 	)
 	
-	ExternalProject_Get_Property(OpenALsoft INSTALL_DIR)
+	ExternalProject_Get_Property(OpenALsoft install_dir)
 	
-	
+	add_library(openalsoft_lib SHARED IMPORTED GLOBAL)
+	ADD_DEPENDENCIES(openalsoft_lib OpenALsoft)
+
+	IF(WIN32)
+		set_target_properties(openalsoft_lib
+			PROPERTIES
+				IMPORTED_LOCATION ${install_dir}/lib/OpenAL32.lib
+				IMPORTED_IMPLIB ${install_dir}/bin/OpenAL32.dll
+		)
+		
+		INSTALL(FILES ${install_dir}/bin/OpenAL32.dll
+				DESTINATION ${BINARY_DESTINATION}
+		)
+	ELSE(WIN32)
+		set_target_properties(openalsoft_lib
+			PROPERTIES
+				IMPORTED_LOCATION ${install_dir}/lib/libopenal.so
+		)
+		
+		INSTALL(FILES ${install_dir}/lib/libopenal.so
+				DESTINATION ${BINARY_DESTINATION}
+		)
+	ENDIF(WIN32)
+
+	SET(OPENAL_INCLUDE_DIR ${install_dir}/include/AL CACHE INTERNAL "OpenAL include directory")
+
+	SET(OPENAL_LIBRARY openalsoft_lib CACHE INTERNAL "OpenAL library")
 ELSE(FSO_USE_OPENALSOFT)
 	IF(NOT WIN32)
 		FIND_PACKAGE(OpenAL REQUIRED)
