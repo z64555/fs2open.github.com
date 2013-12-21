@@ -66,8 +66,7 @@ OPTION(FSO_USE_LUAJIT "Use LuaJIT for Lua scripting, needs a working internet co
 
 OPTION(FSO_USE_OPENALSOFT "Download and build OpenAL Soft instead of using the system libraries" OFF)
 
-file(TO_CMAKE_PATH "$ENV{FS2PATH}" TEMP_PATH)
-SET(FSO_FREESPACE_PATH "${TEMP_PATH}" CACHE STRING "The path of the FreeSpace directory you want to use. Please note that you will have to change CMAKE_INSTALL_PREFIX if you change this at some point.")
+SET(FSO_FREESPACE_PATH "${CMAKE_INSTALL_PREFIX}" CACHE FILEPATH "The path of the FreeSpace directory you want to use. Please note that you will have to change CMAKE_INSTALL_PREFIX if you change this at some point.")
 
 IF (NOT FSO_INSTRUCTION_SET STREQUAL "SSE" AND NOT FSO_INSTRUCTION_SET STREQUAL "SSE2"
 	AND NOT FSO_INSTRUCTION_SET STREQUAL "AVX" AND NOT FSO_INSTRUCTION_SET STREQUAL "")

@@ -112,6 +112,8 @@ INSTALL(
 	CONFIGURATIONS Debug Release
 )
 
+COPY_FILES_TO_TARGET(wxfred2)
+
 include(CreateLaunchers)
 create_target_launcher(wxfred2
 	WORKING_DIRECTORY ${FSO_FREESPACE_PATH})

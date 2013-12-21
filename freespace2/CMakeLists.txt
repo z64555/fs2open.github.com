@@ -99,6 +99,8 @@ INSTALL(
 	CONFIGURATIONS Debug Release
 )
 
+COPY_FILES_TO_TARGET(Freespace2)
+
 include(CreateLaunchers)
 create_target_launcher(Freespace2
 	WORKING_DIRECTORY ${FSO_FREESPACE_PATH})

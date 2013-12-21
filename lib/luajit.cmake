@@ -56,7 +56,9 @@ IF(WIN32)
 	
 	INSTALL(FILES ${source_dir}/src/lua51.dll
 			DESTINATION ${BINARY_DESTINATION}
-		)
+	)
+		
+	SET(TARGET_COPY_FILES ${TARGET_COPY_FILES} "${source_dir}/src/lua51.dll" CACHE INTERNAL "")
 ELSE(WIN32)
 	set_target_properties(luajit_lib
 		PROPERTIES

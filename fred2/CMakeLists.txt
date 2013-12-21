@@ -206,6 +206,8 @@ INSTALL(
 	CONFIGURATIONS Debug Release
 )
 
+COPY_FILES_TO_TARGET(FRED2)
+
 include(CreateLaunchers)
 create_target_launcher(FRED2
 	WORKING_DIRECTORY ${FSO_FREESPACE_PATH})
