@@ -1,5 +1,6 @@
 
 IF(FSO_USE_OPENALSOFT)
+	INCLUDE(ExternalProject)
 	MESSAGE(STATUS "Using OpenAL Soft for OpenAL support")
 	ExternalProject_Add(OpenALsoft
 		PREFIX OpenALsoft
