@@ -64,6 +64,8 @@ SET(FSO_INSTRUCTION_SET "" CACHE STRING "The instruction set enhancement to use,
 
 OPTION(FSO_USE_LUAJIT "Use LuaJIT for Lua scripting, needs a working internet connection!" OFF)
 
+OPTION(FSO_USE_OPENALSOFT "Download and build OpenAL Soft instead of using the system libraries" OFF)
+
 file(TO_CMAKE_PATH "$ENV{FS2PATH}" TEMP_PATH)
 SET(FSO_FREESPACE_PATH "${TEMP_PATH}" CACHE STRING "The path of the FreeSpace directory you want to use. Please note that you will have to change CMAKE_INSTALL_PREFIX if you change this at some point.")
 
@@ -79,6 +81,8 @@ OPTION(FSO_CMAKE_DEBUG "Enable cmake debugging in while generating build files" 
 
 MARK_AS_ADVANCED(FORCE FSO_CMAKE_DEBUG)
 MARK_AS_ADVANCED(FORCE FSO_BUILD_INCLUDED_LIBS)
+MARK_AS_ADVANCED(FORCE FSO_USE_OPENALSOFT)
+MARK_AS_ADVANCED(FORCE FSO_USE_LUAJIT)
 
 INCLUDE(globals)
 INCLUDE(toolchain)
