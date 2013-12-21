@@ -32,8 +32,8 @@ IF(FSO_USE_OPENALSOFT)
 	IF(WIN32)
 		set_target_properties(openalsoft_lib
 			PROPERTIES
-				IMPORTED_LOCATION ${install_dir}/lib/OpenAL32.lib
-				IMPORTED_IMPLIB ${install_dir}/bin/OpenAL32.dll
+				IMPORTED_LOCATION ${install_dir}/bin/OpenAL32.dll
+				IMPORTED_IMPLIB ${install_dir}/lib/OpenAL32.lib
 		)
 		
 		INSTALL(FILES ${install_dir}/bin/OpenAL32.dll
@@ -50,7 +50,7 @@ IF(FSO_USE_OPENALSOFT)
 		)
 	ENDIF(WIN32)
 
-	SET(OPENAL_INCLUDE_DIR ${install_dir}/include/AL CACHE INTERNAL "OpenAL include directory")
+	SET(OPENAL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE INTERNAL "OpenAL include directory")
 
 	SET(OPENAL_LIBRARY openalsoft_lib CACHE INTERNAL "OpenAL library")
 ELSE(FSO_USE_OPENALSOFT)
