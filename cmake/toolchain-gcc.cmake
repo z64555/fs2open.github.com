@@ -8,9 +8,9 @@ endif(DEFINED ENV{CXXFLAGS})
 
 if(NOT CMAKE_CXX_FLAGS)
 	if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-		set(CMAKE_CXX_FLAGS "-march=i686 -mtune=generic -mfpmath=sse -msse -msse2 -ansi")
+		set(CMAKE_CXX_FLAGS "-march=i686 -mtune=generic -mfpmath=sse -msse -msse2")
 	elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
-		set(CMAKE_CXX_FLAGS "-m64 -march=x86-64 -mtune=generic -msse -msse2 -ansi")
+		set(CMAKE_CXX_FLAGS "-m64 -march=x86-64 -mtune=generic -msse -msse2")
 	endif()
 endif(NOT CMAKE_CXX_FLAGS)
 
