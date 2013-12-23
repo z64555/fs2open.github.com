@@ -34,7 +34,6 @@ IF (FSO_BUILD_INCLUDED_LIBS OR NOT LUA51_FOUND)
 		ltablib.c
 		ltm.c
 		lua.c
-		luac.c
 		lundump.c
 		lvm.c
 		lzio.c
