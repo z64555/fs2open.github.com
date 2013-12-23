@@ -206,6 +206,7 @@ INSTALL(
 	CONFIGURATIONS Debug Release
 )
 
+INCLUDE(util)
 COPY_FILES_TO_TARGET(FRED2)
 
 include(CreateLaunchers)

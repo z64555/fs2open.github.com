@@ -99,6 +99,7 @@ INSTALL(
 	CONFIGURATIONS Debug Release
 )
 
+INCLUDE(util)
 COPY_FILES_TO_TARGET(Freespace2)
 
 include(CreateLaunchers)

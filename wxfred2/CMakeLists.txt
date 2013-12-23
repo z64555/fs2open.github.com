@@ -112,6 +112,7 @@ INSTALL(
 	CONFIGURATIONS Debug Release
 )
 
+INCLUDE(util)
 COPY_FILES_TO_TARGET(wxfred2)
 
 include(CreateLaunchers)
