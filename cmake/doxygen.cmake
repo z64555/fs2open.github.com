@@ -1,10 +1,10 @@
 
 # add a target to generate API documentation with Doxygen
 find_package(Doxygen)
-if(DOXYGEN_FOUND)	
-	file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/documentation/doxygen")
+if(DOXYGEN_FOUND)
 	SET(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/documentation/doxygen")
 	FILE(MAKE_DIRECTORY "${OUTPUT_DIR}")
+	
 	FILE(TO_NATIVE_PATH ${OUTPUT_DIR} OUTPUT_DIR)
 	SET(OUTPUT_DIR \"${OUTPUT_DIR}\")
 	
