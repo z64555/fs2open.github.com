@@ -65,10 +65,19 @@ ELSE(FSO_USE_OPENALSOFT)
 		MESSAGE(STATUS "Could not find OpenAL libraries on system, using included pre-built libraries")
 		
 		add_library(openal STATIC IMPORTED GLOBAL)
-		set_target_properties(openal
-			PROPERTIES
-				IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/libs/win32/openal32.lib
-		)
+		IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
+			# 64-bit
+			set_target_properties(openal
+				PROPERTIES
+					IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/libs/win64/openal32.lib
+			)
+		ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
+			# 32-bit
+			set_target_properties(openal
+				PROPERTIES
+					IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/libs/win32/openal32.lib
+			)
+		ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
 
 		SET(OPENAL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE INTERNAL "OpenAL include directory")
 
