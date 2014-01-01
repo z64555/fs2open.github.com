@@ -13,7 +13,7 @@ IF(NOT FSO_BUILD_INCLUDED_LIBS AND UNIX)
 ENDIF(NOT FSO_BUILD_INCLUDED_LIBS AND UNIX)
 
 IF(FSO_BUILD_INCLUDED_LIBS OR NOT JANSSON_FOUND)
-	MESSAGE(STATUS "Couldn't find jansson libraries, building from source...")
+	MESSAGE(STATUS "Building jansson from source...")
 	SET(JANSSON_SOURCES
 		dump.c
 		error.c

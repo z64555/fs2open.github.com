@@ -4,7 +4,7 @@ IF(NOT FSO_BUILD_INCLUDED_LIBS)
 ENDIF(NOT FSO_BUILD_INCLUDED_LIBS)
 
 IF (FSO_BUILD_INCLUDED_LIBS OR NOT JPEG_FOUND)
-	MESSAGE(STATUS "Could not find jpeg libraries on system, using included source")
+	MESSAGE(STATUS "Building libjpeg from source")
 
 	SET(JPEG_SOURCES 
 		jaricom.c

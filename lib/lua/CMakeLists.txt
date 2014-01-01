@@ -4,7 +4,7 @@ IF(NOT FSO_BUILD_INCLUDED_LIBS)
 ENDIF(NOT FSO_BUILD_INCLUDED_LIBS)
 
 IF (FSO_BUILD_INCLUDED_LIBS OR NOT LUA51_FOUND)
-	MESSAGE(STATUS "Could not find lua libraries on system, using included source")
+	MESSAGE(STATUS "Building lua from source")
 	
 	SET(LUA51_SOURCES
 		lapi.c

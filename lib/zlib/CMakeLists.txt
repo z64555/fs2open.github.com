@@ -4,7 +4,7 @@ IF(NOT FSO_BUILD_INCLUDED_LIBS)
 ENDIF(NOT FSO_BUILD_INCLUDED_LIBS)
 
 IF (FSO_BUILD_INCLUDED_LIBS OR NOT ZLIB_FOUND)
-	MESSAGE(STATUS "Could not find zlib libraries on system, using included source")
+	MESSAGE(STATUS "Building zlib from source")
 	
 	SET(ZLIB_SOURCES
 		adler32.c

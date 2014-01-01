@@ -4,7 +4,7 @@ IF(NOT FSO_BUILD_INCLUDED_LIBS)
 ENDIF(NOT FSO_BUILD_INCLUDED_LIBS)
 
 IF (FSO_BUILD_INCLUDED_LIBS OR NOT PNG_FOUND)
-	MESSAGE(STATUS "Could not find png libraries on system, using included source")
+	MESSAGE(STATUS "Building libpng from source")
 	
 	SET(PNG_SOURCES
 		png.c
