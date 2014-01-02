@@ -23,8 +23,8 @@ ELSEIF (WIN32)
 		PROPERTIES
 			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/ogg_static.lib
 			IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_LIST_DIR}/lib/ogg_static_d.lib
+			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
 	)
-	SET(OGG_INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}/include CACHE INTERNAL "Ogg include directory")
 	SET(OGG_LIBS ogg CACHE INTERNAL "OggVorbis library")
 
 	add_library(vorbis STATIC IMPORTED GLOBAL)
@@ -32,8 +32,8 @@ ELSEIF (WIN32)
 		PROPERTIES
 			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/vorbis_static.lib
 			IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_LIST_DIR}/lib/vorbis_static_d.lib
+			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
 	)
-	SET(VORBIS_INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}/include CACHE INTERNAL "Vorbis include directory")
 	SET(VORBIS_LIBS vorbis CACHE INTERNAL "OggVorbis library")
 
 	add_library(vorbisfile STATIC IMPORTED GLOBAL)
@@ -41,8 +41,8 @@ ELSEIF (WIN32)
 		PROPERTIES
 			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/vorbisfile_static.lib
 			IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_LIST_DIR}/lib/vorbisfile_static_d.lib
+			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
 	)
-	SET(VORBISFILE_INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}/include CACHE INTERNAL "Vorbisfile include directory")
 	SET(VORBISFILE_LIBS vorbisfile CACHE INTERNAL "OggVorbis library")
 
 	add_library(theora STATIC IMPORTED GLOBAL)
@@ -50,8 +50,8 @@ ELSEIF (WIN32)
 		PROPERTIES
 			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/theora_static.lib
 			IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_LIST_DIR}/lib/theora_static_d.lib
+			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
 	)
-	SET(THEORA_INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}/include CACHE INTERNAL "THEORA include directory")
 	SET(THEORA_LIBS theora CACHE INTERNAL "Theora library")
 ELSEIF(APPLE)
 	# We also have precompiled libs for windows
@@ -59,27 +59,26 @@ ELSEIF(APPLE)
 	set_target_properties(ogg
 		PROPERTIES
 			IMPORTED_LOCATION ${FSO_MAC_FRAMEWORKS}/Ogg.framework/Ogg
+			INTERFACE_INCLUDE_DIRECTORIES "${FSO_MAC_FRAMEWORKS}/Ogg.framework/Headers"
 	)
-	SET(OGG_INCLUDE_DIRS "${FSO_MAC_FRAMEWORKS}/Ogg.framework/Headers" CACHE INTERNAL "Ogg include directory")
 	SET(OGG_LIBS ogg CACHE INTERNAL "OggVorbis library")
 
 	add_library(vorbis STATIC IMPORTED GLOBAL)
 	set_target_properties(vorbis
 		PROPERTIES
 			IMPORTED_LOCATION ${FSO_MAC_FRAMEWORKS}/Vorbis.framework/Vorbis
+			INTERFACE_INCLUDE_DIRECTORIES "${FSO_MAC_FRAMEWORKS}/Vorbis.framework/Headers"
 	)
-	SET(VORBIS_INCLUDE_DIRS "${FSO_MAC_FRAMEWORKS}/Vorbis.framework/Headers" CACHE INTERNAL "Vorbis include directory")
 	SET(VORBIS_LIBS vorbis CACHE INTERNAL "OggVorbis library")
 
-	SET(VORBISFILE_INCLUDE_DIRS "" CACHE INTERNAL "Vorbisfile include directory")
 	SET(VORBISFILE_LIBS "" CACHE INTERNAL "OggVorbis library")
 
 	add_library(theora STATIC IMPORTED GLOBAL)
 	set_target_properties(theora
 		PROPERTIES
 			IMPORTED_LOCATION ${FSO_MAC_FRAMEWORKS}/Theora.framework/Theora
+			INTERFACE_INCLUDE_DIRECTORIES "${FSO_MAC_FRAMEWORKS}/Theora.framework/Headers"
 	)
-	SET(THEORA_INCLUDE_DIRS "${FSO_MAC_FRAMEWORKS}/Theora.framework/Headers" CACHE INTERNAL "THEORA include directory")
 	SET(THEORA_LIBS theora CACHE INTERNAL "Theora library")
 ELSE(UNIX AND NOT APPLE)
 	MESSAGE(FATAL_ERROR "Unconfigured oggvorbis platform, please report!")
