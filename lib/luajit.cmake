@@ -42,8 +42,6 @@ set_target_properties(luajit
 
 ExternalProject_Get_Property(luajit source_dir)
 
-SET(LUA_INCLUDE_DIR ${source_dir}/src CACHE INTERNAL "LuaJIT include directory")
-
 add_library(luajit_lib SHARED IMPORTED GLOBAL)
 ADD_DEPENDENCIES(luajit_lib luajit)
 
@@ -66,4 +64,12 @@ ELSE(WIN32)
 	)
 ENDIF(WIN32)
 
-SET(LUA_LIBRARIES luajit_lib CACHE INTERNAL "LuaJIT library")
+set_target_properties(luajit
+	PROPERTIES
+		FOLDER "3rdparty"
+		INTERFACE_COMPILE_DEFINITIONS LUA_BUILD_AS_DLL
+		INTERFACE_INCLUDE_DIRECTORIES "${source_dir}/src"
+)
+
+SET(LUA_LIBS luajit_lib CACHE INTERNAL "LuaJIT library")
+
