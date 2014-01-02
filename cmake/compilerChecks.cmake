@@ -35,4 +35,6 @@ int main()
 }
 " HAS_CXX11_AUTO)
 
-configure_file(${CODE_HEADERS}/compiler.h.in ${GENERATED_SOURCE_DIR}/code/compiler.h)
+CHECK_CXX_SOURCE_COMPILES("int main() noexcept {return 0;}" HAS_CXX11_NOEXCEPT)
+
+configure_file(${CODE_HEADERS}/compiler.h.in ${GENERATED_SOURCE_DIR}/compiler.h)

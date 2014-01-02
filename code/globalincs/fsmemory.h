@@ -4,22 +4,30 @@
 
 #include <new>
 
+#include "compiler.h"
+
+#ifdef HAS_CXX11_NOEXCEPT
+	#define NOTHROW noexcept
+#else
+	#define NOTHROW throw()
+#endif // HAS_CXX11_NOEXCEPT
+
 // throw
-extern void * operator new (size_t size) throw (std::bad_alloc);
+void * operator new (size_t size);
 
-extern void operator delete (void *p) throw();
+void operator delete (void *p) NOTHROW;
 
-extern void * operator new [] (size_t size) throw (std::bad_alloc);
+void * operator new [] (size_t size);
 
-extern void operator delete [] (void *p) throw();
+void operator delete [] (void *p) NOTHROW;
 
 // no-throw
-extern void * operator new (size_t size, const std::nothrow_t&) throw();
+void * operator new (size_t size, const std::nothrow_t&) NOTHROW;
 
-extern void operator delete (void *p, const std::nothrow_t&) throw();
+void operator delete (void *p, const std::nothrow_t&) NOTHROW;
 
-extern void * operator new [] (size_t size, const std::nothrow_t&) throw();
+void * operator new [] (size_t size, const std::nothrow_t&) NOTHROW;
 
-extern void operator delete [] (void *p, const std::nothrow_t&) throw();
+void operator delete [] (void *p, const std::nothrow_t&) NOTHROW;
 
 #endif	// _FSMEMORY_H
