@@ -56,6 +56,8 @@ IF (WIN32)
 	OPTION(FSO_BUILD_FRED2 "Build FRED2 binary" OFF)
 ENDIF(WIN32)
 
+OPTION(FSO_DEVELOPMENT_MODE "Generate binaries in development mode, only use if you know what you're doing!" OFF)
+
 OPTION(FSO_BUILD_WXFRED2 "Build wxFRED2 binary" OFF)
 
 OPTION(FSO_BUILD_INCLUDED_LIBS "Build and use the included libraries istead of using the system headers and libraries" OFF)
@@ -68,6 +70,8 @@ OPTION(FSO_USE_LUAJIT "Use LuaJIT for Lua scripting, needs a working internet co
 OPTION(FSO_USE_OPENALSOFT "Download and build OpenAL Soft instead of using the system libraries" OFF)
 
 SET(FSO_FREESPACE_PATH "${CMAKE_INSTALL_PREFIX}" CACHE FILEPATH "The path of the FreeSpace directory you want to use. Please note that you will have to change CMAKE_INSTALL_PREFIX if you change this at some point.")
+
+SET(FSO_RUN_ARGUMENTS "" CACHE STRING "Additional arguments passed to a generated executable when run with the generated build files.")
 
 LIST(FIND POSSIBLE_INSTUCTION_SETS "${FSO_INSTRUCTION_SET}" SET_INDEX)
 
@@ -84,6 +88,7 @@ MARK_AS_ADVANCED(FORCE FSO_CMAKE_DEBUG)
 MARK_AS_ADVANCED(FORCE FSO_BUILD_INCLUDED_LIBS)
 MARK_AS_ADVANCED(FORCE FSO_USE_OPENALSOFT)
 MARK_AS_ADVANCED(FORCE FSO_USE_LUAJIT)
+MARK_AS_ADVANCED(FORCE FSO_DEVELOPMENT_MODE)
 
 INCLUDE(globals)
 INCLUDE(toolchain)
