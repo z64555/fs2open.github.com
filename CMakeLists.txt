@@ -60,7 +60,8 @@ OPTION(FSO_BUILD_WXFRED2 "Build wxFRED2 binary" OFF)
 
 OPTION(FSO_BUILD_INCLUDED_LIBS "Build and use the included libraries istead of using the system headers and libraries" OFF)
 
-SET(FSO_INSTRUCTION_SET "" CACHE STRING "The instruction set enhancement to use, possible options are SSE, SSE2 and AVX")
+SET(POSSIBLE_INSTUCTION_SETS "" SSE SSE2 AVX)
+SET(FSO_INSTRUCTION_SET "" CACHE STRING "The instruction set enhancement to use, possible options are ${POSSIBLE_INSTUCTION_SETS}")
 
 OPTION(FSO_USE_LUAJIT "Use LuaJIT for Lua scripting, needs a working internet connection!" OFF)
 
@@ -68,13 +69,14 @@ OPTION(FSO_USE_OPENALSOFT "Download and build OpenAL Soft instead of using the s
 
 SET(FSO_FREESPACE_PATH "${CMAKE_INSTALL_PREFIX}" CACHE FILEPATH "The path of the FreeSpace directory you want to use. Please note that you will have to change CMAKE_INSTALL_PREFIX if you change this at some point.")
 
-IF (NOT FSO_INSTRUCTION_SET STREQUAL "SSE" AND NOT FSO_INSTRUCTION_SET STREQUAL "SSE2"
-	AND NOT FSO_INSTRUCTION_SET STREQUAL "AVX" AND NOT FSO_INSTRUCTION_SET STREQUAL "")
+LIST(FIND POSSIBLE_INSTUCTION_SETS "${FSO_INSTRUCTION_SET}" SET_INDEX)
 
-	MESSAGE(WARNING "Unrecognized instruction set '${FSO_INSTRUCTION_SET}'! Defaulting to no optionization")
+IF (SET_INDEX LESS 0)
+
+	MESSAGE(WARNING "Unrecognized instruction set '${FSO_INSTRUCTION_SET}'! Possible values: ${POSSIBLE_INSTUCTION_SETS}. Defaulting to no optionizations.")
 	
 	SET(FSO_INSTRUCTION_SET "")
-ENDIF()
+ENDIF(SET_INDEX LESS 0)
 
 OPTION(FSO_CMAKE_DEBUG "Enable cmake debugging in while generating build files" OFF)
 
