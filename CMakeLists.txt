@@ -39,7 +39,9 @@ IF(RESET_INSTALL_PREFIX)
 	ENDIF(NOT $ENV{FS2PATH} STREQUAL "")
 ENDIF(RESET_INSTALL_PREFIX)
 
-set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING "Available configurations" FORCE)
+IF(DEFINED CMAKE_CONFIGURATION_TYPES)
+	set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING "Available configurations" FORCE)
+ENDIF(DEFINED CMAKE_CONFIGURATION_TYPES)
 
 ### Define options and editable variables in the section below:
 # This is only needed for single configuration generators so don't annoy others
