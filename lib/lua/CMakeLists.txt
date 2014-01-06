@@ -67,14 +67,15 @@ IF(FSO_USE_LUAJIT)
 				IMPORTED_LOCATION ${source_dir}/src/libluajit.a
 		)
 	ENDIF(WIN32)
-
-	 # Use the included lua headers as the ones from luajit don't exist yet, that shouldn't cause problems, hopefully...
+	
 	set_target_properties(luajit_lib
 		PROPERTIES
 			FOLDER "3rdparty"
 			INTERFACE_COMPILE_DEFINITIONS LUA_BUILD_AS_DLL
-			INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}"
+			INTERFACE_INCLUDE_DIRECTORIES "${source_dir}/src"
 	)
+
+	FILE(MAKE_DIRECTORY "${source_dir}/src")
 
 	SET(LUA_LIBS luajit_lib CACHE INTERNAL "LuaJIT library")
 ELSE(FSO_USE_LUAJIT)
