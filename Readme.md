@@ -10,6 +10,7 @@ Depending on the makefile generator used build the `all` or `ALL_BUILD` target t
 ### Available variables to control the build
 * `FSO_BUILD_WXFRED2`: Build the wxfred2 project, requires wxWidgets
 * `FSO_FREESPACE_PATH`: Sets the path of your FreeSpace install, can be used to automatically run the generated executables with the correct working directory, this is an optional variable. By default this will use the value of the `FS2PATH` environment variable.
+* `FSO_BUILD_TOOLS`: Build some tools related to FSO
 
 #### Windows only variables
 * `FSO_BUILD_FRED2`: Build FRED2, requires a Visual Studio version that ships with MFC

@@ -58,6 +58,8 @@ IF (WIN32)
 	OPTION(FSO_BUILD_FRED2 "Build FRED2 binary" OFF)
 ENDIF(WIN32)
 
+OPTION(FSO_BUILD_TOOLS "Build tools related to FSO" OFF)
+
 OPTION(FSO_DEVELOPMENT_MODE "Generate binaries in development mode, only use if you know what you're doing!" OFF)
 
 OPTION(FSO_BUILD_WXFRED2 "Build wxFRED2 binary" OFF)
