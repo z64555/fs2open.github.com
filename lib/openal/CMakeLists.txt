@@ -3,7 +3,12 @@ IF(FSO_USE_OPENALSOFT)
 	INCLUDE(ExternalProject)
 	MESSAGE(STATUS "Using OpenAL Soft for OpenAL support")
 	
-	SET(CONFIG Release)
+	IF(FSO_DEVELOPMENT_MODE)
+		SET(CONFIG DEBUG)
+	ELSE(FSO_DEVELOPMENT_MODE)
+		SET(CONFIG Release)
+	ENDIF(FSO_DEVELOPMENT_MODE)
+	
 	ExternalProject_Add(OpenALsoft
 		PREFIX OpenALsoft
 		# Downloading
