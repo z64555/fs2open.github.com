@@ -1,5 +1,5 @@
 
-add_executable(cfileextractor cfileextractor.cpp)
+add_executable(cfileextractor EXCLUDE_FROM_ALL cfileextractor.cpp)
 
 ADD_DEFINITIONS(-DNO_SAFE_STRINGS)
 include_directories(${CODE_HEADERS})
