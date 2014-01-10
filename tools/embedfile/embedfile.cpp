@@ -9,18 +9,29 @@
 
 #include <string.h>
 
-#if defined _MSC_VER
-	// Disable warning for stricmp
-	#define stricmp(s1, s2) _stricmp((s1), (s2))
-#else
-	#define stricmp(s1, s2) strcasecmp((s1), (s2))
-#endif
-
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <algorithm>
 #include <iomanip>
+
+bool casecmp(const char* strA, const char* strB)
+{
+	size_t lenA = strlen(strA);
+
+	if (lenA != strlen(strB))
+	{
+		return false;
+	}
+
+	for (size_t i = 0; i < lenA; i++)
+	{
+		if (toupper(strA[i]) != toupper(strB[i]))
+			return false;
+	}
+
+	return true;
+}
 
 // Input: Filename of file to convert
 // Function output: standard status codes
@@ -179,14 +190,14 @@ int main( int argc, char* argv[] )
 
 	int argc_offset = 1;
 
-	if (!stricmp(argv[argc_offset], "-wx"))
+	if (!casecmp(argv[argc_offset], "-wx"))
 	{
 		wxWidgets_image = true;
 
 		argc_offset++;
 	}
 
-	if (!stricmp(argv[argc_offset], "-text"))
+	if (!casecmp(argv[argc_offset], "-text"))
 	{
 		text_content = true;
 
