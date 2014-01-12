@@ -190,14 +190,14 @@ int main( int argc, char* argv[] )
 
 	int argc_offset = 1;
 
-	if (!casecmp(argv[argc_offset], "-wx"))
+	if (casecmp(argv[argc_offset], "-wx"))
 	{
 		wxWidgets_image = true;
 
 		argc_offset++;
 	}
 
-	if (!casecmp(argv[argc_offset], "-text"))
+	if (casecmp(argv[argc_offset], "-text"))
 	{
 		text_content = true;
 
