@@ -19,6 +19,11 @@ ENDIF(NOT DEFINED CMAKE_INSTALL_PREFIX)
 
 PROJECT(FS2_Open)
 
+IF(CMAKE_CROSSCOMPILING)
+	SET(IMPORT_EXE_DIR "IMPORT_EXE_DIR-NOTFOUND" CACHE FILEPATH "Required for a cross compiling build, point to binary directory of a cmake build for the real OS")
+	INCLUDE(${IMPORT_EXE_DIR}/ImportExecutables.cmake)
+ENDIF(CMAKE_CROSSCOMPILING)
+
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/external/rpavlik-cmake-modules")
 

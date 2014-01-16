@@ -1,9 +1,14 @@
 
-SET(EMBEDFILE_SOURCES embedfile.cpp)
+IF(NOT CMAKE_CROSSCOMPILING) 
+	SET(EMBEDFILE_SOURCES embedfile.cpp)
 
-ADD_EXECUTABLE(embedfile ${EMBEDFILE_SOURCES})
+	ADD_EXECUTABLE(embedfile ${EMBEDFILE_SOURCES})
 
-set_target_properties(embedfile
-	PROPERTIES
-		FOLDER "Tools"
-)
+	set_target_properties(embedfile
+		PROPERTIES
+			FOLDER "Tools"
+	)
+
+	EXPORT(TARGETS embedfile FILE ${CMAKE_BINARY_DIR}/ImportExecutables.cmake)
+ENDIF(NOT CMAKE_CROSSCOMPILING) 
+
