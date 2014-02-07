@@ -1759,8 +1759,6 @@ int parse_weapon(int subtype, bool replace)
 
 	if (optional_string("+Weapon Range:")) {
 		stuff_float(&wip->weapon_range);
-	} else {
-		wip->weapon_range = (wip->max_speed / 2 * wip->acceleration_time) + (wip->max_speed * (wip->lifetime - wip->acceleration_time));
 	}
 
 	if( optional_string( "+Weapon Min Range:" ) )
@@ -1857,7 +1855,7 @@ int parse_weapon(int subtype, bool replace)
 			ti->stamp = fl2i(1000.0f*ti->max_life)/(NUM_TRAIL_SECTIONS+1);
 		}
 
-		if ( optional_string("+Bitmap:") ) {
+		if ( required_string("+Bitmap:") ) {
 			stuff_string(fname, F_NAME, NAME_LENGTH);
 			generic_bitmap_init(&ti->texture, fname);
 		}
@@ -4995,7 +4993,8 @@ int weapon_create( vec3d * pos, matrix * porient, int weapon_type, int parent_ob
 		size_t *position = get_pointer_to_weapon_fire_pattern_index(weapon_type, parent_shipp, src_turret);
 		Assertion( position != NULL, "'%s' is trying to fire a weapon that is not selected", Ships[parent_objp->instance].ship_name );
 
-		*position = ++(*position) % wip->num_substitution_patterns;
+		++(*position);
+		*position = (*position) % wip->num_substitution_patterns;
 
 		if ( wip->weapon_substitution_pattern[*position] == -1 ) {
 			// weapon doesn't want any sub
