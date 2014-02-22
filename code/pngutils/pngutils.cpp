@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#define PNG_SKIP_SETJMP_CHECK
 #include "png.h"
 
 #include "globalincs/pstypes.h"
