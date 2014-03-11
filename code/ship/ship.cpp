@@ -26,7 +26,7 @@
 #include "io/joy_ff.h"
 #include "playerman/player.h"
 #include "parse/parselo.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "globalincs/linklist.h"
 #include "hud/hudets.h"
 #include "hud/hudshield.h"

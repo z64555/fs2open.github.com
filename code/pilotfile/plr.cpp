@@ -14,7 +14,7 @@
 #include "io/joy.h"
 #include "io/mouse.h"
 #include "network/multi.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "playerman/managepilot.h"
 
 

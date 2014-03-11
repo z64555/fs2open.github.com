@@ -110,7 +110,7 @@ MARK_AS_ADVANCED(FORCE COTIRE_ENABLE)
 IF(COTIRE_ENABLE)
 	# Include cotire file from https://github.com/sakra/cotire/ 
 	include(cotire)
-ENDIF(COTIRE_ENABLE
+ENDIF(COTIRE_ENABLE)
 
 INCLUDE(globals)
 INCLUDE(toolchain)

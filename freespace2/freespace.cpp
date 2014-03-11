@@ -8538,6 +8538,7 @@ void game_unpause()
 int actual_main(int argc, char *argv[])
 {
 	int result = -1;
+	Assert(argc > 0);
 
 #ifdef WIN32
 	// Don't let more than one instance of FreeSpace run.
@@ -8553,24 +8554,6 @@ int actual_main(int argc, char *argv[])
 	void memblockinfo_output_memleak();
 	atexit(memblockinfo_output_memleak);
 #endif
-
-	//=====================================================
-	// Make sure we're running in the right directory.
-	Assert(argc > 0);
-	char *exe_dir = argv[0];
-
-	char *p = exe_dir + strlen(exe_dir);
-
-	// chop off the filename
-	while ((p>exe_dir) && (*p != '\\') && (*p != '/') && (*p != ':'))	{
-		p--;
-	}
-	*p = 0;
-
-	// Set directory
-	if (strlen(exe_dir) > 0)	{ //-V805
-		SetCurrentDirectory(exe_dir);
-	}
 
 	SCP_mspdbcs_Initialise();
 #else

@@ -25,7 +25,7 @@
 #include "model/model.h"
 #include "render/3d.h"
 #include "playerman/player.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "mission/missiongoals.h"
 #include "mission/missionlog.h"
 #include "io/timer.h"

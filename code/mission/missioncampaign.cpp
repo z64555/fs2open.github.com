@@ -27,7 +27,7 @@
 #include "mission/missioncampaign.h"
 #include "ui/ui.h"
 #include "gamesequence/gamesequence.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "parse/sexp.h"
 #include "playerman/player.h"
 #include "mission/missiongoals.h"

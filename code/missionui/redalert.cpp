@@ -24,7 +24,7 @@
 #include "globalincs/linklist.h"
 #include "hud/hudwingmanstatus.h"
 #include "sound/audiostr.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "globalincs/alphacolors.h"
 #include "sound/fsspeech.h"
 #include "ship/ship.h"

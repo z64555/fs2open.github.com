@@ -13,7 +13,7 @@
 #include "weapon/weapon.h"
 #include "io/key.h"
 #include "controlconfig/controlsconfig.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "weapon/beam.h"
 
 //tehe. Declare the main event

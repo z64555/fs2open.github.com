@@ -15,7 +15,7 @@
 #include "ship/ship.h"
 #include "fireball/fireballs.h"
 #include "playerman/player.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "radar/radar.h"
 #include "globalincs/linklist.h"
 #include "io/timer.h"

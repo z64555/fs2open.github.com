@@ -346,6 +346,8 @@ set (file_root_inetfile
 
 # Io files
 set (file_root_io
+	io/cursor.cpp
+	io/cursor.h
 	io/key.cpp
 	io/key.h
 	io/keycontrol.cpp
@@ -361,8 +363,8 @@ set (file_root_io
 IF(WIN32)
 	set (file_root_io
 		${file_root_io}
-		io/joy.cpp
-		io/joy_ff.cpp
+		io/joy-sdl.cpp
+		io/joy_ff-sdl.cpp
 		io/sw_error.hpp
 		io/sw_force.h
 		io/sw_guid.hpp
@@ -662,7 +664,6 @@ set (file_root_osapi
 ELSEIF(UNIX)
 set (file_root_osapi
 	${file_root_osapi}
-	osapi/osapi_unix.cpp
 	osapi/osregistry_unix.cpp
 	osapi/outwnd_unix.cpp
 )
