@@ -13,7 +13,7 @@
 #include "mission/missiongoals.h"
 #include "mission/missionlog.h"
 #include "missionui/missionscreencommon.h"
-#include "freespace.h"
+#include "freespace2/freespace.h"
 #include "gamesequence/gamesequence.h"
 #include "hud/hud.h"
 #include "hud/hudmessage.h"
@@ -953,6 +953,8 @@ void mission_process_event( int event )
 			maybe_write_to_event_log(result);
 		}
 	}
+
+	Log_event = false;
 
 	Event_index = -1;
 	Mission_events[event].result = result;

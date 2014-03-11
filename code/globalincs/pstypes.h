@@ -24,6 +24,8 @@
 
 #include "windows_stub/config.h"
 
+#include "SDL.h"
+
 // value to represent an uninitialized state in any int or uint
 #define UNINITIALIZED 0x7f8e6d9c
 
@@ -451,9 +453,7 @@ void dc_printf( char *format, ... );
 						((x & 0x00ff0000) >> 8)		\
 						)
 
-#ifdef SCP_UNIX
 #include "SDL_endian.h"
-#endif
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 #ifndef BYTE_ORDER

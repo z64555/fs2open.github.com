@@ -1,3 +1,80 @@
+/*
+  Simple DirectMedia Layer
+  Copyright (C) 1997-2013 Sam Lantinga <slouken@libsdl.org>
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+*/
+
+/**
+ *  \file SDL_opengl.h
+ *
+ *  This is a simple file to encapsulate the OpenGL API headers.
+ */
+
+#ifndef _SDL_opengl_h
+#define _SDL_opengl_h
+
+#include "SDL_config.h"
+
+#ifndef __IPHONEOS__
+
+#ifdef __WIN32__
+#define WIN32_LEAN_AND_MEAN
+#ifndef NOMINMAX
+#define NOMINMAX                /* Don't defined min() and max() */
+#endif
+#include <windows.h>
+#endif
+
+#ifdef __glext_h_
+/* Someone has already included glext.h */
+#define NO_SDL_GLEXT
+#endif
+#ifndef NO_SDL_GLEXT
+#define __glext_h_              /* Don't let gl.h include glext.h */
+#endif
+#if defined(__MACOSX__)
+#include <OpenGL/gl.h>          /* Header File For The OpenGL Library */
+#define __X_GL_H
+#else
+#include <GL/gl.h>              /* Header File For The OpenGL Library */
+#endif
+#ifndef NO_SDL_GLEXT
+#undef __glext_h_
+#endif
+
+/**
+ *  \file SDL_opengl.h
+ *
+ *  This file is included because glext.h is not available on some systems.
+ *  If you don't want this version included, simply define ::NO_SDL_GLEXT.
+ *
+ *  The latest version is available from:
+ *      http://www.opengl.org/registry/
+ */
+
+/**
+ *  \def NO_SDL_GLEXT
+ *
+ *  Define this if you have your own version of glext.h and want to disable the
+ *  version included in SDL_opengl.h.
+ */
+
+#if !defined(NO_SDL_GLEXT) && !defined(GL_GLEXT_LEGACY)
 #ifndef __glext_h_
 #define __glext_h_
 
@@ -7,7 +84,7 @@ extern "C" {
 
 /*
 ** Copyright (c) 2007-2010 The Khronos Group Inc.
-** 
+**
 ** Permission is hereby granted, free of charge, to any person obtaining a
 ** copy of this software and/or associated documentation files (the
 ** "Materials"), to deal in the Materials without restriction, including
@@ -15,10 +92,10 @@ extern "C" {
 ** distribute, sublicense, and/or sell copies of the Materials, and to
 ** permit persons to whom the Materials are furnished to do so, subject to
 ** the following conditions:
-** 
+**
 ** The above copyright notice and this permission notice shall be included
 ** in all copies or substantial portions of the Materials.
-** 
+**
 ** THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 ** EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 ** MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -29,9 +106,9 @@ extern "C" {
 */
 
 /* Header file version number, required by OpenGL ABI for Linux */
-/* glext.h last updated $Date: 2011-06-06 12:06:38 -0700 (Mon, 06 Jun 2011) $ */
+/* glext.h last updated $Date: 2010-08-03 01:30:25 -0700 (Tue, 03 Aug 2010) $ */
 /* Current version at http://www.opengl.org/registry/ */
-#define GL_GLEXT_VERSION 70
+#define GL_GLEXT_VERSION 64
 /* Function declaration macros - to move into glplatform.h */
 
 #if defined(_WIN32) && !defined(APIENTRY) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
@@ -4840,7 +4917,7 @@ extern "C" {
 #endif
 
 #ifndef GL_AMD_seamless_cubemap_per_texture
-/* reuse GL_TEXTURE_CUBE_MAP_SEAMLESS */
+/* reuse GL_TEXTURE_CUBE_MAP_SEAMLESS_ARB */
 #endif
 
 #ifndef GL_AMD_conservative_depth
@@ -4925,8 +5002,6 @@ extern "C" {
 #define GL_MIN_FRAGMENT_INTERPOLATION_OFFSET_NV 0x8E5B
 #define GL_MAX_FRAGMENT_INTERPOLATION_OFFSET_NV 0x8E5C
 #define GL_FRAGMENT_PROGRAM_INTERPOLATION_OFFSET_BITS_NV 0x8E5D
-#define GL_MIN_PROGRAM_TEXTURE_GATHER_OFFSET_NV 0x8E5E
-#define GL_MAX_PROGRAM_TEXTURE_GATHER_OFFSET_NV 0x8E5F
 #define GL_MAX_PROGRAM_SUBROUTINE_PARAMETERS_NV 0x8F44
 #define GL_MAX_PROGRAM_SUBROUTINE_NUM_NV  0x8F45
 #endif
@@ -5021,38 +5096,6 @@ extern "C" {
 #ifndef GL_AMD_transform_feedback3_lines_triangles
 #endif
 
-#ifndef GL_AMD_depth_clamp_separate
-#define GL_DEPTH_CLAMP_NEAR_AMD           0x901E
-#define GL_DEPTH_CLAMP_FAR_AMD            0x901F
-#endif
-
-#ifndef GL_EXT_texture_sRGB_decode
-#define GL_TEXTURE_SRGB_DECODE_EXT        0x8A48
-#define GL_DECODE_EXT                     0x8A49
-#define GL_SKIP_DECODE_EXT                0x8A4A
-#endif
-
-#ifndef GL_NV_texture_multisample
-#define GL_TEXTURE_COVERAGE_SAMPLES_NV    0x9045
-#define GL_TEXTURE_COLOR_SAMPLES_NV       0x9046
-#endif
-
-#ifndef GL_AMD_blend_minmax_factor
-#define GL_FACTOR_MIN_AMD                 0x901C
-#define GL_FACTOR_MAX_AMD                 0x901D
-#endif
-
-#ifndef GL_AMD_sample_positions
-#define GL_SUBSAMPLE_DISTANCE_AMD         0x883F
-#endif
-
-#ifndef GL_EXT_x11_sync_object
-#define GL_SYNC_X11_FENCE_EXT             0x90E1
-#endif
-
-#ifndef GL_AMD_multi_draw_indirect
-#endif
-
 
 /*************************************************************/
 
@@ -5064,20 +5107,34 @@ typedef char GLchar;
 
 #ifndef GL_VERSION_1_5
 /* GL types for handling large vertex buffer objects */
+#if defined(__APPLE__)
+typedef long GLintptr;
+typedef long GLsizeiptr;
+#else
 typedef ptrdiff_t GLintptr;
 typedef ptrdiff_t GLsizeiptr;
+#endif
 #endif
 
 #ifndef GL_ARB_vertex_buffer_object
 /* GL types for handling large vertex buffer objects */
+#if defined(__APPLE__)
+typedef long GLintptrARB;
+typedef long GLsizeiptrARB;
+#else
 typedef ptrdiff_t GLintptrARB;
 typedef ptrdiff_t GLsizeiptrARB;
+#endif
 #endif
 
 #ifndef GL_ARB_shader_objects
 /* GL types for program/shader text and shader object handles */
 typedef char GLcharARB;
+#if defined(__APPLE__)
+typedef void *GLhandleARB;
+#else
 typedef unsigned int GLhandleARB;
+#endif
 #endif
 
 /* GL type for "half" precision (s10e5) float data in host memory */
@@ -5118,17 +5175,9 @@ typedef unsigned long long int uint64_t;
 #elif defined(_WIN32) && defined(__GNUC__)
 #include <stdint.h>
 #elif defined(_WIN32)
-	// per stdint.h
-	// Visual Studio 6 and Embedded Visual C++ 4 doesn't
-	// realize that, e.g. char has the same size as __int8
-	// so we give up on __intX for them.
-	#if (_MSC_VER < 1300)
-		typedef signed int int32_t;
-	#else
-		typedef signed __int32 int32_t;
-	#endif
-	typedef signed __int64 int64_t;
-	typedef unsigned __int64 uint64_t;
+typedef __int32 int32_t;
+typedef __int64 int64_t;
+typedef unsigned __int64 uint64_t;
 #else
 /* Fallback if nothing above works */
 #include <inttypes.h>
@@ -8807,8 +8856,8 @@ GLAPI void APIENTRY glProgramParameter4dNV (GLenum target, GLuint index, GLdoubl
 GLAPI void APIENTRY glProgramParameter4dvNV (GLenum target, GLuint index, const GLdouble *v);
 GLAPI void APIENTRY glProgramParameter4fNV (GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
 GLAPI void APIENTRY glProgramParameter4fvNV (GLenum target, GLuint index, const GLfloat *v);
-GLAPI void APIENTRY glProgramParameters4dvNV (GLenum target, GLuint index, GLsizei count, const GLdouble *v);
-GLAPI void APIENTRY glProgramParameters4fvNV (GLenum target, GLuint index, GLsizei count, const GLfloat *v);
+GLAPI void APIENTRY glProgramParameters4dvNV (GLenum target, GLuint index, GLuint count, const GLdouble *v);
+GLAPI void APIENTRY glProgramParameters4fvNV (GLenum target, GLuint index, GLuint count, const GLfloat *v);
 GLAPI void APIENTRY glRequestResidentProgramsNV (GLsizei n, const GLuint *programs);
 GLAPI void APIENTRY glTrackMatrixNV (GLenum target, GLuint address, GLenum matrix, GLenum transform);
 GLAPI void APIENTRY glVertexAttribPointerNV (GLuint index, GLint fsize, GLenum type, GLsizei stride, const GLvoid *pointer);
@@ -8872,8 +8921,8 @@ typedef void (APIENTRYP PFNGLPROGRAMPARAMETER4DNVPROC) (GLenum target, GLuint in
 typedef void (APIENTRYP PFNGLPROGRAMPARAMETER4DVNVPROC) (GLenum target, GLuint index, const GLdouble *v);
 typedef void (APIENTRYP PFNGLPROGRAMPARAMETER4FNVPROC) (GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
 typedef void (APIENTRYP PFNGLPROGRAMPARAMETER4FVNVPROC) (GLenum target, GLuint index, const GLfloat *v);
-typedef void (APIENTRYP PFNGLPROGRAMPARAMETERS4DVNVPROC) (GLenum target, GLuint index, GLsizei count, const GLdouble *v);
-typedef void (APIENTRYP PFNGLPROGRAMPARAMETERS4FVNVPROC) (GLenum target, GLuint index, GLsizei count, const GLfloat *v);
+typedef void (APIENTRYP PFNGLPROGRAMPARAMETERS4DVNVPROC) (GLenum target, GLuint index, GLuint count, const GLdouble *v);
+typedef void (APIENTRYP PFNGLPROGRAMPARAMETERS4FVNVPROC) (GLenum target, GLuint index, GLuint count, const GLfloat *v);
 typedef void (APIENTRYP PFNGLREQUESTRESIDENTPROGRAMSNVPROC) (GLsizei n, const GLuint *programs);
 typedef void (APIENTRYP PFNGLTRACKMATRIXNVPROC) (GLenum target, GLuint address, GLenum matrix, GLenum transform);
 typedef void (APIENTRYP PFNGLVERTEXATTRIBPOINTERNVPROC) (GLuint index, GLint fsize, GLenum type, GLsizei stride, const GLvoid *pointer);
@@ -11062,65 +11111,16 @@ typedef void (APIENTRYP PFNGLVDPAUUNMAPSURFACESNVPROC) (GLsizei numSurface, cons
 #define GL_AMD_transform_feedback3_lines_triangles 1
 #endif
 
-#ifndef GL_AMD_depth_clamp_separate
-#define GL_AMD_depth_clamp_separate 1
-#endif
-
-#ifndef GL_EXT_texture_sRGB_decode
-#define GL_EXT_texture_sRGB_decode 1
-#endif
-
-#ifndef GL_NV_texture_multisample
-#define GL_NV_texture_multisample 1
-#ifdef GL_GLEXT_PROTOTYPES
-GLAPI void APIENTRY glTexImage2DMultisampleCoverageNV (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
-GLAPI void APIENTRY glTexImage3DMultisampleCoverageNV (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
-GLAPI void APIENTRY glTextureImage2DMultisampleNV (GLuint texture, GLenum target, GLsizei samples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
-GLAPI void APIENTRY glTextureImage3DMultisampleNV (GLuint texture, GLenum target, GLsizei samples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
-GLAPI void APIENTRY glTextureImage2DMultisampleCoverageNV (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
-GLAPI void APIENTRY glTextureImage3DMultisampleCoverageNV (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
-#endif /* GL_GLEXT_PROTOTYPES */
-typedef void (APIENTRYP PFNGLTEXIMAGE2DMULTISAMPLECOVERAGENVPROC) (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
-typedef void (APIENTRYP PFNGLTEXIMAGE3DMULTISAMPLECOVERAGENVPROC) (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
-typedef void (APIENTRYP PFNGLTEXTUREIMAGE2DMULTISAMPLENVPROC) (GLuint texture, GLenum target, GLsizei samples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
-typedef void (APIENTRYP PFNGLTEXTUREIMAGE3DMULTISAMPLENVPROC) (GLuint texture, GLenum target, GLsizei samples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
-typedef void (APIENTRYP PFNGLTEXTUREIMAGE2DMULTISAMPLECOVERAGENVPROC) (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
-typedef void (APIENTRYP PFNGLTEXTUREIMAGE3DMULTISAMPLECOVERAGENVPROC) (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
-#endif
-
-#ifndef GL_AMD_blend_minmax_factor
-#define GL_AMD_blend_minmax_factor 1
-#endif
-
-#ifndef GL_AMD_sample_positions
-#define GL_AMD_sample_positions 1
-#ifdef GL_GLEXT_PROTOTYPES
-GLAPI void APIENTRY glSetMultisamplefvAMD (GLenum pname, GLuint index, const GLfloat *val);
-#endif /* GL_GLEXT_PROTOTYPES */
-typedef void (APIENTRYP PFNGLSETMULTISAMPLEFVAMDPROC) (GLenum pname, GLuint index, const GLfloat *val);
-#endif
-
-#ifndef GL_EXT_x11_sync_object
-#define GL_EXT_x11_sync_object 1
-#ifdef GL_GLEXT_PROTOTYPES
-GLAPI GLsync APIENTRY glImportSyncEXT (GLenum external_sync_type, GLintptr external_sync, GLbitfield flags);
-#endif /* GL_GLEXT_PROTOTYPES */
-typedef GLsync (APIENTRYP PFNGLIMPORTSYNCEXTPROC) (GLenum external_sync_type, GLintptr external_sync, GLbitfield flags);
-#endif
-
-#ifndef GL_AMD_multi_draw_indirect
-#define GL_AMD_multi_draw_indirect 1
-#ifdef GL_GLEXT_PROTOTYPES
-GLAPI void APIENTRY glMultiDrawArraysIndirectAMD (GLenum mode, const GLvoid *indirect, GLsizei primcount, GLsizei stride);
-GLAPI void APIENTRY glMultiDrawElementsIndirectAMD (GLenum mode, GLenum type, const GLvoid *indirect, GLsizei primcount, GLsizei stride);
-#endif /* GL_GLEXT_PROTOTYPES */
-typedef void (APIENTRYP PFNGLMULTIDRAWARRAYSINDIRECTAMDPROC) (GLenum mode, const GLvoid *indirect, GLsizei primcount, GLsizei stride);
-typedef void (APIENTRYP PFNGLMULTIDRAWELEMENTSINDIRECTAMDPROC) (GLenum mode, GLenum type, const GLvoid *indirect, GLsizei primcount, GLsizei stride);
-#endif
-
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
+#endif /* NO_SDL_GLEXT */
+
+#endif /* !__IPHONEOS__ */
+
+#endif /* _SDL_opengl_h */
+
+/* vi: set ts=4 sw=4 expandtab: */

@@ -27,7 +27,7 @@
 #include "mission/missioncampaign.h"
 #include "ui/ui.h"
 #include "gamesequence/gamesequence.h"
-#include "freespace.h"
+#include "freespace2/freespace.h"
 #include "parse/sexp.h"
 #include "playerman/player.h"
 #include "mission/missiongoals.h"
@@ -246,10 +246,10 @@ int mission_campaign_maybe_add(const char *filename)
 	char *desc = NULL;
 	int type, max_players;
 
-		// don't add ignored campaigns
-		if (campaign_is_ignored(filename)) {
-			return 0;
-		}
+	// don't add ignored campaigns
+	if (campaign_is_ignored(filename)) {
+		return 0;
+	}
 
 	if ( mission_campaign_get_info( filename, name, &type, &max_players, &desc) ) {
 		if ( !MC_multiplayer && (type == CAMPAIGN_TYPE_SINGLE) ) {

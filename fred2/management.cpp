@@ -290,7 +290,7 @@ bool fred_init()
 	cfile_chdir(Fred_base_dir);
 
 	// this should enable mods - Kazan
-	fred2_parse_cmdline(__argc, __argv);
+	parse_cmdline(__argc, __argv);
 
 #ifndef NDEBUG
 	#if FS_VERSION_REVIS == 0
@@ -355,7 +355,7 @@ bool fred_init()
 
 	gr_init(GR_OPENGL, 640, 480, 32);
 
-	Mouse_hidden = 1;
+	io::mouse::CursorManager::get()->showCursor(false);
 
 	gr_font_init();					// loads up all fonts  
 

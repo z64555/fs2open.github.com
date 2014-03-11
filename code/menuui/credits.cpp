@@ -22,7 +22,7 @@
 #include "ui/ui.h"
 #include "missionui/missionscreencommon.h"
 #include "playerman/player.h"
-#include "freespace.h"
+#include "freespace2/freespace.h"
 #include "globalincs/alphacolors.h"
 #include "localization/localize.h"
 #include "cfile/cfile.h"
@@ -656,10 +656,10 @@ void credits_close()
 	int i;
 
 	for (i=0; i<Credits_num_images; i++) {
-		if (Credits_bmps[i] >= 0){
+		if (Credits_bmps[i] >= 0) {
 			bm_release(Credits_bmps[i]);
 		}
-	}	
+	}
 	Credits_bmps.clear();
 
 	credits_stop_music();

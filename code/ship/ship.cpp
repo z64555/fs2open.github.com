@@ -26,7 +26,7 @@
 #include "io/joy_ff.h"
 #include "playerman/player.h"
 #include "parse/parselo.h"
-#include "freespace.h"
+#include "freespace2/freespace.h"
 #include "globalincs/linklist.h"
 #include "hud/hudets.h"
 #include "hud/hudshield.h"
@@ -80,6 +80,7 @@
 #include "graphics/gropenglshader.h"
 #include "model/model.h"
 #include "mod_table/mod_table.h"
+#include "osapi/osapi.h"
 
 
 #define NUM_SHIP_SUBSYSTEM_SETS			20		// number of subobject sets to use (because of the fact that it's a linked list,
@@ -5234,7 +5235,7 @@ void ship_set(int ship_index, int objnum, int ship_type)
 		sprintf (err_msg, "Unable to allocate ship subsystems. Maximum is %d. No subsystems have been assigned to %s.", (NUM_SHIP_SUBSYSTEM_SETS* NUM_SHIP_SUBSYSTEMS_PER_SET), shipp->ship_name);
 
 		if (Fred_running) 
-			MessageBox(NULL, err_msg, "Error", MB_OK);
+			SCP_Messagebox(MESSAGEBOX_ERROR, err_msg);
 		else
 			Error(LOCATION, err_msg);
 	}
@@ -11904,9 +11905,9 @@ int get_available_secondary_weapons(object *objp, int *outlist, int *outbanklist
 void wing_bash_ship_name(char *ship_name, const char *wing_name, int index)
 {
 	// if wing name has a hash symbol, create the ship name a particular way
-	// (but don't do this for names that have the hash as the last character)
+	// (but don't do this for names that have the hash as the first or last character)
 	const char *p = get_pointer_to_first_hash_symbol(wing_name);
-	if ((p != NULL) && (*(p+1) != '\0'))
+	if ((p != NULL) && (p != wing_name) && (*(p+1) != '\0'))
 	{
 		size_t len = (p - wing_name);
 		strncpy(ship_name, wing_name, len);
@@ -15563,11 +15564,11 @@ float ship_get_secondary_weapon_range(ship *shipp)
 		weapon_info	*wip;
 		int bank=swp->current_secondary_bank;
 		if (swp->secondary_bank_weapons[bank] >= 0) {
-		wip = &Weapon_info[swp->secondary_bank_weapons[bank]];
-		if ( swp->secondary_bank_ammo[bank] > 0 ) {
-			srange = wip->max_speed * wip->lifetime;
+			wip = &Weapon_info[swp->secondary_bank_weapons[bank]];
+			if ( swp->secondary_bank_ammo[bank] > 0 ) {
+				srange = wip->max_speed * wip->lifetime;
+			}
 		}
-	}
 	}
 
 	return srange;
@@ -15597,14 +15598,14 @@ int get_max_ammo_count_for_primary_bank(int ship_class, int bank, int ammo_type)
 int get_max_ammo_count_for_bank(int ship_class, int bank, int ammo_type)
 {
 	float capacity, size;
-
+    
 	if (ship_class < 0 || bank < 0 || ammo_type < 0) {
 		return 0;
 	} else {
-	capacity = (float) Ship_info[ship_class].secondary_bank_ammo_capacity[bank];
-	size = (float) Weapon_info[ammo_type].cargo_size;
-	return (int) (capacity / size);
-}
+		capacity = (float) Ship_info[ship_class].secondary_bank_ammo_capacity[bank];
+		size = (float) Weapon_info[ammo_type].cargo_size;
+		return (int) (capacity / size);
+	}
 }
 
 /**
@@ -16714,7 +16715,7 @@ void wing_load_squad_bitmap(wing *w)
 
 // Goober5000 - needed by new hangar depart code
 // check whether this ship has a docking bay
-int ship_has_dock_bay(int shipnum)
+bool ship_has_dock_bay(int shipnum)
 {
 	Assert(shipnum >= 0 && shipnum < MAX_SHIPS);
 
@@ -16726,40 +16727,54 @@ int ship_has_dock_bay(int shipnum)
 	return ( pm->ship_bay && (pm->ship_bay->num_paths > 0) );
 }
 
+// Goober5000
+bool ship_useful_for_departure(int shipnum, int path_mask)
+{
+	Assert( shipnum >= 0 && shipnum < MAX_SHIPS );
+
+	// not valid if dying or departing
+	if (Ships[shipnum].flags & (SF_DYING | SF_DEPARTING))
+		return false;
+
+	// no dockbay, can't depart to it
+	if (!ship_has_dock_bay(shipnum))
+		return false;
+
+	// make sure that the bays are not all destroyed
+	if (ship_fighterbays_all_destroyed(&Ships[shipnum]))
+		return false;
+
+	// in the future, we might want to check bay paths against destroyed fighterbays,
+	// but that capability doesn't currently exist
+	// (note, a mask of 0 indicates all paths are valid)
+	//if (path_mask != 0)
+	//{
+	//}
+
+	// ship is valid
+	return true;
+}
+
 // Goober5000 - needed by new hangar depart code
 // get first ship in ship list with docking bay
-int ship_get_ship_with_dock_bay(int team)
+int ship_get_ship_for_departure(int team)
 {
-	int ship_with_bay = -1;
-	ship_obj *so;
-
-	so = GET_FIRST(&Ship_obj_list);
-	while(so != END_OF_LIST(&Ship_obj_list))
+	for (ship_obj *so = GET_FIRST(&Ship_obj_list); so != END_OF_LIST(&Ship_obj_list); so = GET_NEXT(so))
 	{
-		if ( ship_has_dock_bay(Objects[so->objnum].instance) && (Ships[Objects[so->objnum].instance].team == team) )
-		{
-			ship_with_bay = Objects[so->objnum].instance;
+		Assert(so->objnum >= 0);
+		int shipnum = Objects[so->objnum].instance;
+		Assert(shipnum >= 0);
 
-			// make sure not dying or departing
-			if (Ships[ship_with_bay].flags & (SF_DYING | SF_DEPARTING))
-				ship_with_bay = -1;
-
-			// also make sure that the bays are not all destroyed
-			if (ship_fighterbays_all_destroyed(&Ships[ship_with_bay]))
-				ship_with_bay = -1;
-
-			if (ship_with_bay >= 0)
-				break;
-		}
-		so = GET_NEXT(so);
+		if ( (Ships[shipnum].team == team) && ship_useful_for_departure(shipnum) )
+			return shipnum;
 	}
 
-	// return whatever we got
-	return ship_with_bay;
+	// we didn't find anything
+	return -1;
 }
 
 // Goober5000 - check if all fighterbays on a ship have been destroyed
-int ship_fighterbays_all_destroyed(ship *shipp)
+bool ship_fighterbays_all_destroyed(ship *shipp)
 {
 	Assert(shipp);
 	ship_subsys *subsys;
@@ -16776,11 +16791,11 @@ int ship_fighterbays_all_destroyed(ship *shipp)
 
 			// if fighterbay doesn't take damage, we're good
 			if (!ship_subsys_takes_damage(subsys))
-				return 0;
+				return false;
 
 			// if fighterbay isn't destroyed, we're good
 			if (subsys->current_hits > 0)
-				return 0;
+				return false;
 		}
 
 		// next item
@@ -16790,27 +16805,27 @@ int ship_fighterbays_all_destroyed(ship *shipp)
 	// if the ship has no fighterbay subsystems at all, it must be an unusual case,
 	// like the Faustus, so pretend it's okay...
 	if (num_fighterbay_subsystems == 0)
-		return 0;
+		return false;
 
 	// if we got this far, the ship has at least one fighterbay subsystem,
 	// and all the ones it has are destroyed
-	return 1;
+	return true;
 }
 
 // moved here by Goober5000
-int ship_subsys_is_fighterbay(ship_subsys *ss)
+bool ship_subsys_is_fighterbay(ship_subsys *ss)
 {
 	Assert(ss);
 
 	if ( !strnicmp(NOX("fighter"), ss->system_info->name, 7) ) {
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 // Goober5000
-int ship_subsys_takes_damage(ship_subsys *ss)
+bool ship_subsys_takes_damage(ship_subsys *ss)
 {
 	Assert(ss);
 

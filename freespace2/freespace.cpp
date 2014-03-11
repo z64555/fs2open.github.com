@@ -62,6 +62,7 @@
 #include "io/joy_ff.h"
 #include "io/key.h"
 #include "io/mouse.h"
+#include "io/cursor.h"
 #include "io/timer.h"
 #include "jumpnode/jumpnode.h"
 #include "lab/lab.h"
@@ -162,6 +163,8 @@
 #include "globalincs/pstypes.h"
 
 #include <stdexcept>
+#include <SDL.h>
+#include <SDL_main.h>
 
 extern int Om_tracker_flag; // needed for FS2OpenPXO config
 
@@ -455,10 +458,6 @@ fs_builtin_mission Game_builtin_mission_list[MAX_BUILTIN_MISSIONS] = {
 
 
 // Internal function prototypes
-void game_maybe_draw_mouse(float frametime);
-void init_animating_pointer();
-void load_animating_pointer(char *filename, int dx, int dy);
-void unload_animating_pointer();
 void game_do_training_checks();
 void game_shutdown(void);
 void game_show_event_debug(float frametime);
@@ -983,7 +982,7 @@ void game_level_init(int seed)
 	batch_reset();
 
 	// Initialize the game subsystems
-		game_reset_time();			// resets time, and resets saved time too
+	game_reset_time();			// resets time, and resets saved time too
 
 	Multi_ping_timestamp = -1;
 
@@ -1241,7 +1240,7 @@ void game_loading_callback_init()
 	Assertion( Game_loading_ani.num_frames > 0, "Load Screen animation %s not found, or corrupted. Needs to be an animation with at least 1 frame.", Game_loading_ani.filename );
 
 	Game_loading_callback_inited = 1;
-	Mouse_hidden = 1;
+	io::mouse::CursorManager::get()->showCursor(false);
 	framenum = 0;
 	game_busy_callback( game_loading_callback, (COUNT_ESTIMATE/Game_loading_ani.num_frames)+1 );
 
@@ -1255,8 +1254,8 @@ void game_loading_callback_close()
 	// Make sure bar shows all the way over.
 	game_loading_callback(COUNT_ESTIMATE);
 	
-	int real_count = game_busy_callback( NULL );
- 	Mouse_hidden = 0;
+	int real_count = game_busy_callback(NULL);
+	io::mouse::CursorManager::get()->showCursor(true);
 
 	Game_loading_callback_inited = 0;
 	
@@ -1680,6 +1679,11 @@ DCF(gamma,"Sets Gamma factor")
 char full_path[1024];
 #endif
 
+#ifdef FS2_VOICER
+// This is really awful but thank the guys of X11 for naming something "Window"
+#	include "SDL_syswm.h" // For SDL_SysWMinfo
+#endif
+
 /**
  * Game initialisation
  */
@@ -1802,15 +1806,15 @@ void game_init()
 
 		if(Cmdline_query_speech)
 		{
-			if(!fsspeech_was_compiled()) 
-				MessageBox((HWND)os_get_window(), "Speech is not compiled in this build in code.lib", "FS2_Open Warning", MB_ICONWARNING);
+			if (!fsspeech_was_compiled())
+				SCP_Messagebox(MESSAGEBOX_WARNING, "Speech is not compiled in this build in code.lib");
 			else
-				MessageBox((HWND)os_get_window(), "Speech is compiled, but failed to init", "FS2_Open Warning", MB_ICONWARNING);	
+				SCP_Messagebox(MESSAGEBOX_WARNING, "Speech is compiled, but failed to init");
 		}
 	} else if(Cmdline_query_speech) {
 		// Its bad practice to use a negative type, this is an exceptional case
 		fsspeech_play(-1,"Welcome to FS2 open");
-		MessageBox((HWND)os_get_window(), "Speech is compiled and initialised and should be working", "FS2_Open Info", MB_OK);
+		SCP_Messagebox(MESSAGEBOX_INFORMATION, "Speech is compiled and initialised and should be working");
 	}
 
 /////////////////////////////
@@ -1818,14 +1822,8 @@ void game_init()
 /////////////////////////////
 
 	if ( gr_init() == false ) {
-#ifdef _WIN32
-		ClipCursor(NULL);
-		ShowCursor(TRUE);
-		ShowWindow((HWND)os_get_window(),SW_MINIMIZE);
-		MessageBox( NULL, "Error intializing graphics!", "Error", MB_OK|MB_TASKMODAL|MB_SETFOREGROUND );
-#elif defined(SCP_UNIX)
-		fprintf(stderr, "Error initializing graphics!");
-
+		SCP_Messagebox(MESSAGEBOX_ERROR, "Error intializing graphics!");
+#if defined(SCP_UNIX)
 		// the default entry should have been created already if it didn't exist, so if we're here then
 		// the current value is invalid and we need to replace it
 		os_config_write_string(NULL, NOX("VideocardFs2open"), NOX("OGL -(1024x768)x16 bit"));
@@ -1842,11 +1840,21 @@ void game_init()
 #ifdef FS2_VOICER
 	if(Cmdline_voice_recognition)
 	{
-		bool voiceRectOn = VOICEREC_init((HWND)os_get_window(), WM_RECOEVENT, GRAMMARID1, IDR_CMD_CFG);
+		SDL_SysWMinfo info;
+		SDL_VERSION(&info.version); // initialize info structure with SDL version info
+
+		bool voiceRectOn = false;
+		if(SDL_GetWindowWMInfo(window, &info)) { // the call returns true on success
+			// success
+			voiceRectOn = VOICEREC_init(info.HWND, WM_RECOEVENT, GRAMMARID1, IDR_CMD_CFG);
+		} else {
+			// call failed
+			mprintf(( "Couldn't get window information: %s\n", SDL_GetError() ));
+		}
 	
 		if(voiceRectOn == false)
 		{
-			MessageBox((HWND)os_get_window(), "Failed to init voice rec", "Error", MB_OK);
+			SCP_Messagebox(MESSAGEBOX_ERROR, "Failed to init voice rec!");
 		}
 	}
 
@@ -1979,7 +1987,6 @@ void game_init()
 	// initialize psnet
 	psnet_init( Multi_options_g.protocol, Multi_options_g.port );						// initialize the networking code		
 
-	init_animating_pointer();	
 	asteroid_init();
 	mission_brief_common_init();	// Mark all the briefing structures as empty.
 
@@ -1993,8 +2000,6 @@ void game_init()
 	// load the list of pilot pic filenames (for barracks and pilot select popup quick reference)
 	pilot_load_pic_list();	
 	pilot_load_squad_pic_list();
-
-	load_animating_pointer(NOX("cursor"), 0, 0);	
 
 	if(!Cmdline_reparse_mainhall)
 	{
@@ -2025,6 +2030,10 @@ void game_init()
 
 	mprintf(("cfile_init() took %d\n", e1 - s1));	
 	Script_system.RunBytecode(Script_gameinithook);
+	// if we are done initializing, start showing the cursor
+	io::mouse::CursorManager::get()->showCursor(true);
+
+	mouse_set_pos(gr_screen.max_w / 2, gr_screen.max_h / 2);
 }
 
 char transfer_text[128];
@@ -4810,12 +4819,8 @@ void game_do_frame()
 
 	last_single_step = game_single_step;
 
-	if ((gameseq_get_state() == GS_STATE_GAME_PLAY) && Use_mouse_to_fly){
-		Keep_mouse_centered = 1;  // force mouse to center of our window (so we don't hit movement limits)
-	}
 	game_frame();
 
-	Keep_mouse_centered = 0;
 	monitor_update();			// Update monitor variables
 }
 
@@ -4872,16 +4877,18 @@ int game_poll()
 {
 	int k, state;
 
-	if (!os_foreground()) {		
-		game_stop_time();
-//		os_sleep(100);
-		os_sleep(1);
-		game_start_time();
+	if (!Cmdline_no_unfocus_pause)
+	{
+		if (!os_foreground()) {
+			game_stop_time();
+			os_sleep(1);
+			game_start_time();
 
-		// If we're in a single player game, pause it.
-		if (!(Game_mode & GM_MULTIPLAYER)){
-			if ( (gameseq_get_state() == GS_STATE_GAME_PLAY) && (!popup_active()) && (!popupdead_is_active()) )	{
-				game_process_pause_key();
+			// If we're in a single player game, pause it.
+			if (!(Game_mode & GM_MULTIPLAYER)){
+				if ((gameseq_get_state() == GS_STATE_GAME_PLAY) && (!popup_active()) && (!popupdead_is_active()))	{
+					game_process_pause_key();
+				}
 			}
 		}
 	}
@@ -4889,7 +4896,7 @@ int game_poll()
 	k = key_inkey();
 
 	// Move the mouse cursor with the joystick.
-	if (os_foreground() && (!Mouse_hidden) && (Use_joy_mouse) )	{
+	if (os_foreground() && !io::mouse::CursorManager::get()->isCursorShown() && (Use_joy_mouse))	{
 		// Move the mouse cursor with the joystick
 		int mx, my, dx, dy;
 		int jx, jy, jz, jr;
@@ -6076,7 +6083,7 @@ void game_enter_state( int old_state, int new_state )
 			}
 
 			// Goober5000 - people may not have realized that pausing causes this state to be re-entered
-			if ((old_state != GS_STATE_GAME_PAUSED) && (old_state != GS_STATE_MULTI_PAUSED))
+			if ((old_state != GS_STATE_GAME_PAUSED) && (old_state != GS_STATE_MULTI_PAUSED) && (old_state != GS_STATE_MAIN_MENU))
 			{
 				if ( !Is_standalone )
 					radar_mission_init();
@@ -6397,7 +6404,7 @@ void mouse_force_pos(int x, int y);
 // do stuff that may need to be done regardless of state
 void game_do_state_common(int state,int no_networking)
 {
-	game_maybe_draw_mouse(flFrametime);		// determine if to draw the mouse this frame
+	io::mouse::CursorManager::doFrame();		// determine if to draw the mouse this frame
 	snd_do_frame();								// update sound system
 	event_music_do_frame();						// music needs to play across many states
 
@@ -6929,7 +6936,7 @@ DCF(pofspew, "")
 // returns:
 //		0 on an error
 //		1 on a clean exit
-int game_main(char *cmdline)
+int game_main(int argc, char *argv[])
 {
 	int state;		
 
@@ -6944,48 +6951,9 @@ int game_main(char *cmdline)
 	windebug_memwatch_init();
 #endif
 
-#ifdef _WIN32
-	// Find out how much RAM is on this machine
-	MEMORYSTATUS ms;
-	ms.dwLength = sizeof(MEMORYSTATUS);
-	GlobalMemoryStatus(&ms);
-	FreeSpace_total_ram = ms.dwTotalPhys;
-
-	Mem_starttime_phys      = ms.dwAvailPhys;
-	Mem_starttime_pagefile  = ms.dwAvailPageFile;
-	Mem_starttime_virtual   = ms.dwAvailVirtual;
-
-	if ( game_do_ram_check(FreeSpace_total_ram) == -1 ) {
-		return 1;
-	}
-
-	if ( ms.dwTotalVirtual < 1024 )	{
-		MessageBox( NULL, XSTR( "FreeSpace requires virtual memory to run.\r\n", 196), XSTR( "No Virtual Memory", 197), MB_OK );
-		return 1;
-	}
-
-	if (!vm_init(24*1024*1024)) {
-		MessageBox( NULL, XSTR( "Not enough memory to run FreeSpace.\r\nTry closing down some other applications.\r\n", 198), XSTR( "Not Enough Memory", 199), MB_OK );
-		return 1;
-	}
-		
-	char *tmp_mem = (char *) vm_malloc(16 * 1024 * 1024);
-	if (!tmp_mem) {
-		MessageBox(NULL, XSTR( "Not enough memory to run FreeSpace.\r\nTry closing down some other applications.\r\n", 198), XSTR( "Not Enough Memory", 199), MB_OK);
-		return 1;
-	}
-
-	vm_free(tmp_mem);
-	tmp_mem = NULL;
-
-#else
-
 	vm_init(0); 
 
-#endif // _WIN32
-
-
-	if ( !parse_cmdline(cmdline) ) {
+	if ( !parse_cmdline(argc, argv) ) {
 		return 1;
 	}
 
@@ -6993,13 +6961,6 @@ int game_main(char *cmdline)
 	if (Is_standalone){
 		nprintf(("Network", "Standalone running\n"));
 	}
-
-
-#ifdef _WIN32
-	if ( !Is_standalone )
-		disableWindowsKey( );
-#endif
-
 
 	init_cdrom();
 
@@ -7066,138 +7027,8 @@ int game_main(char *cmdline)
 		}
 	} 
 
-	game_shutdown();
-
-#ifdef _WIN32
-	if ( !Is_standalone )
-		enableWindowsKey( );
-#endif
-
 	return 0;
 }
-
-
-// ------------------------------------------------------------------------------
-// Platform specific main() functions, nothing directly related to game function
-// should go here.  Direct game related info should go in the game_main() function
-// TODO: this should end up in a separate file in the not too distant future.
-//
-
-#ifdef _WIN32
-// Windows Specific
-int PASCAL WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int nCmdShow)
-{
-	int result = -1;
-
-	// Don't let more than one instance of FreeSpace run.
-	HWND hwnd = FindWindow( NOX( "FreeSpaceClass" ), NULL );
-	if ( hwnd )	{
-		SetForegroundWindow(hwnd);
-		return 0;
-	}
-
-	::CoInitialize(NULL);
-
-#ifdef _DEBUG
-	void memblockinfo_output_memleak();
-	atexit(memblockinfo_output_memleak);
-#endif
-
-	SCP_mspdbcs_Initialise( );
-
-#ifdef GAME_ERRORLOG_TXT
-#ifdef _MSC_VER
-	__try {
-#endif
-#endif
-		result = !game_main(szCmdLine);
-#ifdef GAME_ERRORLOG_TXT
-#ifdef _MSC_VER
-	} __except( RecordExceptionInfo(GetExceptionInformation(), "FreeSpace 2 Main Thread") ) {
-		// Do nothing here - RecordExceptionInfo() has already done
-		// everything that is needed. Actually this code won't even
-		// get called unless you return EXCEPTION_EXECUTE_HANDLER from
-		// the __except clause.
-	}
-#endif // _MSC_VER
-#endif
-
-	SCP_mspdbcs_Cleanup( );
-
-	::CoUninitialize();
-
-#ifndef _MINGW
-	_CrtDumpMemoryLeaks();
-#endif
-
-	return result;
-}
-
-#else
-
-// *NIX specific
-int main(int argc, char *argv[])
-{
-	int result = EXIT_FAILURE;
-	char *argptr = NULL;
-	int i, len = 0;
-	char userdir[MAX_PATH];
-
-#ifdef APPLE_APP
-	// Finder sets the working directory to the root of the drive so we have to get a little creative
-	// to find out where on the disk we should be running from for CFILE's sake.
-	strncpy(full_path, *argv, 1024);
-#endif
-
-	// create user's directory	
-	snprintf(userdir, MAX_PATH - 1, "%s/%s/", detect_home(), Osreg_user_dir);
-	_mkdir(userdir);
-
-
-	// clean up the cmdline to just send arguments through
-	for (i = 1; i < argc; i++) {
-		len += strlen(argv[i]) + 1;
-	}
-
-	argptr = (char*) calloc(len + 1, sizeof(char));
-	
-	if (argptr == NULL) {
-		fprintf(stderr, "ERROR: Out of memory in main()!\n");
-		exit(EXIT_FAILURE);
-	}
-	
-	memset( argptr, 0, len+1 );
-	
-	for (i = 1; i < argc; i++) {
-		strcat(argptr, argv[i]);
-		strcat(argptr, " ");
-	}
-
-	// switch to game_main()
-	try {
-		result = game_main(argptr);
-
-		if (argptr != NULL) {
-			free(argptr);
-			argptr = NULL;
-		}
-	} catch (std::exception &ex) {
-		fprintf(stderr, "Caught std::exception in main(): '%s'!\n", ex.what());
-		result = EXIT_FAILURE;
-	} catch ( ... ) {
-		fprintf(stderr, "Caught exception in main()!\n");
-		result = EXIT_FAILURE;
-	}
-
-	return result;
-}
-
-#endif // _WIN32
-
-//
-// End of platform specific main() section
-// ------------------------------------------------------------------------------
-
 
 #if 0  // don't have an updater for fs2_open
 // launch the fslauncher program on exit
@@ -7276,7 +7107,9 @@ void game_shutdown(void)
 	weapon_close();					// free any memory that was allocated for the weapons
 	ship_close();					// free any memory that was allocated for the ships
 	hud_free_scrollback_list();// free space allocated to store hud messages in hud scrollback
-	unload_animating_pointer();// frees the frames used for the animating mouse pointer
+
+	io::mouse::CursorManager::shutdown();
+
 	mission_campaign_clear();	// clear out the campaign stuff
 	message_mission_close();	// clear loaded table data from message.tbl
 	mission_parse_close();		// clear out any extra memory that may be in use by mission parsing
@@ -7353,151 +7186,6 @@ void game_stop_looped_sounds()
 	snd_stop(Target_static_looping);
 	shipfx_stop_engine_wash_sound();
 	Target_static_looping = -1;
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Code for supporting an animating mouse pointer
-//
-//
-//////////////////////////////////////////////////////////////////////////
-
-typedef struct animating_obj
-{
-	int	first_frame;
-	int	num_frames;
-	int	current_frame;
-	float time;
-	float elapsed_time;
-} animating_obj;
-
-static animating_obj Animating_mouse;
-
-// ----------------------------------------------------------------------------
-// init_animating_pointer()
-//
-// Called by load_animating_pointer() to ensure the Animating_mouse struct
-// gets properly initialized
-//
-void init_animating_pointer()
-{
-	Animating_mouse.first_frame	= -1;
-	Animating_mouse.num_frames		= 0;
-	Animating_mouse.current_frame	= -1;
-	Animating_mouse.time				= 0.0f;
-	Animating_mouse.elapsed_time	= 0.0f;
-}
-
-// ----------------------------------------------------------------------------
-// load_animating_pointer()
-//
-// Called at game init to load in the frames for the animating mouse pointer
-//
-// input:	filename	=>	filename of animation file that holds the animation
-// 
-void load_animating_pointer(char *filename, int dx, int dy)
-{
-	int				fps;
-	animating_obj *am;
-
-	init_animating_pointer();
-
-//TEMP
-	mprintf(("loading animated cursor \"%s\"\n", filename));
-
-
-	am = &Animating_mouse;
-	am->first_frame = bm_load_animation(filename, &am->num_frames, &fps);
-	if ( am->first_frame == -1 ) 
-		Error(LOCATION, "Could not load animation %s for the mouse pointer\n", filename);
-	am->current_frame = 0;
-	am->time = am->num_frames / i2fl(fps);
-}
-
-// ----------------------------------------------------------------------------
-// unload_animating_pointer()
-//
-// Called at game shutdown to free the memory used to store the animation frames
-//
-void unload_animating_pointer()
-{
-	int				i;
-	animating_obj	*am;
-
-	am = &Animating_mouse;
-	for ( i = 0; i < am->num_frames; i++ ) {
-		Assert( (am->first_frame+i) >= 0 );
-
-		// if we are the current cursor then reset to avoid gr_close() issues - taylor
-		gr_unset_cursor_bitmap(am->first_frame + i);
-	}
-
-	// this will release all of the frames at once
-	if (am->first_frame >= 0)
-		bm_release(am->first_frame);
-
-	am->first_frame	= -1;
-	am->num_frames		= 0;
-	am->current_frame = -1;
-}
-
-// draw the correct frame of the game mouse... called from game_maybe_draw_mouse()
-void game_render_mouse(float frametime)
-{
-	int				mx, my;
-	animating_obj	*am;
-
-	// if animating cursor exists, play the next frame
-	am = &Animating_mouse;
-	if ( am->first_frame != -1 ) {
-		mouse_get_pos(&mx, &my);
-		am->elapsed_time += frametime;
-		am->current_frame = fl2i( ( am->elapsed_time / am->time ) * (am->num_frames-1) );
-		if ( am->current_frame >= am->num_frames ) {
-			am->current_frame = 0;
-			am->elapsed_time = 0.0f;
-		}
-		gr_set_cursor_bitmap(am->first_frame + am->current_frame);
-	}
-}
-
-// ----------------------------------------------------------------------------
-// game_maybe_draw_mouse()
-//
-// determines whether to draw the mouse pointer at all, and what frame of
-// animation to use if the mouse is animating
-//
-// Sets mouse.cpp globals Mouse_hidden and Mouse_moved based on the state of the game.
-//
-// input:	frametime => elapsed frame time in seconds since last call
-//
-void game_maybe_draw_mouse(float frametime)
-{
-	int game_state;
-
-	game_state = gameseq_get_state();
-
-	switch ( game_state ) {
-		case GS_STATE_GAME_PAUSED:
-		// case GS_STATE_MULTI_PAUSED:
-		case GS_STATE_GAME_PLAY:
-		case GS_STATE_DEATH_DIED:
-		case GS_STATE_DEATH_BLEW_UP:
-			if ( popup_active() || popupdead_is_active() ) {
-				Mouse_hidden = 0;
-			} else {
-				Mouse_hidden = 1;	
-			}
-			break;
-
-		default:
-			Mouse_hidden = 0;
-			break;
-	}	// end switch
-
-	if ( !Mouse_hidden ) 
-		game_render_mouse(frametime);
-
 }
 
 void game_do_training_checks()
@@ -8845,4 +8533,105 @@ void game_unpause()
 				audiostream_unpause_all();
 		}
 	}
+}
+
+int actual_main(int argc, char *argv[])
+{
+	int result = -1;
+
+#ifdef WIN32
+	// Don't let more than one instance of FreeSpace run.
+	HWND hwnd = FindWindow(NOX("FreeSpaceClass"), NULL);
+	if (hwnd)	{
+		SetForegroundWindow(hwnd);
+		return 0;
+	}
+
+	::CoInitialize(NULL);
+
+#ifdef _DEBUG
+	void memblockinfo_output_memleak();
+	atexit(memblockinfo_output_memleak);
+#endif
+
+	//=====================================================
+	// Make sure we're running in the right directory.
+	Assert(argc > 0);
+	char *exe_dir = argv[0];
+
+	char *p = exe_dir + strlen(exe_dir);
+
+	// chop off the filename
+	while ((p>exe_dir) && (*p != '\\') && (*p != '/') && (*p != ':'))	{
+		p--;
+	}
+	*p = 0;
+
+	// Set directory
+	if (strlen(exe_dir) > 0)	{ //-V805
+		SetCurrentDirectory(exe_dir);
+	}
+
+	SCP_mspdbcs_Initialise();
+#else
+	char userdir[MAX_PATH];
+
+#ifdef APPLE_APP
+	// Finder sets the working directory to the root of the drive so we have to get a little creative
+	// to find out where on the disk we should be running from for CFILE's sake.
+	strncpy(full_path, *argv, 1024);
+#endif
+
+	// create user's directory	
+	snprintf(userdir, MAX_PATH - 1, "%s/%s/", detect_home(), Osreg_user_dir);
+	_mkdir(userdir);
+#endif
+
+#if defined(GAME_ERRORLOG_TXT) && defined(_MSC_VER)
+	__try {
+#else
+	try {
+#endif
+		result = !game_main(argc, argv);
+#if defined(GAME_ERRORLOG_TXT) && defined(_MSC_VER)
+	}
+	__except (RecordExceptionInfo(GetExceptionInformation(), "FreeSpace 2 Main Thread")) {
+		// Do nothing here - RecordExceptionInfo() has already done
+		// everything that is needed. Actually this code won't even
+		// get called unless you return EXCEPTION_EXECUTE_HANDLER from
+		// the __except clause.
+	}
+#else
+	}
+	catch (std::exception &ex) {
+		fprintf(stderr, "Caught std::exception in main(): '%s'!\n", ex.what());
+		result = EXIT_FAILURE;
+	}
+	catch (...) {
+		fprintf(stderr, "Caught exception in main()!\n");
+		result = EXIT_FAILURE;
+	}
+#endif
+
+#ifdef WIN32
+	SCP_mspdbcs_Cleanup();
+
+	::CoUninitialize();
+
+#ifndef _MINGW
+	_CrtDumpMemoryLeaks();
+#endif
+#endif
+
+	return result;
+}
+
+#ifdef __cplusplus
+extern "C"
+#endif
+int main(int argc, char *argv[])
+{
+	// The extern "C" causes problems with linking so we'll just call
+	// the actual main function here
+	return actual_main(argc, argv);
 }

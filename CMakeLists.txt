@@ -98,14 +98,19 @@ ENDIF(SET_INDEX LESS 0)
 
 OPTION(FSO_CMAKE_DEBUG "Enable cmake debugging in while generating build files" OFF)
 
+OPTION(COTIRE_ENABLE "Enable cotire, disabling may be useful for cmake files development" ON)
+
 MARK_AS_ADVANCED(FORCE FSO_CMAKE_DEBUG)
 MARK_AS_ADVANCED(FORCE FSO_BUILD_INCLUDED_LIBS)
 MARK_AS_ADVANCED(FORCE FSO_USE_OPENALSOFT)
 MARK_AS_ADVANCED(FORCE FSO_USE_LUAJIT)
 MARK_AS_ADVANCED(FORCE FSO_DEVELOPMENT_MODE)
+MARK_AS_ADVANCED(FORCE COTIRE_ENABLE)
 
-# Include cotire file from https://github.com/sakra/cotire/ 
-include(cotire)
+IF(COTIRE_ENABLE)
+	# Include cotire file from https://github.com/sakra/cotire/ 
+	include(cotire)
+ENDIF(COTIRE_ENABLE
 
 INCLUDE(globals)
 INCLUDE(toolchain)

@@ -15,7 +15,7 @@
 #include "ship/ship.h"
 #include "fireball/fireballs.h"
 #include "playerman/player.h"
-#include "freespace.h"
+#include "freespace2/freespace.h"
 #include "radar/radar.h"
 #include "globalincs/linklist.h"
 #include "io/timer.h"
@@ -4742,7 +4742,15 @@ void weapon_process_post(object * obj, float frame_time)
 		
 			//get the position of the target, and estimate its position when it warps out
 			//so we have an idea of where it will be.
-			vm_vec_scale_add(&wp->lssm_target_pos,&Objects[wp->target_num].pos,&Objects[wp->target_num].phys_info.vel,(float)wip->lssm_warpin_delay/1000.0f);
+			if (wp->target_num >= 0)
+			{
+				vm_vec_scale_add(&wp->lssm_target_pos, &Objects[wp->target_num].pos, &Objects[wp->target_num].phys_info.vel, (float)wip->lssm_warpin_delay / 1000.0f);
+			}
+			else
+			{
+				// Our target is invalid, just jump to our position
+				wp->lssm_target_pos = obj->pos;
+			}
 
 			wp->lssm_stage=3;
 
@@ -5926,9 +5934,9 @@ void weapon_hit( object * weapon_obj, object * other_obj, vec3d * hitpos, int qu
 	int			weapon_type = Weapons[num].weapon_info_index;
 	int			expl_ani_handle;
 	weapon_info	*wip;
-	weapon *wp;
+	weapon      *wp;
 	bool		hit_target = false;
-
+    
 	object      *other_objp;
 	ship_obj	*so;
 	ship		*shipp;
@@ -6028,7 +6036,7 @@ void weapon_hit( object * weapon_obj, object * other_obj, vec3d * hitpos, int qu
 			}
 		}
 	}
-
+    
 	// For all objects that had this weapon as a target, wipe it out, forcing find of a new enemy
 	for ( so = GET_FIRST(&Ship_obj_list); so != END_OF_LIST(&Ship_obj_list); so = GET_NEXT(so) ) {
 		other_objp = &Objects[so->objnum];

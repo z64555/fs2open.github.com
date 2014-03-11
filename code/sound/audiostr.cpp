@@ -35,7 +35,7 @@
 ubyte *Wavedata_load_buffer = NULL;		// buffer used for cueing audiostreams
 ubyte *Wavedata_service_buffer = NULL;	// buffer used for servicing audiostreams
 
-CRITICAL_SECTION Global_service_lock;
+SDL_mutex* Global_service_lock;
 
 typedef bool (*TIMERCALLBACK)(ptr_u);
 
@@ -172,20 +172,12 @@ public:
     void destructor(void);
     bool Create (uint nPeriod, uint nRes, ptr_u dwUser, TIMERCALLBACK pfnCallback);
 protected:
-#ifndef SCP_UNIX
-    static void CALLBACK TimeProc(UINT uID, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2);
-#else
     static uint TimeProc(uint interval, void *param);
-#endif
     TIMERCALLBACK m_pfnCallback;
     ptr_u m_dwUser;
     uint m_nPeriod;
     uint m_nRes;
-#ifndef SCP_UNIX
-    uint m_nIDTimer;
-#else
     SDL_TimerID m_nIDTimer;
-#endif
 };
 
 class WaveFile
@@ -286,7 +278,7 @@ protected:
 	bool	m_bPastLimit;			// flag to show we've played past the number of bytes requred
 	float	m_lDefaultVolume;
 
-	CRITICAL_SECTION write_lock;
+	SDL_mutex* write_lock;
 };
 
 
@@ -305,11 +297,7 @@ void Timer::constructor(void)
 void Timer::destructor(void)
 {
 	if (m_nIDTimer) {
-#ifndef SCP_UNIX
-		timeKillEvent (m_nIDTimer);
-#else
 		SDL_RemoveTimer(m_nIDTimer);
-#endif
 		m_nIDTimer = NULL;
 	}
 }
@@ -328,11 +316,7 @@ bool Timer::Create (uint nPeriod, uint nRes, ptr_u dwUser, TIMERCALLBACK pfnCall
 	m_dwUser = dwUser;
 	m_pfnCallback = pfnCallback;
 
-#ifndef SCP_UNIX
-	if ((m_nIDTimer = timeSetEvent ((UINT)m_nPeriod, (UINT)m_nRes, TimeProc, (DWORD)this, TIME_PERIODIC)) == NULL) {
-#else
 	if ((m_nIDTimer = SDL_AddTimer(m_nPeriod, TimeProc, (void*)this)) == NULL) {
-#endif
 	  bRtn = false;
 	}
 
@@ -345,11 +329,7 @@ bool Timer::Create (uint nPeriod, uint nRes, ptr_u dwUser, TIMERCALLBACK pfnCall
 // Calls procedure specified when Timer object was created. The 
 // dwUser parameter contains "this" pointer for associated Timer object.
 // 
-#ifndef SCP_UNIX
-void CALLBACK Timer::TimeProc(UINT uID, UINT uMsg, DWORD dwUser, DWORD dw1, DWORD dw2)
-#else
 uint Timer::TimeProc(uint interval, void *dwUser)
-#endif
 {
     // dwUser contains ptr to Timer object
 	Timer * ptimer = (Timer *) dwUser;
@@ -357,7 +337,6 @@ uint Timer::TimeProc(uint interval, void *dwUser)
     // Call user-specified callback and pass back user specified data
     (ptimer->m_pfnCallback) (ptimer->m_dwUser);
 
-#ifdef SCP_UNIX
     if (ptimer->m_nPeriod) {
 		return interval;
     } else {
@@ -365,7 +344,6 @@ uint Timer::TimeProc(uint interval, void *dwUser)
 		ptimer->m_nIDTimer = NULL;
 		return 0;
     }
-#endif
 }
 
 
@@ -1036,13 +1014,13 @@ const ushort DefBufferServiceInterval = 250;  // default buffer service interval
 // Constructor
 AudioStream::AudioStream (void)
 {
-	INITIALIZE_CRITICAL_SECTION( write_lock );
+	write_lock = SDL_CreateMutex();
 }
 
 // Destructor
 AudioStream::~AudioStream (void)
 {
-	DELETE_CRITICAL_SECTION( write_lock );
+	SDL_DestroyMutex( write_lock );
 }
 
 void AudioStream::Init_Data ()
@@ -1165,7 +1143,7 @@ bool AudioStream::Destroy (void)
 	bool fRtn = true;
 	ALint buffers_processed = 0;
 
-	ENTER_CRITICAL_SECTION(write_lock);
+	SDL_LockMutex(write_lock);
 
 	// Stop playback
 	Stop ();
@@ -1193,7 +1171,7 @@ bool AudioStream::Destroy (void)
 
 	status = ASF_FREE;
 
-	LEAVE_CRITICAL_SECTION(write_lock);
+	SDL_UnlockMutex(write_lock);
 
 	return fRtn;
 }
@@ -1218,7 +1196,7 @@ bool AudioStream::WriteWaveData (uint size, uint *num_bytes_written, int service
 	}
 
 	if ( service ) {
-		ENTER_CRITICAL_SECTION(Global_service_lock);
+		SDL_LockMutex(Global_service_lock);
 	}
 		    
 	if ( service ) {
@@ -1268,7 +1246,7 @@ bool AudioStream::WriteWaveData (uint size, uint *num_bytes_written, int service
 ErrorExit:
 
 	if ( service ) {
-		LEAVE_CRITICAL_SECTION(Global_service_lock);
+		SDL_UnlockMutex(Global_service_lock);
 	}
     
 	return (fRtn);
@@ -1304,11 +1282,11 @@ bool AudioStream::ServiceBuffer (void)
 	if ( status != ASF_USED )
 		return false;
 
-	ENTER_CRITICAL_SECTION( write_lock );
+	SDL_LockMutex( write_lock );
 
 	// status may have changed, so lets check once again
 	if ( status != ASF_USED ){
-		LEAVE_CRITICAL_SECTION( write_lock );
+		SDL_UnlockMutex( write_lock );
 
 		return false;
 	}
@@ -1331,7 +1309,7 @@ bool AudioStream::ServiceBuffer (void)
 			m_lCutoffVolume = 0.0f;
 
 			if ( m_bDestroy_when_faded == true ) {
-				LEAVE_CRITICAL_SECTION( write_lock );
+				SDL_UnlockMutex( write_lock );
 
 				Destroy();	
 				// Reset reentrancy semaphore
@@ -1340,7 +1318,7 @@ bool AudioStream::ServiceBuffer (void)
 			} else {
 				Stop_and_Rewind();
 				// Reset reentrancy semaphore
-				LEAVE_CRITICAL_SECTION( write_lock );
+				SDL_UnlockMutex( write_lock );
 
 				return true;
 			}
@@ -1378,7 +1356,7 @@ bool AudioStream::ServiceBuffer (void)
 
 			if ( PlaybackDone() ) {
 				if ( m_bDestroy_when_faded == true ) {
-					LEAVE_CRITICAL_SECTION( write_lock );
+					SDL_UnlockMutex( write_lock );
 
 					Destroy();
 					// Reset reentrancy semaphore
@@ -1400,7 +1378,7 @@ bool AudioStream::ServiceBuffer (void)
 		}
 	}
 
-	LEAVE_CRITICAL_SECTION( write_lock );
+	SDL_UnlockMutex( write_lock );
 
 	return (fRtn);
 }
@@ -1644,11 +1622,9 @@ void audiostream_init()
 		Audio_streams[i].type = ASF_NONE;
 	}
 
-#ifdef SCP_UNIX
 	SDL_InitSubSystem(SDL_INIT_TIMER);
-#endif
 
-	INITIALIZE_CRITICAL_SECTION( Global_service_lock );
+	Global_service_lock = SDL_CreateMutex();
 
 	Audiostream_inited = 1;
 }
@@ -1690,7 +1666,7 @@ void audiostream_close()
 		Compressed_service_buffer = NULL;
 	}
 
-	DELETE_CRITICAL_SECTION( Global_service_lock );
+	SDL_DestroyMutex( Global_service_lock );
 
 	Audiostream_inited = 0;
 

@@ -24,7 +24,7 @@
 #include "globalincs/linklist.h"
 #include "hud/hudwingmanstatus.h"
 #include "sound/audiostr.h"
-#include "freespace.h"
+#include "freespace2/freespace.h"
 #include "globalincs/alphacolors.h"
 #include "sound/fsspeech.h"
 #include "ship/ship.h"
@@ -779,7 +779,7 @@ void red_alert_delete_ship(ship *shipp, int ship_state)
 {
 	if ( (shipp->wing_status_wing_index >= 0) && (shipp->wing_status_wing_pos >= 0) ) {
 		if (ship_state == RED_ALERT_DESTROYED_SHIP_CLASS) {
-		hud_set_wingman_status_dead(shipp->wing_status_wing_index, shipp->wing_status_wing_pos);
+			hud_set_wingman_status_dead(shipp->wing_status_wing_index, shipp->wing_status_wing_pos);
 		} else if (ship_state == RED_ALERT_PLAYER_DEL_SHIP_CLASS) {
 			hud_set_wingman_status_none(shipp->wing_status_wing_index, shipp->wing_status_wing_pos);
 		} else {
@@ -950,7 +950,12 @@ void red_alert_bash_wingman_status()
 						if (ras->ship_class >= 0 && ras->ship_class < MAX_SHIP_CLASSES)
 							swap_parse_object(pobjp, ras->ship_class);
 						else
+						{
 							mprintf(("Invalid ship class specified in red alert data for ship %s. Using mission defaults.\n", pobjp->name));
+							
+							// We will break anyway to this should work
+							break;
+						}
 					}
 
 					// restore hull (but not shields)
