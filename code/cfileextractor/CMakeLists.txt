@@ -11,6 +11,6 @@ set_target_properties(cfileextractor
 
 IF(MSVC)
 	set_target_properties(cfileextractor PROPERTIES
-		COMPILE_DEFINITIONS_DEBUG "_DEBUG;PDB_DEBUGGING=1;_HAS_ITERATOR_DEBUGGING=0"
+		COMPILE_DEFINITIONS_DEBUG "_DEBUG;PDB_DEBUGGING=1"
 	)
 ENDIF(MSVC)
