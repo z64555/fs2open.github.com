@@ -4,22 +4,28 @@
 
 #include <new>
 
+#ifdef HAS_CXX11_NOEXCEPT
+#define SCP_NOEXCEPT noexcept
+#else
+#define SCP_NOEXCEPT
+#endif
+
 // throw
 extern void * operator new (size_t size) throw (std::bad_alloc);
 
-extern void operator delete (void *p) throw();
+extern void operator delete (void *p) SCP_NOEXCEPT;
 
 extern void * operator new [] (size_t size) throw (std::bad_alloc);
 
-extern void operator delete [] (void *p) throw();
+extern void operator delete[](void *p) SCP_NOEXCEPT;
 
 // no-throw
-extern void * operator new (size_t size, const std::nothrow_t&) throw();
+extern void * operator new (size_t size, const std::nothrow_t&) SCP_NOEXCEPT;
 
-extern void operator delete (void *p, const std::nothrow_t&) throw();
+extern void operator delete (void *p, const std::nothrow_t&) SCP_NOEXCEPT;
 
-extern void * operator new [] (size_t size, const std::nothrow_t&) throw();
+extern void * operator new[](size_t size, const std::nothrow_t&) SCP_NOEXCEPT;
 
-extern void operator delete [] (void *p, const std::nothrow_t&) throw();
+extern void operator delete[](void *p, const std::nothrow_t&) SCP_NOEXCEPT;
 
 #endif	// _FSMEMORY_H
