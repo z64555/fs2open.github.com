@@ -11,11 +11,11 @@
 #endif
 
 // throw
-extern void * operator new (size_t size) throw (std::bad_alloc);
+extern void * operator new (size_t size);
 
 extern void operator delete (void *p) SCP_NOEXCEPT;
 
-extern void * operator new [] (size_t size) throw (std::bad_alloc);
+extern void * operator new [] (size_t size);
 
 extern void operator delete[](void *p) SCP_NOEXCEPT;
 

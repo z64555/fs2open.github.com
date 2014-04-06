@@ -653,6 +653,7 @@ set (file_root_observer
 # OsApi files
 set (file_root_osapi
 	osapi/osapi.h
+	osapi/osapi.cpp
 	osapi/osregistry.h
 	osapi/outwnd.h
 )
@@ -661,7 +662,6 @@ IF(WIN32)
 set (file_root_osapi
 	${file_root_osapi}
 	osapi/monopub.h
-	osapi/osapi.cpp
 	osapi/osregistry.cpp
 	osapi/outwnd.cpp
 )

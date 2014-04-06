@@ -3,7 +3,7 @@
 
 
 // throw
-void * operator new (size_t size) throw (std::bad_alloc)
+void * operator new (size_t size)
 {
 	void *p = vm_malloc_q(size);
 
@@ -19,7 +19,7 @@ void operator delete (void *p) SCP_NOEXCEPT
 	vm_free(p);
 }
 
-void * operator new [] (size_t size) throw (std::bad_alloc)
+void * operator new [] (size_t size)
 {
 	void *p = vm_malloc_q(size);
 
