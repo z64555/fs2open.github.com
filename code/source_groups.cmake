@@ -1,6 +1,5 @@
 # top-level files
 set (file_root
-	${GENERATED_SOURCE_DIR}/project.h
 )
 
 # AI files
@@ -203,6 +202,11 @@ set (file_root_gamesnd
 	gamesnd/eventmusic.h
 	gamesnd/gamesnd.cpp
 	gamesnd/gamesnd.h
+)
+
+set(file_root_generated
+	${GENERATED_SOURCE_DIR}/project.h
+	${GENERATED_SOURCE_DIR}/compiler.h
 )
 
 # GlobalIncs files
@@ -933,6 +937,7 @@ source_group("GameHelp"                           FILES ${file_root_gamehelp})
 source_group("GameHelp\\fs2netd"                  FILES ${file_root_gamehelp_fs2netd})
 source_group("GameSequence"                       FILES ${file_root_gamesequence})
 source_group("GameSnd"                            FILES ${file_root_gamesnd})
+source_group("Generated Files"                    FILES ${file_root_generated})
 source_group("GlobalIncs"                         FILES ${file_root_globalincs})
 source_group("Graphics"                           FILES ${file_root_graphics})
 source_group("Graphics\\OpenGLGr"                 FILES ${file_root_graphics_openglgr})
@@ -1006,6 +1011,7 @@ set (file_root
 	${file_root_gamehelp_fs2netd}
 	${file_root_gamesequence}
 	${file_root_gamesnd}
+	${file_root_generated}
 	${file_root_globalincs}
 	${file_root_graphics}
 	${file_root_graphics_openglgr}
