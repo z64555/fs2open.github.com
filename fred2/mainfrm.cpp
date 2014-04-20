@@ -459,7 +459,7 @@ void color_combo_box::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 //		GetLBText(lpDrawItemStruct->itemID, strText);
 
 		pDC->ExtTextOut(lpDrawItemStruct->rcItem.left,
-			lpDrawItemStruct->rcItem.top + max(0, (cyItem - m_cyText) / 2),
+			lpDrawItemStruct->rcItem.top + std::max(0, (cyItem - m_cyText) / 2),
 			ETO_OPAQUE, &(lpDrawItemStruct->rcItem), strText, strText.GetLength(), NULL);
 
 		pDC->SetTextColor(oldTextColor);

@@ -1330,7 +1330,7 @@ int CShipEditorDlg::update_ship(int ship)
 			// if the arrival is not hyperspace or docking bay -- force arrival distance to be
 			// greater than 2*radius of target.
 			if (((m_arrival_location != ARRIVE_FROM_DOCK_BAY) && (m_arrival_location != ARRIVE_AT_LOCATION)) && (z >= 0) && !(z & SPECIAL_ARRIVAL_ANCHOR_FLAG)) {
-			d = int(min(500, 2.0f * Objects[Ships[ship].objnum].radius));
+			d = int(std::min(500.0f, 2.0f * Objects[Ships[ship].objnum].radius));
 				if ((Ships[ship].arrival_distance < d) && (Ships[ship].arrival_distance > -d)) {
 					str.Format("Ship must arrive at least %d meters away from target.\n"
 						"Value has been reset to this.  Use with caution!\r\n"

@@ -802,7 +802,7 @@ void wing_editor::update_data_safe()
 
 		// when arriving near or in front of a ship, be sure that we are far enough away from it!!!
 		if (((m_arrival_location != ARRIVE_AT_LOCATION) && (m_arrival_location != ARRIVE_FROM_DOCK_BAY)) && (i >= 0) && !(i & SPECIAL_ARRIVAL_ANCHOR_FLAG)) {
-			d = int(min(500, 2.0f * Objects[Ships[i].objnum].radius));
+			d = int(std::min(500.0f, 2.0f * Objects[Ships[i].objnum].radius));
 			if ((Wings[cur_wing].arrival_distance < d) && (Wings[cur_wing].arrival_distance > -d)) {
 				if (!bypass_errors) {
 					sprintf(buf, "Ship must arrive at least %d meters away from target.\n"
