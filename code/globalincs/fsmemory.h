@@ -4,6 +4,8 @@
 
 #include <new>
 
+#include "compiler.h"
+
 #ifdef HAS_CXX11_NOEXCEPT
 #define SCP_NOEXCEPT noexcept
 #else
