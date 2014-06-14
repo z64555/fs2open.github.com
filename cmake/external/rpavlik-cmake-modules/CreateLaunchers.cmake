@@ -201,12 +201,6 @@ macro(_launcher_produce_vcproj_user)
 			_perconfig)
 		set(USERFILE_CONFIGSECTIONS)
 		foreach(USERFILE_CONFIGNAME ${CMAKE_CONFIGURATION_TYPES})
-			get_target_property(USERFILE_${USERFILE_CONFIGNAME}_COMMAND
-				${_targetname}
-				LOCATION_${USERFILE_CONFIGNAME})
-			file(TO_NATIVE_PATH
-				"${USERFILE_${USERFILE_CONFIGNAME}_COMMAND}"
-				USERFILE_${USERFILE_CONFIGNAME}_COMMAND)
 			string(CONFIGURE "${_perconfig}" _temp @ONLY ESCAPE_QUOTES)
 			string(CONFIGURE
 				"${USERFILE_CONFIGSECTIONS}${_temp}"
@@ -234,33 +228,16 @@ macro(_launcher_configure_executable _src _tmp _target)
 endmacro()
 
 macro(_launcher_create_target_launcher)
-	if(CMAKE_CONFIGURATION_TYPES)
-		# Multi-config generator - multiple launchers
-		foreach(_config ${CMAKE_CONFIGURATION_TYPES})
-			get_target_property(USERFILE_${_config}_COMMAND
-				${_targetname}
-				LOCATION_${_config})
-			file(TO_NATIVE_PATH
-				"${USERFILE_${_config}_COMMAND}"
-				USERFILE_COMMAND)
-			set(_fn "launch-${_targetname}-${_config}.${_suffix}")
-			_launcher_configure_executable("${_launchermoddir}/targetlauncher.${_suffix}.in"
-			    "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${_fn}"
-			    "${CMAKE_CURRENT_BINARY_DIR}/${_fn}")
-		endforeach()
-	else()
-		# Single-config generator - single launcher
-		get_target_property(USERFILE_COMMAND
-			${_targetname}
-			LOCATION)
-		file(TO_NATIVE_PATH
-			"${USERFILE_COMMAND}"
-			USERFILE_COMMAND)
-		_launcher_configure_executable("${_launchermoddir}/targetlauncher.${_suffix}.in"
-		    "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/launch-${_targetname}.${_suffix}"
-			"${CMAKE_CURRENT_BINARY_DIR}/launch-${_targetname}.${_suffix}"
-			@ONLY)
-	endif()
+	set(TARGET_NAME ${_targetname})
+	
+	set(_fn "launch-${_targetname}-generator.${_suffix}")
+	
+	configure_file("${_launchermoddir}/targetlauncher.${_suffix}.in" 
+					"${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${_fn}"
+					@ONLY)
+	
+	file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/launch-${_targetname}-$<CONFIG>.${_suffix}"
+			INPUT "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${_fn}")
 endmacro()
 
 function(create_default_target_launcher _targetname)

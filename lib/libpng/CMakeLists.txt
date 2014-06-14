@@ -36,11 +36,11 @@ IF (FSO_BUILD_INCLUDED_LIBS OR NOT PNG_FOUND)
 	
 	set_target_properties(png
 		PROPERTIES
-			COMPILE_DEFINITIONS _CRT_SECURE_NO_WARNINGS
-			COMPILE_DEFINITIONS_DEBUG PNG_DEBUG=1
 			DEFINE_SYMBOL PNG_BUILD_DLL # This will only be defined if we are building a shared library
 			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}
 	)
+	
+	target_compile_definitions(png PRIVATE _CRT_SECURE_NO_WARNINGS;$<$<CONFIG:Debug>:PNG_DEBUG=1>)
 
 	IF(BUILD_SHARED_LIBS)
 		set_target_properties(png
