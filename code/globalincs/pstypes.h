@@ -24,6 +24,8 @@
 
 #include "windows_stub/config.h"
 
+#include "globalincs/scp_defines.h"
+
 #include "SDL.h"
 
 // value to represent an uninitialized state in any int or uint

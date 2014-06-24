@@ -229,6 +229,7 @@ set (file_root_globalincs
 	globalincs/version.cpp
 	globalincs/version.h
 	globalincs/vmallocator.h
+	globalincs/scp_defines.h
 )
 
 IF (WIN32)
