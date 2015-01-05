@@ -16,4 +16,7 @@ script: cd travis-build && cmake -G Ninja .. && ninja
 branches:
   only: cmake-travis
 notifications:
-  irc: "irc.esper.net#Diaspora"
+  irc:
+    channels: "irc.esper.net#Diaspora"
+    on_success: change
+    on_failure: change
