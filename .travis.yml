@@ -15,3 +15,5 @@ before_script:
 script: cd travis-build && cmake .. && make
 branches:
   only: cmake-travis
+notifications:
+  irc: "irc.esper.net#Diaspora"
