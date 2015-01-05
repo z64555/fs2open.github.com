@@ -3,10 +3,10 @@ compiler:
   - gcc
   - clang
 before_install:
-  - sudo add-apt-repository -y ppa:yjwong/cmake
+  - sudo add-apt-repository --yes ppa:kalakris/cmake
   - sudo apt-get update -qq
 install:
-  - sudo apt-get install -y cmake-data
+  - sudo apt-get install -y cmake
   - sudo apt-get install -y libopenal-dev libogg-dev libvorbis-dev build-essential automake1.10 autoconf libsdl1.2-dev libtheora-dev libreadline6-dev libpng12-dev libjpeg62-dev liblua5.1-0-dev libjansson-dev libtool
 before_script:
   - cmake --version
