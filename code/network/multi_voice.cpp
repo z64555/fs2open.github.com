@@ -106,7 +106,9 @@ int Multi_voice_stamps[MULTI_VOICE_MAX_STREAMS];
 
 // the token index of a voice stream is set to one of these values, or the index of the player who has the token
 #define MULTI_VOICE_TOKEN_INDEX_FREE				-1					// the token (and the stream are free)
-#define MULTI_VOICE_TOKEN_INDEX_RELEASED			0xDEADBEAD		// the token has been released but the stream is still active
+namespace {
+const int MULTI_VOICE_TOKEN_INDEX_RELEASED = static_cast<int>(0xDEADBEAD);		// the token has been released but the stream is still active
+}
 
 typedef struct voice_stream {		
 	int token_status;															// status of the token (player index if a player has it) or one of the above defines
