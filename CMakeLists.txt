@@ -45,7 +45,7 @@ IF(RESET_INSTALL_PREFIX)
 			FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX} CMAKE_INSTALL_PREFIX)
 		ENDIF(NOT IS_DIRECTORY $ENV{FS2PATH})
 	ELSE(NOT $ENV{FS2PATH} STREQUAL "")
-		MESSAGE(STATUS "NO FS2PATH environment variable found, you can define this to point to your freespace install but it it not required.")
+		MESSAGE(STATUS "NO FS2PATH environment variable found, you can define this to point to your freespace install but it is not required.")
 	ENDIF(NOT $ENV{FS2PATH} STREQUAL "")
 ENDIF(RESET_INSTALL_PREFIX)
 
