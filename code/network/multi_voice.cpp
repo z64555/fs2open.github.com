@@ -58,7 +58,7 @@ enum MV_CODES {
 	MV_CODE_PLAYER_PREFS = 5, // received server side - player bitflags for who he'll receive from
 	MV_CODE_DATA = 6, // sound data
 	MV_CODE_DATA_DUMMY = 7 // in place of a packet which has been deemed too large, so that receivers don't time out early
-}
+};
 
 // default quality of sound
 const int MV_DEFAULT_QOS = 10; // default quality of sound
