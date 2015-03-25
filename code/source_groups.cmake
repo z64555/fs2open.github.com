@@ -141,16 +141,6 @@ SET(file_root_def_files
 	${CMAKE_CURRENT_SOURCE_DIR}/def_files/video-f.sdr
 	${CMAKE_CURRENT_SOURCE_DIR}/def_files/video-v.sdr)
 
-# DirectX files
-set (file_root_directx
-	directx/vasync.h
-	directx/vdinput.h
-	directx/vdplay.h
-	directx/vdplobby.h
-	directx/vdsetup.h
-	directx/vdvp.h
-)
-
 # ExceptionHandler files
 set (file_root_exceptionhandler
 	exceptionhandler/exceptionhandler.cpp
@@ -363,17 +353,13 @@ set (file_root_io
 	io/timer.h
 	io/joy.h
 	io/joy_ff.h
-)	
+)
 
 IF(WIN32)
 	set (file_root_io
 		${file_root_io}
 		io/joy-sdl.cpp
 		io/joy_ff-sdl.cpp
-		io/sw_error.hpp
-		io/sw_force.h
-		io/sw_guid.hpp
-		io/swff_lib.cpp
 	)
 ELSEIF(UNIX)
 	set (file_root_io
@@ -926,11 +912,6 @@ source_group("ddsutils"                           FILES ${file_root_ddsutils})
 source_group("Debris"                             FILES ${file_root_debris})
 source_group("DebugConsole"                       FILES ${file_root_debugconsole})
 SOURCE_GROUP("Default files"                      FILES ${file_root_def_files})
-
-IF(WIN32)
-	source_group("DirectX"                        FILES ${file_root_directx})
-ENDIF(WIN32)
-
 source_group("ExceptionHandler"                   FILES ${file_root_exceptionhandler})
 source_group("ExternalDLL"                        FILES ${file_root_externaldll})
 source_group("Fireball"                           FILES ${file_root_fireball})
@@ -1061,7 +1042,3 @@ set (file_root
 	${file_root_weapon}
 	${file_root_windows_stubs}
 )
-
-IF(WIN32)
-	set (file_root ${file_root} ${file_root_directx})
-ENDIF(WIN32)
