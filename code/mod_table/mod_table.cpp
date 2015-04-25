@@ -11,6 +11,8 @@
 #include "mod_table/mod_table.h"
 #include "localization/localize.h"
 #include "parse/parselo.h"
+#include "sound/sound.h"
+#include "gamesnd/eventmusic.h"
 
 int Directive_wait_time = 3000;
 bool True_loop_argument_sexps = false;
@@ -26,6 +28,10 @@ bool Full_color_head_anis = false;
 bool Weapons_inherit_parent_collision_group = false;
 bool Flight_controls_follow_eyepoint_orientation = false;
 int FS2NetD_port = 0;
+float Briefing_window_FOV = 0.29375f;
+bool Disable_hc_message_ani = false;
+bool Red_alert_applies_to_delayed_ships = false;
+bool Beams_use_damage_factors = false;
 
 
 void parse_mod_table(const char *filename)
@@ -33,13 +39,9 @@ void parse_mod_table(const char *filename)
 	int rval;
 	// SCP_vector<SCP_string> lines;
 
-	// open localization
-	lcl_ext_open();
-
 	if ((rval = setjmp(parse_abort)) != 0)
 	{
 		mprintf(("TABLES: Unable to parse '%s'!  Error code = %i.\n", (filename) ? filename : "<default game_settings.tbl>", rval));
-		lcl_ext_close();
 		return;
 	}
 
@@ -77,14 +79,23 @@ void parse_mod_table(const char *filename)
 		SCP_string campaign_name; 
 
 		while (optional_string("$Campaign File Name:")) {
-			stuff_string(campaign_name, F_NAME);
+			stuff_string(campaign_name, F_NAME); 
 
 			// remove extension?
 			if (drop_extension(campaign_name)) {
 				mprintf(("Game Settings Table: Removed extension on ignored campaign file name %s\n", campaign_name.c_str()));
 			}
 
-			Ignored_campaigns.push_back(campaign_name);
+			Ignored_campaigns.push_back(campaign_name); 
+		}
+	}
+
+	if (optional_string("$Red-alert applies to delayed ships:")) {
+		stuff_boolean(&Red_alert_applies_to_delayed_ships);
+		if (Red_alert_applies_to_delayed_ships) {
+			mprintf(("Game Settings Table: Red-alert stats will be loaded for ships that arrive later in missions\n"));
+		} else {
+			mprintf(("Game Settings Table: Red-alert stats will NOT be loaded for ships that arrive later in missions (this is retail behavior)\n"));
 		}
 	}
 
@@ -160,6 +171,16 @@ void parse_mod_table(const char *filename)
 			Default_detail_level = detail_level;
 		}
 	}
+
+	if (optional_string("$Briefing Window FOV:")) {
+		float fov;
+
+		stuff_float(&fov);
+
+		mprintf(("Game Settings Table: Setting briefing window FOV from %f to %f\n", Briefing_window_FOV, fov));
+
+		Briefing_window_FOV = fov;
+	}
 	
 	optional_string("#NETWORK SETTINGS"); 
 
@@ -167,6 +188,32 @@ void parse_mod_table(const char *filename)
 		stuff_int(&FS2NetD_port);
 		if (FS2NetD_port)
 			mprintf(("Game Settings Table: FS2NetD connecting to port %i\n", FS2NetD_port));
+	}
+
+	optional_string("#SOUND SETTINGS"); 
+
+	if (optional_string("$Default Sound Volume:")) {
+		stuff_float(&Master_sound_volume);
+	}
+
+	if (optional_string("$Default Music Volume:")) {
+		stuff_float(&Master_event_music_volume);
+	}
+
+	if (optional_string("$Default Voice Volume:")) {
+		stuff_float(&Master_voice_volume);
+	}
+
+	optional_string("#FRED SETTINGS");
+	
+	if (optional_string("$Disable Hard Coded Message Head Ani Files:")) {
+		stuff_boolean(&Disable_hc_message_ani);
+		if (Disable_hc_message_ani) {
+			mprintf(("Game Settings Table: FRED - Disabling Hard Coded Message Ani Files\n"));
+		} else {
+			mprintf(("Game Settings Table: FRED - Using Hard Coded Message Ani Files\n"));
+			
+		}
 	}
 
 	optional_string("#OTHER SETTINGS"); 
@@ -213,10 +260,16 @@ void parse_mod_table(const char *filename)
 			mprintf(("Game Settings Table: Flight controls follow eyepoint orientation\n"));
 	}
 
-	required_string("#END");
+	if (optional_string("$Beams Use Damage Factors:")) {
+		stuff_boolean(&Beams_use_damage_factors);
+		if (Beams_use_damage_factors) {
+			mprintf(("Game Settings Table: Beams will use Damage Factors\n"));
+		} else {
+			mprintf(("Game Settings Table: Beams will ignore Damage Factors (retail behavior)\n"));
+		}
+	}
 
-	// close localization
-	lcl_ext_close();
+	required_string("#END");
 }
 
 void mod_table_init()

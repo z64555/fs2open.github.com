@@ -18,6 +18,7 @@
 #include "sound/acm.h"
 #include "osapi/osapi.h"
 #include "sound/dscap.h"
+#include "sound/audiostr.h"
 
 
 typedef struct sound_buffer
@@ -460,8 +461,6 @@ int ds_parse_sound_info(char *real_filename, sound_info *s_info)
 	int				rc, FileSize, FileOffset;
 	char			fullpath[MAX_PATH];
 	char			filename[MAX_FILENAME_LEN];
-	const int		NUM_EXT = 2;
-	const char		*audio_ext[NUM_EXT] = { ".ogg", ".wav" };
 	int				rval = -1;
 
 	if ( (real_filename == NULL) || (s_info == NULL) ) {
@@ -473,7 +472,7 @@ int ds_parse_sound_info(char *real_filename, sound_info *s_info)
 	char *p = strrchr(filename, '.');
 	if ( p ) *p = 0;
 
-	rc = cf_find_file_location_ext(filename, NUM_EXT, audio_ext, CF_TYPE_ANY, sizeof(fullpath) - 1, fullpath, &FileSize, &FileOffset);
+	rc = cf_find_file_location_ext(filename, NUM_AUDIO_EXT, audio_ext_list, CF_TYPE_ANY, sizeof(fullpath) - 1, fullpath, &FileSize, &FileOffset);
 
 	if (rc < 0) {
 		return -1;
@@ -1587,7 +1586,12 @@ int ds_play(int sid, int snd_id, int priority, float volume, float pan, int loop
 		return -1;
 	}
 
-	OpenAL_ErrorPrint( alSource3f(Channels[ch_idx].source_id, AL_POSITION, pan, 0.0f, 0.0f) );
+	if (pan) {
+		OpenAL_ErrorPrint( alSource3f(Channels[ch_idx].source_id, AL_POSITION, pan, 0.0f, 1.0f) );
+	} else {
+		OpenAL_ErrorPrint( alSource3f(Channels[ch_idx].source_id, AL_POSITION, 0.0f, 0.0f, 0.0f) );
+	}
+
 	OpenAL_ErrorPrint( alSource3f(Channels[ch_idx].source_id, AL_VELOCITY, 0.0f, 0.0f, 0.0f) );
 
 	OpenAL_ErrorPrint( alDopplerFactor(0.0f) );
@@ -1725,8 +1729,8 @@ void ds_set_pan( int channel, float pan )
 	OpenAL_ErrorCheck( alGetSourcei(Channels[channel].source_id, AL_SOURCE_STATE, &state), return );
 
 	if (state == AL_PLAYING) {
-		OpenAL_ErrorPrint( alSourcei(Channels[channel].source_id, AL_SOURCE_RELATIVE, AL_TRUE) );
-		OpenAL_ErrorPrint( alSource3f(Channels[channel].source_id, AL_POSITION, pan, 0.0f, 0.0f) );
+		//OpenAL_ErrorPrint( alSourcei(Channels[channel].source_id, AL_SOURCE_RELATIVE, AL_TRUE) );
+		OpenAL_ErrorPrint( alSource3f(Channels[channel].source_id, AL_POSITION, pan, 0.0f, 1.0f) );
 	}
 }
 

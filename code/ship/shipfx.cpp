@@ -40,6 +40,7 @@
 #include "bmpman/bmpman.h"
 #include "model/model.h"
 #include "cmdline/cmdline.h"
+#include "debugconsole/console.h"
 
 
 #ifndef NDEBUG
@@ -1241,7 +1242,7 @@ void shipfx_flash_create(object *objp, int model_num, vec3d *gun_pos, vec3d *gun
 	// ALWAYS do this - since this is called once per firing
 	// if this is a cannon type weapon, create a muzzle flash
 	// HACK - let the flak guns do this on their own since they fire so quickly
-	if((Weapon_info[weapon_info_index].wi_flags & WIF_MFLASH) && !(Weapon_info[weapon_info_index].wi_flags & WIF_FLAK)){
+	if ((Weapon_info[weapon_info_index].muzzle_flash >= 0) && !(Weapon_info[weapon_info_index].wi_flags & WIF_FLAK)) {
 		vec3d real_dir;
 		vm_vec_rotate(&real_dir, gun_dir,&objp->orient);	
 		mflash_create(gun_pos, &real_dir, &objp->phys_info, Weapon_info[weapon_info_index].muzzle_flash, objp);		
@@ -1355,42 +1356,58 @@ void shipfx_flash_do_frame(float frametime)
 }
 
 float Particle_width = 1.2f;
-DCF(particle_width, "Multiplier for angular width of the particle spew")
+DCF(particle_width, "Sets multiplier for angular width of the particle spew ( 0 - 5)")
 {
-	if ( Dc_command ) {
-		dc_get_arg(ARG_FLOAT);
-		if ( (Dc_arg_float >= 0 ) && (Dc_arg_float <= 5) ) {
-			Particle_width = Dc_arg_float;
-		} else {
-			dc_printf( "Illegal value for particle width. (Must be from 0-5) \n\n");
-		}
+	float value;
+
+	if (dc_optional_string_either("status", "--status") || dc_optional_string_either("?", "--?")) {
+		dc_printf("Particle_width : %f\n", Particle_width);
+		return;
 	}
+
+	dc_stuff_float(&value);
+
+	CLAMP(value, 0.0, 5.0);
+	Particle_width = value;
+
+	dc_printf("Particle_width set to %f\n", Particle_width);
 }
 
 float Particle_number = 1.2f;
-DCF(particle_num, "Multiplier for the number of particles created")
+DCF(particle_num, "Sets multiplier for the number of particles created")
 {
-	if ( Dc_command ) {
-		dc_get_arg(ARG_FLOAT);
-		if ( (Dc_arg_float >= 0 ) && (Dc_arg_float <= 5) ) {
-			Particle_number = Dc_arg_float;
-		} else {
-			dc_printf( "Illegal value for particle num. (Must be from 0-5) \n\n");
-		}
+	
+	float value;
+
+	if (dc_optional_string_either("status", "--status") || dc_optional_string_either("?", "--?")) {
+		dc_printf("Particle_number : %f\n", Particle_number);
+		return;
 	}
+
+	dc_stuff_float(&value);
+
+	CLAMP(value, 0.0, 5.0);
+	Particle_number = value;
+
+	dc_printf("Particle_number set to %f\n", Particle_number);
 }
 
 float Particle_life = 1.2f;
 DCF(particle_life, "Multiplier for the lifetime of particles created")
 {
-	if ( Dc_command ) {
-		dc_get_arg(ARG_FLOAT);
-		if ( (Dc_arg_float >= 0 ) && (Dc_arg_float <= 5) ) {
-			Particle_life = Dc_arg_float;
-		} else {
-			dc_printf( "Illegal value for particle life. (Must be from 0-5) \n\n");
-		}
+	float value;
+
+	if (dc_optional_string_either("status", "--status") || dc_optional_string_either("?", "--?")) {
+		dc_printf("Particle_life : %f\n", Particle_life);
+		return;
 	}
+
+	dc_stuff_float(&value);
+
+	CLAMP(value, 0.0, 5.0);
+	Particle_life = value;
+
+	dc_printf("Particle_life set to %f\n", Particle_life);
 }
 
 // Make sparks fly off of ship n.
@@ -1602,16 +1619,20 @@ int	Bs_exp_fire_low = 1;
 float	Bs_exp_fire_time_mult = 1.0f;
 
 DCF_BOOL(bs_exp_fire_low, Bs_exp_fire_low)
-DCF(bs_exp_fire_time_mult, "Multiplier time between fireball in big ship explosion")
+DCF(bs_exp_fire_time_mult, "Sets multiplier time between fireball in big ship explosion")
 {
-	if ( Dc_command ) {
-		dc_get_arg(ARG_FLOAT);
-		if ( (Dc_arg_float >= 0.1 ) && (Dc_arg_float <= 5) ) {
-			Bs_exp_fire_time_mult = Dc_arg_float;
-		} else {
-			dc_printf( "Illegal value for bs_exp_fire_time_mult. (Must be from 0.1-5) \n\n");
-		}
+	float value;
+
+	if (dc_optional_string_either("status", "--status") || dc_optional_string_either("?", "--?")) {
+		dc_printf("Bs_exp_fire_time_mult : %f\n", Bs_exp_fire_time_mult);
+		return;
 	}
+
+	dc_stuff_float(&value);
+
+	CLAMP(value, 0.1f, 5.0f);
+	Bs_exp_fire_time_mult = value;
+	dc_printf("Bs_exp_fire_time_mult set to %f\n", Bs_exp_fire_time_mult);
 }
 
 
@@ -2270,9 +2291,9 @@ void shipfx_large_blowup_render(ship* shipp)
 // ================== DO THE ELECTRIC ARCING STUFF =====================
 // Creates any new ones, moves old ones.
 
-#define MAX_ARC_LENGTH_PERCENTAGE 0.25f
+const float MAX_ARC_LENGTH_PERCENTAGE = 0.25f;
 
-#define MAX_EMP_ARC_TIMESTAMP		 (150.0f)
+const float MAX_EMP_ARC_TIMESTAMP = 150.0f;
 
 void shipfx_do_damaged_arcs_frame( ship *shipp )
 {
@@ -2824,7 +2845,7 @@ void engine_wash_ship_process(ship *shipp)
 			// check if thruster bank has engine wash
 			if (bank->wash_info_pointer == NULL) {
 				// if huge, give default engine wash
-				if ((wash_sip->flags & SIF_HUGE_SHIP) && Engine_wash_info.size()) {
+				if ((wash_sip->flags & SIF_HUGE_SHIP) && !Engine_wash_info.empty()) {
 					bank->wash_info_pointer = &Engine_wash_info[0];
 					nprintf(("wash", "Adding default engine wash to ship %s", wash_sip->name));
 				} else {
@@ -2916,7 +2937,9 @@ void engine_wash_ship_process(ship *shipp)
 				}
 			}
 		}
+
 		shipp->wash_intensity += ship_intensity * speed_scale;
+
 		if (ship_intensity > max_ship_intensity) {
 			max_ship_intensity = ship_intensity;
 			max_ship_intensity_objp = wash_objp;
@@ -3217,6 +3240,8 @@ void parse_combined_variable_list(CombinedVariable *dest, flag_def_list *src, si
 		return;
 
 	char buf[NAME_LENGTH*2];
+	buf[sizeof(buf)-1] = '\0';
+
 	flag_def_list *sp = NULL;
 	CombinedVariable *dp = NULL;
 	for(size_t i = 0; i < num; i++)
@@ -3282,7 +3307,6 @@ flag_def_list Warp_variables[] = {
 	{"Speed",			WV_SPEED,			CombinedVariable::TYPE_FLOAT},
 	{"Time",			WV_TIME,			CombinedVariable::TYPE_FLOAT},
 };
-static const size_t Warp_variables_num = sizeof(Warp_variables)/sizeof(flag_def_list);
 
 //********************-----CLASS: WarpEffect-----********************//
 WarpEffect::WarpEffect()
@@ -3949,6 +3973,9 @@ int WE_BSG::warpShipRender()
 		{
 			vertex p;
 			extern int Cmdline_nohtl;
+            
+            memset(&p, 0, sizeof(p));
+            
 			if(Cmdline_nohtl) {
 				g3_rotate_vertex(&p, &pos );
 			}else{

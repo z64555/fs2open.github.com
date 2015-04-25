@@ -788,6 +788,9 @@ int event_music_enemy_arrival()
 	else {
 		next_pattern = SONG_EARV_1;
 	}
+    
+	if ( Current_pattern < 0 )
+		return 0;
 
 	if ( Current_pattern == next_pattern )
 		return 0;	// already playing
@@ -1125,7 +1128,7 @@ int event_music_player_respawn_as_observer()
 bool parse_soundtrack_line(int strack_idx, int pattern_idx)
 {
 	char fname[MAX_FILENAME_LEN];
-	char line_buf[128];
+	char line_buf[MAX_PATH_LEN];
 	char *token;
 	int count = 0;
 
@@ -1357,10 +1360,8 @@ void parse_menumusic()
 
 	// Goober5000 - check for existence of file
 	// taylor - check for all file types
-	const int NUM_EXT = 2;
-	const char *exts[NUM_EXT] = { ".ogg", ".wav" };
-
-	if ( cf_exists_full_ext(Spooled_music[idx].filename, CF_TYPE_MUSIC, NUM_EXT, exts) )
+	// chief1983 - use type list defined in audiostr.h
+	if ( cf_exists_full_ext(Spooled_music[idx].filename, CF_TYPE_MUSIC, NUM_AUDIO_EXT, audio_ext_list) )
 		Spooled_music[idx].flags |= SMF_VALID;
 
 	if (!nocreate)
@@ -1377,12 +1378,8 @@ void event_music_parse_musictbl(const char *filename)
 
 	if ((rval = setjmp(parse_abort)) != 0) {
 		mprintf(("TABLES: Unable to parse '%s'!  Error code = %i.\n", filename, rval));
-		lcl_ext_close();
 
 	} else {
-		// open localization
-		lcl_ext_open();
-
 		read_file_text(filename, CF_TYPE_TABLES);
 		reset_parse();
 
@@ -1401,9 +1398,6 @@ void event_music_parse_musictbl(const char *filename)
 				}
 			}
 		}
-
-		// close localization
-		lcl_ext_close();
 	}
 }
 

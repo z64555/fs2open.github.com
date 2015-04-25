@@ -34,6 +34,7 @@
 #include "network/multimsgs.h"
 #include "network/multiutil.h"
 #include "mod_table/mod_table.h"
+#include "parse/scripting.h"
 
 SCP_vector<SCP_string> Builtin_moods;
 int Current_mission_mood;
@@ -321,7 +322,7 @@ int add_avi( char *avi_name )
 	return ((int)Message_avis.size() - 1);
 }
 
-int add_wave( char *wave_name )
+int add_wave( const char *wave_name )
 {
 	int i;
 	message_extra extra; 
@@ -532,9 +533,6 @@ void parse_msgtbl()
 {
 	int i, j;
 
-	// open localization
-	lcl_ext_open();
-
 	//speed things up a little by setting the capacities for the message vectors to roughly the FS2 amounts
 	Messages.reserve(500);
 	Message_waves.reserve(300);
@@ -563,7 +561,7 @@ void parse_msgtbl()
 
 	// now we can start parsing
 	if (optional_string("#Message Frequencies")) {
-		while (!required_string_3("$Name:", "#Personas", "#Moods" )) {
+		while (!required_string_one_of(3, "$Name:", "#Personas", "#Moods" )) {
 			message_frequency_parse();
 		}
 	}	
@@ -645,10 +643,6 @@ void parse_msgtbl()
 
 		required_string("#End");
 	}
-
-	
-	// close localization
-	lcl_ext_close();
 }
 
 // this is called at the start of each level
@@ -987,10 +981,7 @@ void message_remove_from_queue(message_q *q)
 //
 void message_load_wave(int index, const char *filename)
 {
-	if (index == -1) {
-		Int3();
-		return;
-	}
+	Assertion(index >= 0, "Invalid index passed!");
 
 	if ( Message_waves[index].num >= 0) {
 		return;
@@ -1178,8 +1169,9 @@ void message_play_anim( message_q *q )
 
 	// support ships use a wingman head.
 	// terran command uses its own set of heads.
-	int subhead_selected = FALSE;
-	if ( (q->message_num < Num_builtin_messages) || !(_strnicmp(HEAD_PREFIX_STRING, ani_name, strlen(HEAD_PREFIX_STRING)-1)) ) {
+	if ( (anim_info->anim_data.first_frame < 0) &&	// note, first_frame will be >= 0 when ani is an existing file, and will be < 0 when the file does not exist and needs a, b, or c appended
+		((q->message_num < Num_builtin_messages) || !(_strnicmp(HEAD_PREFIX_STRING, ani_name, strlen(HEAD_PREFIX_STRING)-1))) ) {
+		int subhead_selected = FALSE;
 		persona_index = m->persona_index;
 		
 		// if this ani should be converted to a terran command, set the persona to the command persona
@@ -1280,6 +1272,8 @@ void message_queue_process()
 	message_q *q;
 	int i;
 	MissionMessage *m;
+	bool builtinMessage = false; // gcc doesn't like var decls crossed by goto's
+	object* sender = NULL;
 
 	// Don't play messages until first frame has been rendered
 	if ( Framecount < 2 ) {
@@ -1349,7 +1343,7 @@ void message_queue_process()
 
 			// if both ani and wave are done, mark internal variable so we can do next message on queue, and
 			// global variable to clear voice brackets on hud
-			if ( wave_done && ani_done && ( timestamp_elapsed(Message_expire) || (Playing_messages[Num_messages_playing].wave != -1) || (Playing_messages[i].shipnum == -1) ) ) {
+			if ( wave_done && ani_done && ( timestamp_elapsed(Message_expire) || (Playing_messages[i].wave != -1) || (Playing_messages[i].shipnum == -1) ) ) {
 				nprintf(("messaging", "Message %d is done playing\n", i));
 				Message_shipnum = -1;
 				Num_messages_playing--;
@@ -1582,6 +1576,22 @@ void message_queue_process()
 	if ( Message_shipnum >= 0 ) {
 		hud_target_last_transmit_add(Message_shipnum);
 	}
+
+	Script_system.SetHookVar("Name", 's', m->name);
+	Script_system.SetHookVar("Message", 's', buf);
+	Script_system.SetHookVar("SenderString", 's', who_from);
+
+	builtinMessage = q->builtin_type != -1;
+	Script_system.SetHookVar("Builtin", 'b', &builtinMessage);
+
+	if (Message_shipnum >= 0) {
+		sender = &Objects[Ships[Message_shipnum].objnum];
+	}
+	Script_system.SetHookObject("Sender", sender);
+
+	Script_system.RunCondition(CHA_MSGRECEIVED, 0, NULL, sender);
+
+	Script_system.RemHookVars(5, "Name", "Message", "SenderString", "Builtin", "Sender");
 
 all_done:
 	Num_messages_playing++;

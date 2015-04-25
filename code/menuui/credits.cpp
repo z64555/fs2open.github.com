@@ -22,7 +22,7 @@
 #include "ui/ui.h"
 #include "missionui/missionscreencommon.h"
 #include "playerman/player.h"
-#include "freespace.h"
+#include "freespace2/freespace.h"
 #include "globalincs/alphacolors.h"
 #include "localization/localize.h"
 #include "cfile/cfile.h"
@@ -35,9 +35,9 @@
 char *fs2_open_credit_text = 
 "SOURCE CODE PROJECT STAFF:\n"
 	"\n"
-	"Project Leaders:\n"
+	"Project Leader:\n"
 	"\n"
-	"Cliff \"chief1983\" Gordon\n"
+	"Fabian \"The E\" Woltermann\n"
 	"\n"
 	"Senior Advisors:\n"
 	"\n"
@@ -45,6 +45,7 @@ char *fs2_open_credit_text =
 	"Michael \"Zacam\" LaFleur\n"
 	"Taylor Richards\n"
 	"Edward \"Inquisitor\" Gardner\n"
+	"Cliff \"chief1983\" Gordon\n"
 	"\n"
 	"Programmers:\n"
 	"\n"
@@ -52,19 +53,13 @@ char *fs2_open_credit_text =
 	"Derek \"Kazan\" Meek\n"
 	"Nick \"phreak\" Iannetta\n"
 	"Mike \"Bobboau\" Abegg\n"
-	"Backslash\n"
-	"Echelon9\n"
-	"Flaming_Sword\n"
-	"FUBAR\n"	
-	"Iss Mneur\n"	
-	"kkmic\n"
-	"Shade\n"
-	"Soulstorm\n"
-	"Sushi\n"
-	"Swifty\n"
-	"Wanderer\n"	
-	"Fabian \"The E\" Woltermann\n"
-	"CommanderDJ\n"
+	"Backslash, Echelon9, Flaming_Sword\n"
+	"FUBAR, Iss Mneur, kkmic\n"
+	"Shade, Soulstorm, Sushi\n"
+	"Swifty, Wanderer, CommanderDJ\n"
+	"Valathil, MageKing17, Yarn\n"
+	"m!m, z64555, zookeeper\n"
+	"jg18, niffiwan\n"
 	"\n"
 	"\n"
 	"Readme Staff:\n"
@@ -225,10 +220,10 @@ enum CreditsPosition
 
 static CreditsPosition SCP_credits_position	= START;
 
-void credits_stop_music()
+void credits_stop_music(bool fade)
 {
 	if ( Credits_music_handle != -1 ) {
-		audiostream_close_file(Credits_music_handle, 1);
+		audiostream_close_file(Credits_music_handle, fade);
 		Credits_music_handle = -1;
 	}
 }
@@ -415,17 +410,11 @@ void credits_parse_table(const char* filename)
 
 void credits_parse()
 {
-	// open localization
-	lcl_ext_open();
-
 	// Parse main table
 	credits_parse_table("credits.tbl");
 
 	// Parse modular tables
 	parse_modular_table("*-crd.tbm", credits_parse_table);
-
-	// close localization
-	lcl_ext_close();
 }
 
 void credits_init()
@@ -656,13 +645,13 @@ void credits_close()
 	int i;
 
 	for (i=0; i<Credits_num_images; i++) {
-		if (Credits_bmps[i] >= 0) {
+		if (Credits_bmps[i] >= 0){
 			bm_release(Credits_bmps[i]);
 		}
-	}
+	}	
 	Credits_bmps.clear();
 
-	credits_stop_music();
+	credits_stop_music(true);
 
 	Credit_text_parts.clear();
 
@@ -722,7 +711,7 @@ void credits_do_frame(float frametime)
 	GR_MAYBE_CLEAR_RES(Background_bitmap);
 	if (Background_bitmap >= 0) {
 		gr_set_bitmap(Background_bitmap);
-		gr_bitmap(0, 0);
+		gr_bitmap(0, 0, GR_RESIZE_MENU);
 	} 
 
 	percent = (int) (100.0f - (Credits_artwork_display_time - Credits_counter) * 100.0f / Credits_artwork_fade_time);
@@ -773,7 +762,7 @@ void credits_do_frame(float frametime)
 		bx2 = Credits_image_coords[gr_screen.res][CREDITS_X_COORD] + ((Credits_image_coords[gr_screen.res][CREDITS_W_COORD] - bw2)/2);
 		by2 = Credits_image_coords[gr_screen.res][CREDITS_Y_COORD] + ((Credits_image_coords[gr_screen.res][CREDITS_H_COORD] - bh2)/2);
 
-		gr_cross_fade(bm1, bm2, bx1, by1, bx2, by2, (float)percent / 100.0f);
+		gr_cross_fade(bm1, bm2, bx1, by1, bx2, by2, (float)percent / 100.0f, GR_RESIZE_MENU);
 	}
 
 	Ui_window.draw();
@@ -788,17 +777,11 @@ void credits_do_frame(float frametime)
 		Buttons[CREDITS_BUTTON][gr_screen.res].button.draw_forced(2);
 	}
 
-	gr_set_clip(Credits_text_coords[gr_screen.res][CREDITS_X_COORD], Credits_text_coords[gr_screen.res][CREDITS_Y_COORD], Credits_text_coords[gr_screen.res][CREDITS_W_COORD], Credits_text_coords[gr_screen.res][CREDITS_H_COORD]);
+	gr_set_clip(Credits_text_coords[gr_screen.res][CREDITS_X_COORD], Credits_text_coords[gr_screen.res][CREDITS_Y_COORD], Credits_text_coords[gr_screen.res][CREDITS_W_COORD], Credits_text_coords[gr_screen.res][CREDITS_H_COORD], GR_RESIZE_MENU);
 	gr_set_font(FONT1);
 	gr_set_color_fast(&Color_normal);
 	
-	int sy; // The current position of the first text part
-	if ( Credit_position > 0 ) {
-		sy = fl2i(Credit_position+0.5f);
-	} else {
-		sy = fl2i(Credit_position-0.5f);
-	}
-
+	int y_offset = 0;
 	for (SCP_vector<SCP_string>::iterator iter = Credit_text_parts.begin(); iter != Credit_text_parts.end(); ++iter)
 	{
 		int height;
@@ -806,12 +789,13 @@ void credits_do_frame(float frametime)
 		gr_get_string_size(NULL, &height, iter->c_str(), iter->length());
 
 		// Check if the text part is actually visible
-		if (sy + height > 0)
+		if (Credit_position + y_offset + height > 0.0f)
 		{
-			gr_string(0x8000, sy, iter->c_str());
+			extern void gr_opengl_string(float sx, float sy, const char *s, int resize_mode);
+			gr_opengl_string((float)0x8000, Credit_position + y_offset, iter->c_str(), GR_RESIZE_MENU);
 		}
 
-		sy = sy + height;
+		y_offset += height;
 	}
 
 	int temp_time;
