@@ -14,7 +14,7 @@
 #include "mission/missionlog.h"
 #include "missionui/missionscreencommon.h"
 #include "debugconsole/console.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "gamesequence/gamesequence.h"
 #include "hud/hud.h"
 #include "hud/hudmessage.h"

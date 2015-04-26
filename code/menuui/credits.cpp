@@ -22,7 +22,7 @@
 #include "ui/ui.h"
 #include "missionui/missionscreencommon.h"
 #include "playerman/player.h"
-#include "freespace2/freespace.h"
+#include "freespace.h"
 #include "globalincs/alphacolors.h"
 #include "localization/localize.h"
 #include "cfile/cfile.h"

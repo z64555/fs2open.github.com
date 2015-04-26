@@ -112,6 +112,10 @@ set (file_root_debris
 # DebugConsole files
 set (file_root_debugconsole
 	debugconsole/console.cpp
+	debugconsole/console.h
+	debugconsole/consolecmds.cpp
+	debugconsole/consoleparse.cpp
+	debugconsole/consoleparse.h
 	debugconsole/timerbar.cpp
 	debugconsole/timerbar.h
 )

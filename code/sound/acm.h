@@ -12,10 +12,6 @@
 #ifndef __FREESPACE_ACM_H__
 #define __FREESPACE_ACM_H__
 
-#ifdef _WIN32
-#include "mm/mmreg.h"
-#endif
-
 #include "globalincs/pstypes.h"
 
 int	ACM_convert_ADPCM_to_PCM(WAVEFORMATEX *pwfxSrc, ubyte *src, int src_len, ubyte **dest, int max_dest_bytes, int *dest_len, unsigned int *src_bytes_used, int dest_bps=16);
