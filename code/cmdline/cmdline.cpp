@@ -447,9 +447,6 @@ cmdline_parm fullscreen_window_arg("-fullscreen_window", "Fullscreen/borderless 
 cmdline_parm res_arg("-res", "Resolution, formatted like 1600x900", AT_STRING);
 cmdline_parm verify_vps_arg("-verify_vps", NULL, AT_NONE);	// Cmdline_verify_vps  -- spew VP crcs to vp_crcs.txt
 cmdline_parm parse_cmdline_only(PARSE_COMMAND_LINE_STRING, "Ignore any cmdline_fso.cfg files", AT_NONE);
-#ifdef SCP_UNIX
-cmdline_parm no_grab("-nograb", NULL, AT_NONE);				// Cmdline_no_grab
-#endif
 cmdline_parm reparse_mainhall_arg("-reparse_mainhall", NULL, AT_NONE); //Cmdline_reparse_mainhall
 cmdline_parm frame_profile_arg("-profile_frame_time", NULL, AT_NONE); //Cmdline_frame_profile
 cmdline_parm frame_profile_write_file("-profile_write_file", NULL, AT_NONE); // Cmdline_profile_write_file
@@ -473,7 +470,6 @@ int Cmdline_window = 0;
 int Cmdline_fullscreen_window = 0;
 char *Cmdline_res = 0;
 int Cmdline_verify_vps = 0;
-int Cmdline_no_grab = 0;
 int Cmdline_reparse_mainhall = 0;
 bool Cmdline_frame_profile = false;
 bool Cmdline_profile_write_file = false;
@@ -1344,7 +1340,49 @@ bool SetCmdlineParams()
 		memset( modlist, 0, len + 2 );
 		strcpy_s(modlist, len+2, Cmdline_mod);
 
-		//modlist[len]= '\0'; // double null termination at the end
+#ifdef SCP_UNIX
+		// for case sensitive filesystems (e.g. Linux/BSD) perform case-insensitive dir matches
+		DIR *dp;
+		dirent *dirp;
+		char *cur_pos, *temp;
+		char cur_dir[CF_MAX_PATHNAME_LENGTH], delim[] = ",";
+		SCP_vector<SCP_string> temp_modlist;
+		size_t total_len = 0;
+
+		if ( !_getcwd(cur_dir, CF_MAX_PATHNAME_LENGTH ) ) {
+			Error(LOCATION, "Can't get current working directory -- %d", errno );
+		}
+
+		for (cur_pos = strtok(modlist, delim); cur_pos != NULL; cur_pos = strtok(NULL, delim))
+		{
+			if ((dp = opendir(cur_dir)) == NULL) {
+				Error(LOCATION, "Can't open directory '%s' -- %d", cur_dir, errno );
+			}
+
+			while ((dirp = readdir(dp)) != NULL) {
+				if (!stricmp(dirp->d_name, cur_pos)) {
+					temp_modlist.push_back(dirp->d_name);
+					total_len += (strlen(dirp->d_name) + 1);
+				}
+			}
+			(void)closedir(dp);
+		}
+
+		// create new char[] to replace modlist
+		char *new_modlist = new char[total_len+1];
+		memset( new_modlist, 0, total_len + 1 );
+		SCP_vector<SCP_string>::iterator ii, end = temp_modlist.end();
+		for (ii = temp_modlist.begin(); ii != end; ++ii) {
+			strcat_s(new_modlist, total_len+1, ii->c_str());
+			strcat_s(new_modlist, total_len+1, ","); // replace later with NUL
+		}
+
+		// make the rest of the function unaware that anything happened here
+		temp = modlist;
+		modlist = new_modlist;
+		delete [] temp;
+		len = total_len;
+#endif
 
 		// null terminate each individual
 		for (int i = 0; i < len; i++)
