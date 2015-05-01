@@ -1,5 +1,5 @@
 version: 3.7.3.{build}
-clone_depth: 50
+shallow_clone: true
 branches:
   only:
   - build/ci
