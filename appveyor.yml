@@ -32,5 +32,5 @@ after_build:
   - cmake --build . --target install
   - dir "%APPVEYOR_BUILD_FOLDER%"
 artifacts:
-  - path: $(APPVEYOR_BUILD_FOLDER)\binInstall\**\*.*
+  - path: $(APPVEYOR_BUILD_FOLDER)\binInstall
     name: binaries
