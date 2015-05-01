@@ -11,12 +11,13 @@ environment:
   - VS_VERSION: 11
   - VS_VERSION: 12
 install:
-  - cinst wget
+  - cinst wget -y
   - wget -nv -O nsis-installer.exe http://prdownloads.sourceforge.net/nsis/nsis-2.46-setup.exe?download
   - nsis-installer.exe /S
 before_build:
-  - cmake -G "Visual Studio %VS_VERSION%"
-  - dir
+  - mkdir build
+  - cd build
+  - cmake -G "Visual Studio %VS_VERSION%" ..
 build:
   project: FS2_Open.sln
   verbosity: minimal
