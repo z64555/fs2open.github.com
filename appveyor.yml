@@ -14,7 +14,6 @@ init:
 install:
   - cinst ninja -y
   - SET PATH=%PATH%;C:\tools\ninja
-  - ninja -h
   - cinst wget -y
   - wget -nv -O nsis-installer.exe http://prdownloads.sourceforge.net/nsis/nsis-2.46-setup.exe?download
   - nsis-installer.exe /S
