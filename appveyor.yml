@@ -1,30 +1,32 @@
 version: 3.7.3.{build}
-shallow_clone: true
 branches:
   only:
   - build/ci
 configuration:
-  - Debug
-  - Release
+- Debug
+- Release
+platform: x86
+shallow_clone: true
+clone_folder: c:\projects\repository
 environment:
+  INSTALL_DIR: c:\projects\install
   matrix:
   - VS_VERSION: 11
   - VS_VERSION: 12
 install:
-  - cinst wget -y
-  - wget -nv -O nsis-installer.exe http://prdownloads.sourceforge.net/nsis/nsis-2.46-setup.exe?download
-  - nsis-installer.exe /S
+- cinst wget -y
+- wget -nv -O nsis-installer.exe http://prdownloads.sourceforge.net/nsis/nsis-2.46-setup.exe?download
+- nsis-installer.exe /S
 before_build:
-  - mkdir build
-  - cd build
-  - cmake -G "Visual Studio %VS_VERSION%" ..
+- mkdir build
+- cd build
+- cmake -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -G "Visual Studio %VS_VERSION%" ..
 build:
-  project: FS2_Open.sln
+  project: build/FS2_Open.sln
+  parallel: true
   verbosity: minimal
 after_build:
-  - msbuild "PACKAGE.vcxproj" /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+- msbuild "build/INSTALL.vcxproj" /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 artifacts:
-  - path: bin\$(configuration)
-    name: fso-continuous-$(configuration)-vs$(VS_VERSION)
-  - path: FS2_Open-*.exe
-    name: fso-continuous-installer.exe
+- path: '%INSTALL_DIR%'
+  name: install
