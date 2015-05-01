@@ -30,4 +30,4 @@ after_build:
   - cmake --build . --target install
 artifacts:
   - path: c:\projects\install
-    name: install
+    name: build-$(configuration)-$(INSTRUCTION_SET)
