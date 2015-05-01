@@ -14,16 +14,17 @@ environment:
 init:
   - CALL "%VS120COMNTOOLS%\..\..\VC\vcvarsall.bat" x86
 install:
+  - dir "%APPVEYOR_BUILD_FOLDER%"
   - cinst ninja -y
   - SET PATH=%PATH%;C:\tools\ninja
   - cinst wget -y
   - wget -nv -O nsis-installer.exe http://prdownloads.sourceforge.net/nsis/nsis-2.46-setup.exe?download
   - nsis-installer.exe /S
-  - mkdir "%APPVEYOR_BUILD_FOLDER%\install"
+  - mkdir "%APPVEYOR_BUILD_FOLDER%\binInstall"
 before_build:
   - mkdir build
   - cd build
-  - cmake -DCMAKE_INSTALL_PREFIX="%APPVEYOR_BUILD_FOLDER%\install" -DCMAKE_BUILD_TYPE="%CONFIGURATION%" -DFSO_INSTRUCTION_SET="%INSTRUCTION_SET%" -G "Ninja" ..
+  - cmake -DCMAKE_INSTALL_PREFIX="%APPVEYOR_BUILD_FOLDER%\binInstall" -DCMAKE_BUILD_TYPE="%CONFIGURATION%" -DFSO_INSTRUCTION_SET="%INSTRUCTION_SET%" -G "Ninja" ..
 build_script:
   - cmake --build .
 after_build:
@@ -31,5 +32,5 @@ after_build:
   - cmake --build . --target install
   - dir "%APPVEYOR_BUILD_FOLDER%"
 artifacts:
-  - path: $(APPVEYOR_BUILD_FOLDER)\install\**\*.*
+  - path: $(APPVEYOR_BUILD_FOLDER)\binInstall\**\*.*
     name: binaries
