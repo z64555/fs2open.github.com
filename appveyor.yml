@@ -13,7 +13,7 @@ environment:
     - INSTRUCTION_SET: AVX
 init:
   - CALL "%VS120COMNTOOLS%\..\..\VC\vcvarsall.bat" x86
-  - mkdir "%APPVEYOR_BUILD_FOLDER%\install"
+  - echo "%APPVEYOR_BUILD_FOLDER%\install"
 install:
   - cinst ninja -y
   - SET PATH=%PATH%;C:\tools\ninja
