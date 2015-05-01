@@ -112,7 +112,13 @@ ENDIF(SET_INDEX LESS 0)
 
 OPTION(FSO_CMAKE_DEBUG "Enable cmake debugging in while generating build files" OFF)
 
-OPTION(COTIRE_ENABLE "Enable cotire, disabling may be useful for cmake files development" ON)
+if (WIN32)
+	set(cotire_default ON)
+else()
+	# There are a few issues for non-windows
+	set(cotire_default OFF)
+endif()
+OPTION(COTIRE_ENABLE "Enable cotire, disabling may be useful for cmake files development" ${cotire_default})
 
 MARK_AS_ADVANCED(FORCE FSO_CMAKE_DEBUG)
 MARK_AS_ADVANCED(FORCE FSO_BUILD_INCLUDED_LIBS)
