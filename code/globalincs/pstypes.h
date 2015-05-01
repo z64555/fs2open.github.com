@@ -34,7 +34,11 @@
 #define MAX_PLAYERS	12
 
 #define USE_INLINE_ASM 1		// Define this to use inline assembly
-#define STRUCT_CMP(a, b) memcmp((void *) &a, (void *) &b, sizeof(a))
+#define STRUCT_CMP(a, b) memcmp((void *) &a, (void *) &b, sizeof(
+
+#ifdef LOCAL
+#undef LOCAL
+#endif
 
 #define LOCAL static			// make module local varilable static.
 
