@@ -23,5 +23,3 @@ script:
   - cd travis-build
   - cmake -G "$GENERATOR" -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
   - cmake --build .
-branches:
-  only: build/ci
