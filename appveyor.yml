@@ -24,11 +24,10 @@ before_build:
   - dir
 build_script:
   - dir
-  - cd build
   - cmake --build .
 after_build:
   - dir
-  - cmake --build --target install
+  - cmake --build --target install .
 artifacts:
   path: '%INSTALL_DIR%'
   name: install
