@@ -1,0 +1,28 @@
+version: 1.0.{build}
+branches:
+  only:
+  - cmake-travis
+configuration:
+  - Debug
+  - Release
+environment:
+  matrix:
+  - VS_VERSION: 11
+  - VS_VERSION: 12
+install:
+  - cinst wget
+  - wget -nv -O nsis-installer.exe http://prdownloads.sourceforge.net/nsis/nsis-2.46-setup.exe?download
+  - nsis-installer.exe /S
+before_build:
+  - cmake -G "Visual Studio %VS_VERSION%"
+  - dir
+build:
+  project: FS2_Open.sln
+  verbosity: minimal
+after_build:
+  - msbuild "PACKAGE.vcxproj" /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+artifacts:
+  - path: bin\$(configuration)
+    name: fso-continuous-$(configuration)-vs$(VS_VERSION)
+  - path: FS2_Open-*.exe
+    name: fso-continuous-installer.exe
