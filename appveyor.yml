@@ -23,7 +23,7 @@ before_build:
   - cmake -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -G "Visual Studio %VS_VERSION%" ..
   - dir
 build:
-  project: FS2_Open.sln
+  project: build\FS2_Open.sln
   parallel: true
   verbosity: minimal
 after_build:
