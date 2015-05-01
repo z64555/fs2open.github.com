@@ -27,7 +27,7 @@ build_script:
   - cmake --build .
 after_build:
   - dir
-  - cmake --build --target install .
+  - cmake --build . --target install
 artifacts:
   path: '%INSTALL_DIR%'
   name: install
