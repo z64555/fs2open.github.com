@@ -27,7 +27,9 @@ before_build:
 build_script:
   - cmake --build .
 after_build:
+  - dir "%APPVEYOR_BUILD_FOLDER%"
   - cmake --build . --target install
+  - dir "%APPVEYOR_BUILD_FOLDER%"
 artifacts:
   - path: $(APPVEYOR_BUILD_FOLDER)\install\**\*.*
     name: binaries
