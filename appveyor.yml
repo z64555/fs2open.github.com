@@ -29,5 +29,5 @@ after_build:
   - dir
   - cmake --build . --target install
 artifacts:
-  path: '%INSTALL_DIR%'
-  name: install
+  - path: c:\projects\install
+    name: install
