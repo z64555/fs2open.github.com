@@ -5,8 +5,6 @@ os:
 env:
   - BUILD_TYPE=Release GENERATOR=Ninja
   - BUILD_TYPE=Debug GENERATOR=Ninja
-  - BUILD_TYPE=Release GENERATOR="Unix Makefiles"
-  - BUILD_TYPE=Debug GENERATOR="Unix Makefiles"
 compiler:
   - gcc
   - clang
