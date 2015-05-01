@@ -96,3 +96,20 @@ macro(set_policy policy value)
 		cmake_policy(SET ${policy} ${value})
 	endif ()
 endmacro(set_policy)
+
+macro(configure_cotire target)
+	IF(COTIRE_ENABLE)
+		# Disable unity build as it doesn't work well for us
+		set_target_properties(${target} PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
+		
+		# add ignored paths for the precompiled header here
+		set_target_properties(code PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH
+			"${CMAKE_SOURCE_DIR};${CMAKE_BINARY_DIR}")
+
+		IF(DEFINED CMAKE_CONFIGURATION_TYPES)
+			cotire(${target} CONFIGURATIONS ${CMAKE_CONFIGURATION_TYPES})
+		ELSE(DEFINED CMAKE_CONFIGURATION_TYPES)
+			cotire(${target})
+		ENDIF(DEFINED CMAKE_CONFIGURATION_TYPES)
+	ENDIF(COTIRE_ENABLE)
+endmacro(configure_cotire)
