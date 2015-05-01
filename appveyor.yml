@@ -11,7 +11,7 @@ environment:
   INSTALL_DIR: c:\projects\install
 init:
   - cmake --version
-  - "%VS120COMNTOOLS%\\..\\..\\VC\\vcvarsall.bat" x86
+  - CALL "%VS120COMNTOOLS%\..\..\VC\vcvarsall.bat" x86
 install:
   - cinst ninja -y
   - cinst wget -y
