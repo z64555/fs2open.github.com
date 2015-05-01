@@ -9,6 +9,9 @@ platform: x86
 shallow_clone: true
 environment:
   INSTALL_DIR: c:\projects\install
+  matrix:
+    - INSTRUCTION_SET: SSE2
+    - INSTRUCTION_SET: AVX
 init:
   - CALL "%VS120COMNTOOLS%\..\..\VC\vcvarsall.bat" x86
 install:
@@ -20,13 +23,10 @@ install:
 before_build:
   - mkdir build
   - cd build
-  - cmake -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_BUILD_TYPE="%CONFIGURATION%" -G "Ninja" ..
-  - dir
+  - cmake -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" -DCMAKE_BUILD_TYPE="%CONFIGURATION%" -DFSO_INSTRUCTION_SET="%INSTRUCTION_SET%" -G "Ninja" ..
 build_script:
-  - dir
   - cmake --build .
 after_build:
-  - dir
   - cmake --build . --target install
 artifacts:
   - path: c:\projects\install
