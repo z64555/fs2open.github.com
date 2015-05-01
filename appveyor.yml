@@ -1,4 +1,5 @@
 version: 3.7.3.{build}
+clone_depth: 50
 branches:
   only:
   - build/ci
