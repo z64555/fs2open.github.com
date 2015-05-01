@@ -13,13 +13,13 @@ environment:
     - INSTRUCTION_SET: AVX
 init:
   - CALL "%VS120COMNTOOLS%\..\..\VC\vcvarsall.bat" x86
-  - echo "%APPVEYOR_BUILD_FOLDER%\install"
 install:
   - cinst ninja -y
   - SET PATH=%PATH%;C:\tools\ninja
   - cinst wget -y
   - wget -nv -O nsis-installer.exe http://prdownloads.sourceforge.net/nsis/nsis-2.46-setup.exe?download
   - nsis-installer.exe /S
+  - mkdir "%APPVEYOR_BUILD_FOLDER%\install"
 before_build:
   - mkdir build
   - cd build
