@@ -1,7 +1,7 @@
 version: 1.0.{build}
 branches:
   only:
-  - cmake-travis
+  - build/ci
 configuration:
   - Debug
   - Release
