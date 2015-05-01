@@ -10,10 +10,10 @@ shallow_clone: true
 environment:
   INSTALL_DIR: c:\projects\install
 init:
-  - cmake --version
   - CALL "%VS120COMNTOOLS%\..\..\VC\vcvarsall.bat" x86
 install:
   - cinst ninja -y
+  - ninja -h
   - cinst wget -y
   - wget -nv -O nsis-installer.exe http://prdownloads.sourceforge.net/nsis/nsis-2.46-setup.exe?download
   - nsis-installer.exe /S
