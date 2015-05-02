@@ -24,6 +24,7 @@ before_build:
   - mkdir build
   - cd build
   - cmake -DCMAKE_INSTALL_PREFIX="%APPVEYOR_BUILD_FOLDER%\binInstall" -DCMAKE_BUILD_TYPE="%CONFIGURATION%" -DFSO_INSTRUCTION_SET="%INSTRUCTION_SET%" -G "Ninja" ..
+  - dir "C:\projects\fs2open-github-com\code\def_files"
 build_script:
   - cmake --build .
 after_build:
