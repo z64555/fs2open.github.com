@@ -17,14 +17,12 @@ install:
   - dir "%APPVEYOR_BUILD_FOLDER%"
   - cinst ninja -y
   - SET PATH=%PATH%;C:\tools\ninja
-  - cinst wget -y
-  - wget -nv -O nsis-installer.exe http://prdownloads.sourceforge.net/nsis/nsis-2.46-setup.exe?download
-  - nsis-installer.exe /S
 before_build:
   - mkdir build
   - cd build
   - cmake -DCMAKE_INSTALL_PREFIX="%APPVEYOR_BUILD_FOLDER%\binInstall" -DCMAKE_BUILD_TYPE="%CONFIGURATION%" -DFSO_INSTRUCTION_SET="%INSTRUCTION_SET%" -G "Ninja" ..
   - dir "C:\projects\fs2open-github-com\code\def_files"
+  - dir "C:\projects\fs2open-github-com\build\generated_source\code\def_files"
 build_script:
   - cmake --build .
 after_build:
