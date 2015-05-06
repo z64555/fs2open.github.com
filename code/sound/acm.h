@@ -14,7 +14,7 @@
 
 #include "globalincs/pstypes.h"
 
-#ifdef WIN32
+#ifdef _WIN32
 #include "mm/mmreg.h"
 #endif
 
