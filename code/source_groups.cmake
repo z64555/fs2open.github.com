@@ -243,6 +243,8 @@ set (file_root_graphics
 	graphics/grbatch.h
 	graphics/grinternal.h
 	graphics/tmapper.h
+	graphics/shadows.cpp
+	graphics/shadows.h
 )
 
 # Graphics -> OpenGLGr files
@@ -520,6 +522,8 @@ set (file_root_model
 	model/modelinterp.cpp
 	model/modeloctant.cpp
 	model/modelread.cpp
+	model/modelrender.h
+	model/modelrender.cpp
 	model/modelsinc.h
 )
 
