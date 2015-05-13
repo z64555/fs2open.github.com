@@ -51,11 +51,11 @@ MACRO (CMAKE_SEARCH_LIBS v_func v_lib func)
     IF (NOT ${v_func})
         FOREACH (lib ${ARGN})
             CHECK_LIBRARY_EXISTS (${lib} ${func} "" "HAVE_${func}_IN_${lib}")
-            IF ("HAVE_${func}_IN_${lib}")
+            IF (${HAVE_${func}_IN_${lib}})
                 SET (${v_func} TRUE)
                 SET (${v_lib} "${lib}" CACHE INTERNAL "Library providing ${func}")
                 BREAK()
-            ENDIF ("HAVE_${func}_IN_${lib}")
+            ENDIF (${HAVE_${func}_IN_${lib}})
         ENDFOREACH (lib)
     ENDIF (NOT ${v_func})
 ENDMACRO (CMAKE_SEARCH_LIBS)
@@ -101,7 +101,7 @@ macro(configure_cotire target)
 	IF(COTIRE_ENABLE)
 		# Disable unity build as it doesn't work well for us
 		set_target_properties(${target} PROPERTIES COTIRE_ADD_UNITY_BUILD FALSE)
-		
+
 		# add ignored paths for the precompiled header here
 		set_target_properties(code PROPERTIES COTIRE_PREFIX_HEADER_IGNORE_PATH
 			"${CMAKE_SOURCE_DIR};${CMAKE_BINARY_DIR}")
