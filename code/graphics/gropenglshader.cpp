@@ -361,7 +361,7 @@ static char *opengl_load_shader(shader_type type_id, char *filename, int flags)
 
 	//If we're still here, proceed with internals
 	mprintf(("   Loading built-in default shader for: %s\n", filename));
-	char* def_shader = defaults_get_file(filename);
+	const char* def_shader = defaults_get_file(filename);
 	size_t len = strlen(def_shader);
 	char *shader = (char*)vm_malloc(len + flags_len + 1);
 
