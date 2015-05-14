@@ -200,7 +200,7 @@ set (file_root_gamesnd
 
 set(file_root_generated
 	${GENERATED_SOURCE_DIR}/project.h
-	${GENERATED_SOURCE_DIR}/scp_compiler_detection.h
+	${GENERATED_SOURCE_DIR}/code/scp_compiler_detection.h
 )
 
 # GlobalIncs files
