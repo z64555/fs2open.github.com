@@ -21,7 +21,6 @@ install:
   - tar -xzf cmake-3.2.2-Linux-x86_64.tar.gz
   - mkdir -p $HOME/cmake/
   - cp -fR cmake-3.2.2-Linux-x86_64/* $HOME/cmake/
-  - find $HOME/cmake/ -name "*"
 before_script:
   - $HOME/cmake/bin/cmake --version
   - mkdir -p travis-build
