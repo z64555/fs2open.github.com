@@ -1,8 +1,10 @@
 
 include(WriteCompilerDetectionHeader)
 
-set(REQUIRED_FEATURES cxx_rvalue_references)
-set(OPTIONAL_FEATURES cxx_variadic_templates)
+set(REQUIRED_FEATURES cxx_rvalue_references cxx_nullptr)
+set(OPTIONAL_FEATURES cxx_variadic_templates cxx_constexpr cxx_deleted_functions
+    cxx_final cxx_noexcept cxx_override cxx_alignas cxx_alignof cxx_static_assert
+    cxx_attribute_deprecated cxx_thread_local)
 
 target_compile_features(code PUBLIC ${REQUIRED_FEATURES})
 
