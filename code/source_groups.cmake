@@ -372,21 +372,10 @@ set (file_root_io
 	io/timer.cpp
 	io/timer.h
 	io/joy.h
+	io/joy-sdl.cpp
 	io/joy_ff.h
+	io/joy_ff-sdl.cpp
 )
-
-IF(WIN32)
-	set (file_root_io
-		${file_root_io}
-		io/joy-sdl.cpp
-		io/joy_ff-sdl.cpp
-	)
-ELSEIF(UNIX)
-	set (file_root_io
-		${file_root_io}
-		io/joy-unix.cpp
-	)
-ENDIF(WIN32)
 
 # jpgutils files
 set (file_root_jpgutils
