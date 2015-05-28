@@ -93,9 +93,13 @@ enum
 	EASY_DEFAULT_MEM = EASY_DEFAULT | EASY_MEM_OFF
 };
 
-#define BUILD_CAP_OPENAL	(1<<0)
-#define BUILD_CAP_NO_D3D	(1<<1)
-#define BUILD_CAP_NEW_SND	(1<<2)
+enum BuildCaps
+{
+	BUILD_CAPS_OPENAL = (1<<0),
+	BUILD_CAPS_NO_D3D = (1<<1),
+	BUILD_CAPS_NEW_SND = (1<<2),
+	BUILD_CAPS_SDL = (1<<3)
+};
 
 #define PARSE_COMMAND_LINE_STRING	"-parse_cmdline_only"
 
@@ -196,6 +200,7 @@ Flag exe_params[] =
 	{ "-gl_finish",			"Fix input lag on some ATI+Linux systems",	true,	0,					EASY_DEFAULT,		"Troubleshoot", "http://www.hard-light.net/wiki/index.php/Command-Line_Reference#-gl_finish", },
 	{ "-no_batching",		"Disable batched model rendering",			true,	0,					EASY_DEFAULT,		"Troubleshoot", "", },
 	{ "-no_geo_effects",	"Disable geometry shader for effects",		true,	0,					EASY_DEFAULT,		"Troubleshoot", "", },
+	{ "-set_cpu_affinity",	"Sets processor affinity to config value",	true,	0,					EASY_DEFAULT,		"Troubleshoot", "", },
 
 	{ "-ingame_join",		"Allow in-game joining",					true,	0,					EASY_DEFAULT,		"Experimental",	"http://www.hard-light.net/wiki/index.php/Command-Line_Reference#-ingame_join", },
 	{ "-voicer",			"Enable voice recognition",					true,	0,					EASY_DEFAULT,		"Experimental",	"http://www.hard-light.net/wiki/index.php/Command-Line_Reference#-voicer", },
@@ -419,6 +424,7 @@ cmdline_parm keyboard_layout("-keyboard_layout", "Specify keyboard layout (qwert
 cmdline_parm old_collision_system("-old_collision", NULL, AT_NONE); // Cmdline_old_collision_sys
 cmdline_parm gl_finish ("-gl_finish", NULL, AT_NONE);
 cmdline_parm no_geo_sdr_effects("-no_geo_effects", NULL, AT_NONE);
+cmdline_parm set_cpu_affinity("-set_cpu_affinity", NULL, AT_NONE);
 
 int Cmdline_load_all_weapons = 0;
 int Cmdline_nohtl = 0;
@@ -435,6 +441,7 @@ int Cmdline_drawelements = 0;
 char* Cmdline_keyboard_layout = NULL;
 bool Cmdline_gl_finish = false;
 bool Cmdline_no_geo_sdr_effects = false;
+bool Cmdline_set_cpu_affinity = false;
 
 // Developer/Testing related
 cmdline_parm start_mission_arg("-start_mission", "Skip mainhall and run this mission", AT_STRING);	// Cmdline_start_mission
@@ -1117,9 +1124,10 @@ bool SetCmdlineParams()
 			ubyte build_caps = 0;
 			
 			/* portej05 defined this always */
-			build_caps |= BUILD_CAP_OPENAL;
-			build_caps |= BUILD_CAP_NO_D3D;
-			build_caps |= BUILD_CAP_NEW_SND;
+			build_caps |= BUILD_CAPS_OPENAL;
+			build_caps |= BUILD_CAPS_NO_D3D;
+			build_caps |= BUILD_CAPS_NEW_SND;
+			build_caps |= BUILD_CAPS_SDL;
 			
 			
 			fwrite(&build_caps, 1, 1, fp);
@@ -1586,6 +1594,11 @@ bool SetCmdlineParams()
 	if ( no_geo_sdr_effects.found() )
 	{
 		Cmdline_no_geo_sdr_effects = true;
+	}
+
+	if (set_cpu_affinity.found())
+	{
+		Cmdline_set_cpu_affinity = true;
 	}
 
 	if ( snd_preload_arg.found() )
