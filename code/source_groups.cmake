@@ -665,20 +665,18 @@ set (file_root_osapi
 	osapi/osapi.cpp
 	osapi/osregistry.h
 	osapi/outwnd.h
+	osapi/outwnd.cpp
 )
 
 IF(WIN32)
 set (file_root_osapi
 	${file_root_osapi}
-	osapi/monopub.h
 	osapi/osregistry.cpp
-	osapi/outwnd.cpp
 )
 ELSEIF(UNIX)
 set (file_root_osapi
 	${file_root_osapi}
 	osapi/osregistry_unix.cpp
-	osapi/outwnd_unix.cpp
 )
 ENDIF(WIN32)
 
