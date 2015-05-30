@@ -116,8 +116,6 @@ set (file_root_debugconsole
 	debugconsole/consolecmds.cpp
 	debugconsole/consoleparse.cpp
 	debugconsole/consoleparse.h
-	debugconsole/timerbar.cpp
-	debugconsole/timerbar.h
 )
 
 SET(file_root_def_files
