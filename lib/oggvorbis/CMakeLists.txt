@@ -1,11 +1,11 @@
 
-IF(UNIX AND NOT APPLE)
+IF(UNIX AND NOT IS_APPLE)
 	find_package(PkgConfig REQUIRED)
 	pkg_check_modules(OGG REQUIRED ogg)
 	pkg_check_modules(THEORA REQUIRED theora)
 	pkg_check_modules(VORBIS REQUIRED vorbis)
 	pkg_check_modules(VORBISFILE REQUIRED vorbisfile)
-	
+
 	INCLUDE(util)
 	PKG_CONFIG_LIB_RESOLVE(OGG OGG_LIB)
 	PKG_CONFIG_LIB_RESOLVE(THEORA THEORA_LIB)
@@ -13,16 +13,12 @@ IF(UNIX AND NOT APPLE)
 	PKG_CONFIG_LIB_RESOLVE(VORBISFILE VORBISFILE_LIB)
 
 	ADD_IMPORTED_LIB(ogg "${OGG_INCLUDEDIR}" "${OGG_LIB}" SHARED)
-	SET(OGG_LIBS ogg CACHE INTERNAL "" FORCE)
-
 	ADD_IMPORTED_LIB(theora "${THEORA_INCLUDEDIR}" "${THEORA_LIB}" SHARED)
-	SET(THEORA_LIBS theora CACHE INTERNAL "" FORCE)
-
 	ADD_IMPORTED_LIB(vorbis "${VORBIS_INCLUDEDIR}" "${VORBIS_LIB}" SHARED)
-	SET(VORBIS_LIBS vorbis CACHE INTERNAL "" FORCE)
-
 	ADD_IMPORTED_LIB(vorbisfile "${VORBISFILE_INCLUDEDIR}" "${VORBISFILE_LIB}" SHARED)
-	SET(VORBISFILE_LIBS vorbisfile CACHE INTERNAL "" FORCE)
+
+	add_library(oggvorbis INTERFACE)
+	target_link_libraries(oggvorbis INTERFACE ogg theora vorbis vorbisfile)
 ELSEIF (WIN32)
 	# We have precompiled libs for windows
 	add_library(ogg STATIC IMPORTED GLOBAL)
@@ -32,7 +28,6 @@ ELSEIF (WIN32)
 			IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_LIST_DIR}/lib/ogg_static_d.lib
 			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
 	)
-	SET(OGG_LIBS ogg CACHE INTERNAL "OggVorbis library")
 
 	add_library(vorbis STATIC IMPORTED GLOBAL)
 	set_target_properties(vorbis
@@ -41,7 +36,6 @@ ELSEIF (WIN32)
 			IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_LIST_DIR}/lib/vorbis_static_d.lib
 			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
 	)
-	SET(VORBIS_LIBS vorbis CACHE INTERNAL "OggVorbis library")
 
 	add_library(vorbisfile STATIC IMPORTED GLOBAL)
 	set_target_properties(vorbisfile
@@ -50,7 +44,6 @@ ELSEIF (WIN32)
 			IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_LIST_DIR}/lib/vorbisfile_static_d.lib
 			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
 	)
-	SET(VORBISFILE_LIBS vorbisfile CACHE INTERNAL "OggVorbis library")
 
 	add_library(theora STATIC IMPORTED GLOBAL)
 	set_target_properties(theora
@@ -59,35 +52,18 @@ ELSEIF (WIN32)
 			IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_LIST_DIR}/lib/theora_static_d.lib
 			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
 	)
-	SET(THEORA_LIBS theora CACHE INTERNAL "Theora library")
-ELSEIF(APPLE)
-	# We also have precompiled libs for windows
-	add_library(ogg STATIC IMPORTED GLOBAL)
-	set_target_properties(ogg
-		PROPERTIES
-			IMPORTED_LOCATION ${FSO_MAC_FRAMEWORKS}/Ogg.framework/Ogg
-			INTERFACE_INCLUDE_DIRECTORIES "${FSO_MAC_FRAMEWORKS}/Ogg.framework/Headers"
-	)
-	SET(OGG_LIBS ogg CACHE INTERNAL "OggVorbis library")
 
-	add_library(vorbis STATIC IMPORTED GLOBAL)
-	set_target_properties(vorbis
-		PROPERTIES
-			IMPORTED_LOCATION ${FSO_MAC_FRAMEWORKS}/Vorbis.framework/Vorbis
-			INTERFACE_INCLUDE_DIRECTORIES "${FSO_MAC_FRAMEWORKS}/Vorbis.framework/Headers"
-	)
-	SET(VORBIS_LIBS vorbis CACHE INTERNAL "OggVorbis library")
+	add_library(oggvorbis INTERFACE)
+	target_link_libraries(oggvorbis INTERFACE ogg theora vorbis vorbisfile)
+ELSEIF(IS_APPLE)
+	# We also have precompiled libs for apple
 
-	SET(VORBISFILE_LIBS "" CACHE INTERNAL "OggVorbis library")
+	find_library(OGG_LIBRARY Ogg PATHS "${FSO_MAC_FRAMEWORKS}")
+	find_library(THEORA_LIBRARY Theora PATHS "${FSO_MAC_FRAMEWORKS}")
+	find_library(VORBIS_LIBRARY Vorbis PATHS "${FSO_MAC_FRAMEWORKS}")
 
-	add_library(theora STATIC IMPORTED GLOBAL)
-	set_target_properties(theora
-		PROPERTIES
-			IMPORTED_LOCATION ${FSO_MAC_FRAMEWORKS}/Theora.framework/Theora
-			INTERFACE_INCLUDE_DIRECTORIES "${FSO_MAC_FRAMEWORKS}/Theora.framework/Headers"
-	)
-	SET(THEORA_LIBS theora CACHE INTERNAL "Theora library")
-ELSE(UNIX AND NOT APPLE)
+	add_library(oggvorbis INTERFACE)
+	target_link_libraries(oggvorbis INTERFACE ${OGG_LIBRARY} ${THEORA_LIBRARY} ${VORBIS_LIBRARY})
+ELSE(UNIX AND NOT IS_APPLE)
 	MESSAGE(FATAL_ERROR "Unconfigured oggvorbis platform, please report!")
-ENDIF(UNIX AND NOT APPLE)
-
+ENDIF(UNIX AND NOT IS_APPLE)
