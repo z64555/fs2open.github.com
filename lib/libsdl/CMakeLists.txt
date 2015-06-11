@@ -22,7 +22,7 @@ IF(WIN32)
 	target_link_libraries(sdlmain PRIVATE sdl)
 ELSE(WIN32)
 	# CMake can't check for SDL2 so we'll just use PkgConfig
-	INCLUDE(FindPkgConfig)
+	find_package(PkgConfig)
 	INCLUDE(util)
 
 	IF(IS_APPLE)
