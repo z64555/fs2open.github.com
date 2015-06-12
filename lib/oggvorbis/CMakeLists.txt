@@ -63,7 +63,8 @@ ELSEIF(IS_APPLE)
 	find_library(VORBIS_LIBRARY Vorbis PATHS "${FSO_MAC_FRAMEWORKS}")
 
 	add_library(oggvorbis INTERFACE)
-	target_link_libraries(oggvorbis INTERFACE ${OGG_LIBRARY} ${THEORA_LIBRARY} ${VORBIS_LIBRARY})
+	target_link_libraries(oggvorbis INTERFACE ${OGG_LIBRARY}/Ogg
+		${THEORA_LIBRARY}/Theora ${VORBIS_LIBRARY}/Vorbis)
 ELSE(UNIX AND NOT IS_APPLE)
 	MESSAGE(FATAL_ERROR "Unconfigured oggvorbis platform, please report!")
 ENDIF(UNIX AND NOT IS_APPLE)
