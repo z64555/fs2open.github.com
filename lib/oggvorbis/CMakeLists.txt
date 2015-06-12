@@ -63,8 +63,7 @@ ELSEIF(IS_APPLE)
 	find_library(VORBIS_LIBRARY Vorbis PATHS "${FSO_MAC_FRAMEWORKS}")
 
 	add_library(oggvorbis INTERFACE)
-	target_link_libraries(oggvorbis INTERFACE ${OGG_LIBRARY}/Ogg
-		${THEORA_LIBRARY}/Theora ${VORBIS_LIBRARY}/Vorbis)
+	target_link_libraries(oggvorbis INTERFACE ${OGG_LIBRARY} ${THEORA_LIBRARY} ${VORBIS_LIBRARY})
 
 	target_include_directories(oggvorbis INTERFACE ${OGG_LIBRARY}/Headers
 		${THEORA_LIBRARY}/Headers ${VORBIS_LIBRARY}/Headers)
