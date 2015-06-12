@@ -25,9 +25,12 @@ ELSE(WIN32)
 	find_package(PkgConfig)
 	INCLUDE(util)
 
+	message("Searching SDL on Unix")
 	IF(IS_APPLE)
+		message("Searching SDL on Apple")
 		PKG_SEARCH_MODULE(SDL2 sdl2)
 
+		message("Searching SDL on Apple: ${SDL2_LIB}")
 		IF(NOT SDL2_FOUND)
 			MESSAGE(STATUS "SDL not found: Using included SDL libraries")
 			SET(FSO_USE_SDL_FRAMEWORK ON) # We ship these for mac
@@ -37,8 +40,10 @@ ELSE(WIN32)
 	ENDIF(IS_APPLE)
 
 	IF(FSO_USE_SDL_FRAMEWORK)
+		message("Searching SDL on Apple in ${FSO_MAC_FRAMEWORKS}")
 		find_library(SDL2_LIBRARY SDL2 PATHS "${FSO_MAC_FRAMEWORKS}")
 
+		message("Found SDL on Apple: ${SDL2_LIBRARY}")
 		add_library(sdl INTERFACE)
 		target_link_libraries(sdl INTERFACE ${SDL2_LIBRARY})
 	ELSE(FSO_USE_SDL_FRAMEWORK)
