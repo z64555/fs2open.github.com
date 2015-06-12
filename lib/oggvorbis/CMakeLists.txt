@@ -65,6 +65,9 @@ ELSEIF(IS_APPLE)
 	add_library(oggvorbis INTERFACE)
 	target_link_libraries(oggvorbis INTERFACE ${OGG_LIBRARY}/Ogg
 		${THEORA_LIBRARY}/Theora ${VORBIS_LIBRARY}/Vorbis)
+
+	target_include_directories(oggvorbis INTERFACE ${OGG_LIBRARY}/Headers
+		${THEORA_LIBRARY}/Headers ${VORBIS_LIBRARY}/Headers)
 ELSE(UNIX AND NOT IS_APPLE)
 	MESSAGE(FATAL_ERROR "Unconfigured oggvorbis platform, please report!")
 ENDIF(UNIX AND NOT IS_APPLE)
