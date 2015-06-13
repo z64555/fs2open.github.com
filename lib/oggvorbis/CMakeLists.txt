@@ -56,17 +56,30 @@ ELSEIF (WIN32)
 	add_library(oggvorbis INTERFACE)
 	target_link_libraries(oggvorbis INTERFACE ogg theora vorbis vorbisfile)
 ELSEIF(IS_APPLE)
-	# We also have precompiled libs for apple
+	macro(find_lib varname libname)
+		find_library(${varname} ${libname})
 
-	find_library(OGG_LIBRARY Ogg PATHS "${FSO_MAC_FRAMEWORKS}")
-	find_library(THEORA_LIBRARY Theora PATHS "${FSO_MAC_FRAMEWORKS}")
-	find_library(VORBIS_LIBRARY Vorbis PATHS "${FSO_MAC_FRAMEWORKS}")
+		if (NOT ${varname})
+			message(FATAL_ERROR "Couldn't find ${libname} libraries!")
+		endif()
+	endmacro(find_lib)
+
+	find_lib(OGG_LIBRARY ogg)
+	find_lib(THEORA_LIBRARY theora)
+	find_lib(VORBIS_LIBRARY vorbis)
+	find_lib(VORBISFILE_LIBRARY vorbisfile)
+
+	find_path(OGG_INCLUDE_DIR ogg.h PATH_SUFFIXES ogg)
+	find_path(THEORA_INCLUDE_DIR theora.h PATH_SUFFIXES theora)
+	find_path(VORBIS_INCLUDE_DIR vorbisenc.h PATH_SUFFIXES vorbis)
+	find_path(VORBISFILE_INCLUDE_DIR vorbisfile.h PATH_SUFFIXES vorbis)
 
 	add_library(oggvorbis INTERFACE)
-	target_link_libraries(oggvorbis INTERFACE ${OGG_LIBRARY} ${THEORA_LIBRARY} ${VORBIS_LIBRARY})
+	target_link_libraries(oggvorbis INTERFACE ${OGG_LIBRARY} ${THEORA_LIBRARY}
+		${VORBIS_LIBRARY} ${VORBISFILE_LIBRARY})
 
-	target_include_directories(oggvorbis INTERFACE ${OGG_LIBRARY}/Headers
-		${THEORA_LIBRARY}/Headers ${VORBIS_LIBRARY}/Headers)
+	target_include_directories(oggvorbis INTERFACE ${OGG_INCLUDE_DIR}
+		${THEORA_INCLUDE_DIR} ${VORBIS_INCLUDE_DIR} ${VORBISFILE_INCLUDE_DIR})
 ELSE(UNIX AND NOT IS_APPLE)
 	MESSAGE(FATAL_ERROR "Unconfigured oggvorbis platform, please report!")
 ENDIF(UNIX AND NOT IS_APPLE)
