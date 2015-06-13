@@ -145,8 +145,6 @@ SET(file_root_def_files
 	def_files/main-g.sdr
 	def_files/main-v.sdr
 	def_files/objecttypes.tbl
-	def_files/particle-f.sdr
-	def_files/particle-v.sdr
 	def_files/post-f.sdr
 	def_files/post-v.sdr
 	def_files/post_processing.tbl
