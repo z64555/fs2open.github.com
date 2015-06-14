@@ -18,7 +18,7 @@ FOREACH(file ${file_root_res_pngs})
 	STRING(REPLACE "#" "_" FILENAME ${FILENAME})
 	
 	ADD_CUSTOM_COMMAND(
-		OUTPUT ${OUTPUT}
+		OUTPUT ${OUTPUT}.cpp
 		COMMAND embedfile -wx "${file}" "${OUTPUT}" "${FILENAME}"
 		DEPENDS ${file}
 		COMMENT "Generating png header for ${file}"
