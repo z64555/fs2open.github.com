@@ -176,7 +176,7 @@ void do_text_content(std::ifstream& file_in, std::ofstream& file_out,
 	file_out << "\";" << std::endl;
 }
 
-void write_header(std::ostream& out, const std::string& fieldName, bool text_content)
+void write_header(std::ostream& out, const std::string& fieldName, bool text_content, bool wxWidgets_image)
 {
 	std::string headerDefine(fieldName);
 
@@ -187,6 +187,8 @@ void write_header(std::ostream& out, const std::string& fieldName, bool text_con
 	out << "#ifndef " << headerDefine << "\n";
 	out << "#define " << headerDefine << "\n";
 	out << "#pragma once\n";
+	if (wxWidgets_image)
+		out << "#include <wx/bitmap.h>";
 
 	out << "\n";
 
@@ -199,6 +201,11 @@ void write_header(std::ostream& out, const std::string& fieldName, bool text_con
 		out << "extern const unsigned char " << fieldName << "[];\n";
 	}
 	out << "\n";
+	if (wxWidgets_image)
+	{
+		out << "wxBitmap& " << fieldName << "_to_wx_bitmap();";
+		out << "\n";
+	}
 	out << "#endif\n";
 }
 
@@ -291,7 +298,7 @@ int main( int argc, char* argv[] )
 		do_binary_content(file_in, source_out, field_name, input_size, wxWidgets_image);
 	}
 
-	write_header(header_out, field_name, text_content);
+	write_header(header_out, field_name, text_content, wxWidgets_image);
 
 	file_in.close();
 
