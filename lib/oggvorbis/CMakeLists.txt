@@ -1,5 +1,5 @@
 
-IF(UNIX AND NOT IS_APPLE)
+IF(UNIX AND NOT APPLE)
 	find_package(PkgConfig REQUIRED)
 	pkg_check_modules(OGG REQUIRED ogg)
 	pkg_check_modules(THEORA REQUIRED theora)
@@ -55,7 +55,7 @@ ELSEIF (WIN32)
 
 	add_library(oggvorbis INTERFACE)
 	target_link_libraries(oggvorbis INTERFACE ogg theora vorbis vorbisfile)
-ELSEIF(IS_APPLE)
+ELSEIF(APPLE)
 	macro(find_lib varname libname)
 		find_library(${varname} ${libname} PATHS "${FSO_MAC_FRAMEWORKS}")
 
@@ -84,6 +84,6 @@ ELSEIF(IS_APPLE)
 		target_include_directories(oggvorbis INTERFACE ${OGG_INCLUDE_DIR}
 			${THEORA_INCLUDE_DIR} ${VORBIS_INCLUDE_DIR} ${VORBISFILE_INCLUDE_DIR})
 	endif()
-ELSE(UNIX AND NOT IS_APPLE)
+ELSE()
 	MESSAGE(FATAL_ERROR "Unconfigured oggvorbis platform, please report!")
-ENDIF(UNIX AND NOT IS_APPLE)
+ENDIF()
