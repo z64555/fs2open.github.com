@@ -81,12 +81,12 @@ OPTION(FSO_DEVELOPMENT_MODE "Generate binaries in development mode, only use if 
 
 OPTION(FSO_BUILD_WXFRED2 "Build wxFRED2 binary" OFF)
 
-IF(WIN32)
-	# On windows the default should be to always build the included libraries
+IF(WIN32 OR APPLE)
+	# On windows and mac the default should be to always build the included libraries
 	SET(FSO_BUILD_INCLUDED_LIBS_DEFAULT ON)
-ELSE(WIN32)
+ELSE()
 	SET(FSO_BUILD_INCLUDED_LIBS_DEFAULT OFF)
-ENDIF(WIN32)
+ENDIF()
 
 OPTION(FSO_BUILD_INCLUDED_LIBS "Build and use the included libraries istead of using the system headers and libraries" ${FSO_BUILD_INCLUDED_LIBS_DEFAULT})
 
