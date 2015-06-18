@@ -67,11 +67,16 @@ ELSEIF(APPLE)
 	find_lib(OGG_LIBRARY ogg)
 	find_lib(THEORA_LIBRARY theora)
 	find_lib(VORBIS_LIBRARY vorbis)
-	find_lib(VORBISFILE_LIBRARY vorbisfile)
+
+	find_library(VORBISFILE_LIBRARY vorbisfile PATHS "${FSO_MAC_FRAMEWORKS}")
 
 	add_library(oggvorbis INTERFACE)
 	target_link_libraries(oggvorbis INTERFACE ${OGG_LIBRARY} ${THEORA_LIBRARY}
-		${VORBIS_LIBRARY} ${VORBISFILE_LIBRARY})
+		${VORBIS_LIBRARY})
+
+	if (VORBISFILE_LIBRARY)
+		target_link_libraries(oggvorbis INTERFACE ${VORBISFILE_LIBRARY})
+	endif()
 
 	if (NOT "${OGG_LIBRARY}" MATCHES ".*\\.framework$")
 		message(STATUS "Using non-framework version of ogg/vorbis/theora libraries")
