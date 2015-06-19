@@ -28,6 +28,8 @@ if(WIN32)
         ${ICONS}
     )
 
+    target_sources(Freespace2 PRIVATE ${RESOURCES})
+
     source_group("Resources" FILES ${RESOURCE_FILES})
     source_group("Resources\\Icons" FILES ${ICONS})
 
@@ -45,6 +47,8 @@ elseif(APPLE)
         ${subpath}/English.lproj/InfoPlist.strings
     )
 
+    target_sources(Freespace2 PRIVATE ${RESOURCES})
+
     set_source_files_properties(${subpath}/FS2_Open.icns MACOSX_PACKAGE_LOCATION Resources)
     set_source_files_properties(${subpath}/English.lproj/InfoPlist.strings MACOSX_PACKAGE_LOCATION Resources/English.lproj)
 
@@ -60,5 +64,3 @@ elseif(APPLE)
 else()
     # No special resource handling required, add rules for new platforms here
 endif()
-
-target_sources(Freespace2 PRIVATE ${RESOURCES})
