@@ -9,10 +9,7 @@ set_policy(CMP0051 OLD)
 set_policy(CMP0053 NEW)
 set_policy(CMP0054 NEW)
 
-SET(FSO_VERSION_MAJOR 3)
-SET(FSO_VERSION_MINOR 7)
-SET(FSO_VERSION_BUILD 3)
-SET(FSO_VERSION_REVISION 0)
+include(cmake/version.cmake)
 
 SET(FSO_PROJECT_DESCRIPTION "Open source project based on the original FreeSpace 2 source code.")
 

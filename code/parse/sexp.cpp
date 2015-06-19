@@ -33487,13 +33487,13 @@ bool output_sexps(char *filepath)
 	}
 
 	//Header
-	if (FS_VERSION_BUILD == 0 && FS_VERSION_REVIS == 0) //-V547
+	if (FS_VERSION_BUILD == 0 && FS_VERSION_HAS_REVIS == 0) //-V547
 	{
 		fprintf(fp, "<html>\n<head>\n\t<title>SEXP Output - FSO v%i.%i</title>\n</head>\n", FS_VERSION_MAJOR, FS_VERSION_MINOR);
 		fputs("<body>", fp);
 		fprintf(fp,"\t<h1>SEXP Output - FSO v%i.%i</h1>\n", FS_VERSION_MAJOR, FS_VERSION_MINOR);
 	}
-	else if (FS_VERSION_REVIS == 0)
+	else if (FS_VERSION_HAS_REVIS == 0)
 	{
 		fprintf(fp, "<html>\n<head>\n\t<title>SEXP Output - FSO v%i.%i.%i</title>\n</head>\n", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD);
 		fputs("<body>", fp);
@@ -33501,9 +33501,9 @@ bool output_sexps(char *filepath)
 	}
 	else
 	{
-		fprintf(fp, "<html>\n<head>\n\t<title>SEXP Output - FSO v%i.%i.%i.%i</title>\n</head>\n", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD, FS_VERSION_REVIS);
+		fprintf(fp, "<html>\n<head>\n\t<title>SEXP Output - FSO v%i.%i.%i.%s</title>\n</head>\n", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD, FS_VERSION_REVIS);
 		fputs("<body>", fp);
-		fprintf(fp,"\t<h1>SEXP Output - FSO v%i.%i.%i.%i</h1>\n", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD, FS_VERSION_REVIS);
+		fprintf(fp,"\t<h1>SEXP Output - FSO v%i.%i.%i.%s</h1>\n", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD, FS_VERSION_REVIS);
 	}
 
 	SCP_vector<int> done_sexp_ids;
