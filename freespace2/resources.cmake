@@ -65,7 +65,7 @@ elseif(APPLE)
     # Also handle copying frameworks here
     add_custom_command(TARGET Freespace2 POST_BUILD
         COMMENT "Copying frameworks into bundle..."
-        ${CMAKE_COMMAND} -E copy_directory ${FSO_MAC_FRAMEWORKS} $<TARGET_FILE_DIR:Freespace2>/Contents/Frameworks
+        ${CMAKE_COMMAND} -E copy_directory ${FSO_MAC_FRAMEWORKS} $<TARGET_FILE_DIR:Freespace2>/../Frameworks
     )
 else()
     # No special resource handling required, add rules for new platforms here
