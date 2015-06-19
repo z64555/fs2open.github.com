@@ -58,6 +58,8 @@ elseif(APPLE)
         ${FSO_MAC_FRAMEWORKS}/*.framework
     )
 
+    message("${FRAMEWORK_FILES}")
+
     foreach(framework ${FRAMEWORK_FILES})
         add_custom_command(TARGET FreeSpace2 POST_BUILD
             COMMENT "Copying ${framework} into bundle..."
