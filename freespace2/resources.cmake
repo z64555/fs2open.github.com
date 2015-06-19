@@ -1,4 +1,10 @@
 
+
+file(GENERATE
+    OUTPUT "${CMAKE_BINARY_DIR}/macdebug-$<CONFIG>.txt"
+    CONTENT "$<TARGET_FILE:Freespace2>\n$<TARGET_FILE_DIR:Freespace2>\n$<TARGET_PDB_FILE:Freespace2>"
+)
+
 if(WIN32)
     # Handling of windows resources+
 
