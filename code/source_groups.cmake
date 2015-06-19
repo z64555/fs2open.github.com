@@ -648,6 +648,8 @@ set (file_root_observer
 set (file_root_osapi
 	osapi/osapi.h
 	osapi/osapi.cpp
+	osapi/dialogs.h
+	osapi/dialogs.cpp
 	osapi/osregistry.h
 	osapi/outwnd.h
 	osapi/outwnd.cpp

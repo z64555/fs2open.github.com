@@ -226,13 +226,7 @@ typedef struct coord2d {
 	int x,y;
 } coord2d;
 
-//This are defined in MainWin.c
-extern void _cdecl WinAssert(char * text,char *filename, int line);
-void _cdecl WinAssert(char * text, char * filename, int linenum, const char * format, ... );
-extern void LuaError(struct lua_State *L, char *format=NULL, ...);
-extern void _cdecl Error( const char * filename, int line, const char * format, ... );
-extern void _cdecl Warning( char * filename, int line, const char * format, ... );
-extern void _cdecl WarningEx( char *filename, int line, const char *format, ... );
+#include "osapi/dialogs.h"
 
 extern int Global_warning_count;
 extern int Global_error_count;
@@ -282,10 +276,9 @@ extern int Global_error_count;
 #		endif
 #	endif
 #else
-	void gr_activate(int);
 #	define Assert(expr) do {\
 		if (!(expr)) {\
-			WinAssert(#expr,__FILE__,__LINE__);\
+			os::dialogs::AssertMessage(#expr,__FILE__,__LINE__);\
 		}\
 		ASSUME( expr );\
 	} while (0)
@@ -294,21 +287,21 @@ extern int Global_error_count;
 #	ifndef _MSC_VER   // non MS compilers
 #		define Assertion(expr, msg, ...) do {\
 			if (!(expr)) {\
-				WinAssert(#expr,__FILE__,__LINE__, msg , ##__VA_ARGS__ );\
+				os::dialogs::AssertMessage(#expr,__FILE__,__LINE__, msg , ##__VA_ARGS__ );\
 			}\
 		} while (0)
 #	else
 #		if _MSC_VER >= 1400	// VC 2005 or greater
 #			define Assertion(expr, msg, ...) do {\
 				if (!(expr)) {\
-					WinAssert(#expr,__FILE__,__LINE__, msg, __VA_ARGS__ );\
+					os::dialogs::AssertMessage(#expr,__FILE__,__LINE__, msg, __VA_ARGS__ );\
 				}\
 				ASSUME(expr);\
 			} while (0)
 #		else // older MSVC compilers
 #			define Assertion(expr, msg) do {\
 				if (!(expr)) {\
-					WinAssert(#expr,__FILE__,__LINE__);\
+					os::dialogs::AssertMessage(#expr,__FILE__,__LINE__);\
 				}\
 			} while (0)
 #		endif
@@ -634,6 +627,9 @@ public:
 
 #include "globalincs/vmallocator.h"
 #include "globalincs/safe_strings.h"
+
+// Function to generate a stacktrace
+SCP_string dump_stacktrace();
 
 // c++11 standard detection
 // for GCC with autotools, see AX_CXX_COMPILE_STDCXX_11 macro in configure.ac
