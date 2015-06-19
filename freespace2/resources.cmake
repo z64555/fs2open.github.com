@@ -50,7 +50,7 @@ elseif(APPLE)
 
     source_group("Resources" FILES ${RESOURCES})
 
-    set_target_properties(Freespace2 PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST}/Info.plist)
+    set_target_properties(Freespace2 PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${subpath}/Info.plist)
 
     # Also handle copying frameworks here
     add_custom_command(TARGET Freespace2 POST_BUILD
