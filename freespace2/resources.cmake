@@ -53,19 +53,10 @@ elseif(APPLE)
     set_target_properties(Freespace2 PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST}/Info.plist)
 
     # Also handle copying frameworks here
-    file(GLOB FRAMEWORK_FILES
-        RELATIVE ${FSO_MAC_FRAMEWORKS}
-        ${FSO_MAC_FRAMEWORKS}/*.framework
+    add_custom_command(TARGET FreeSpace2 POST_BUILD
+        COMMENT "Copying frameworks into bundle..."
+        ${CMAKE_COMMAND} -E copy_directory ${FSO_MAC_FRAMEWORKS} $<TARGET_FILE_DIR:${TARGET}>/Contents/Frameworks
     )
-
-    message("${FRAMEWORK_FILES}")
-
-    foreach(framework ${FRAMEWORK_FILES})
-        add_custom_command(TARGET FreeSpace2 POST_BUILD
-            COMMENT "Copying ${framework} into bundle..."
-            ${CMAKE_COMMAND} -E copy_if_different ${FSO_MAC_FRAMEWORKS}/${framework} $<TARGET_FILE_DIR:${TARGET}>/Contents/Frameworks/${framework}
-        )
-    endforeach(framework)
 else()
     # No special resource handling required, add rules for new platforms here
 endif()
