@@ -42,7 +42,7 @@ if(WIN32)
     SET_SOURCE_FILES_PROPERTIES(${subpath}/freespace.rc PROPERTIES COMPILE_DEFINITIONS "_VC08")
 
     IF(FSO_INSTRUCTION_SET STREQUAL "SSE2" OR FSO_INSTRUCTION_SET STREQUAL "AVX")
-    	SET_SOURCE_FILES_PROPERTIES(${subpath}/freespace.rc PROPERTIES COMPILE_DEFINITIONS "_VC08;_SSE2")
+    	set_property(SOURCE ${subpath}/freespace.rc APPEND_STRING PROPERTIES COMPILE_DEFINITIONS "_SSE2")
     ENDIF()
 elseif(APPLE)
     # Handling of apple resources
@@ -64,8 +64,8 @@ elseif(APPLE)
 
     # Also handle copying frameworks here
     add_custom_command(TARGET Freespace2 POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${FSO_MAC_FRAMEWORKS} $<TARGET_FILE_DIR:Freespace2>/../Frameworks
         COMMENT "Copying frameworks into bundle..."
-        ${CMAKE_COMMAND} -E copy_directory ${FSO_MAC_FRAMEWORKS} $<TARGET_FILE_DIR:Freespace2>/../Frameworks
     )
 else()
     # No special resource handling required, add rules for new platforms here
