@@ -53,7 +53,7 @@ elseif(APPLE)
     set_target_properties(Freespace2 PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST}/Info.plist)
 
     # Also handle copying frameworks here
-    add_custom_command(TARGET FreeSpace2 POST_BUILD
+    add_custom_command(TARGET Freespace2 POST_BUILD
         COMMENT "Copying frameworks into bundle..."
         ${CMAKE_COMMAND} -E copy_directory ${FSO_MAC_FRAMEWORKS} $<TARGET_FILE_DIR:${TARGET}>/Contents/Frameworks
     )
