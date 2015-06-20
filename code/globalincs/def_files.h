@@ -11,6 +11,8 @@
 #ifndef __DEF_FILES_H_
 #define __DEF_FILES_H_
 
+#include "globalincs/pstypes.h"
+
 struct default_file
 {
 	const void* data;
