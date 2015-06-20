@@ -118,7 +118,23 @@ set (file_root_debugconsole
 	debugconsole/consoleparse.h
 )
 
+
 SET(file_root_def_files
+	def_files/def_files.h
+)
+if(WIN32)
+	SET(file_root_def_files
+		${file_root_def_files}
+		def_files/def_files-win32.cpp
+	)
+else()
+	SET(file_root_def_files
+		${file_root_def_files}
+		def_files/def_files-generic.cpp
+	)
+endif()
+
+SET(file_root_def_files_files
 	def_files/ai_profiles.tbl
 	def_files/autopilot.tbl
 	def_files/blur-f.sdr
@@ -217,8 +233,6 @@ set(file_root_generated
 set (file_root_globalincs
 	globalincs/alphacolors.cpp
 	globalincs/alphacolors.h
-	globalincs/def_files-generic.cpp
-	globalincs/def_files.h
 	globalincs/fsmemory.cpp
 	globalincs/fsmemory.h
 	globalincs/globals.h
@@ -918,7 +932,8 @@ source_group("Cutscene"                           FILES ${file_root_cutscene})
 source_group("ddsutils"                           FILES ${file_root_ddsutils})
 source_group("Debris"                             FILES ${file_root_debris})
 source_group("DebugConsole"                       FILES ${file_root_debugconsole})
-SOURCE_GROUP("Default files"                      FILES ${file_root_def_files})
+source_group("Default files"                      FILES ${file_root_def_files})
+source_group("Default files\\Files"               FILES ${file_root_def_files_files})
 source_group("ExceptionHandler"                   FILES ${file_root_exceptionhandler})
 source_group("ExternalDLL"                        FILES ${file_root_externaldll})
 source_group("Fireball"                           FILES ${file_root_fireball})
@@ -993,6 +1008,7 @@ set (file_root
 	${file_root_debris}
 	${file_root_debugconsole}
 	${file_root_def_files}
+	${file_root_def_files_files}
 	${file_root_exceptionhandler}
 	${file_root_externaldll}
 	${file_root_fireball}

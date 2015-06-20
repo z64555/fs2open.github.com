@@ -8,7 +8,7 @@
 
 
 #include "globalincs/pstypes.h"
-#include "globalincs/def_files.h"
+#include "def_files/def_files.h"
 #include "ai/ai_profiles.h"
 #include "parse/parselo.h"
 #include "localization/localize.h"

@@ -10,7 +10,7 @@
 #endif
 
 #include "globalincs/pstypes.h"
-#include "globalincs/def_files.h"
+#include "def_files/def_files.h"
 #include "cfile/cfile.h"
 #include "graphics/gropengl.h"
 #include "graphics/gropengltexture.h"

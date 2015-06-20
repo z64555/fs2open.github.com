@@ -1,22 +1,26 @@
 /*
- * Def_Files.cpp
- *
  * You may not sell or otherwise commercially exploit the source or things you
  * create based on the source.
  */
 
 #include "globalincs/pstypes.h"
-#include "globalincs/def_files.h"
+#include "def_files/def_files.h"
 
 #include <iterator>
+
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 
 struct def_file
 {
 	const char* filename;
-	const char* contents;
+	const TCHAR* resource_name;
 };
 
-#include "globalincs/generated_def_files.h"
+def_file Default_files[] =
+{
+#include "def_files/generated_def_files-win32.h"
+};
 
 default_file defaults_get_file(const char *filename)
 {
@@ -27,8 +31,22 @@ default_file defaults_get_file(const char *filename)
 	{
 		if (!stricmp(iter->filename, filename))
 		{
-			def.data = reinterpret_cast<const void*>(iter->contents);
-			def.size = strlen(iter->contents);
+			HRSRC resource = FindResource(nullptr, iter->resource_name, RT_RCDATA);
+
+			if (resource == nullptr)
+			{
+				continue;
+			}
+
+			HGLOBAL resHandle = LoadResource(nullptr, resource);
+
+			if (resHandle == nullptr)
+			{
+				continue;
+			}
+
+			def.data = LockResource(resHandle);
+			def.size = SizeofResource(nullptr, resource);
 
 			return def;
 		}

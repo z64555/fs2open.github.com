@@ -6,7 +6,7 @@
 
 
 
-#include "globalincs/def_files.h"
+#include "def_files/def_files.h"
 #include "iff_defs/iff_defs.h"
 #include "parse/parselo.h"
 #include "hud/hud.h"

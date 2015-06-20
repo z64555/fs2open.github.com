@@ -25,7 +25,7 @@
 #include "ship/ship.h"
 #include "weapon/weapon.h"
 #include "globalincs/version.h"
-#include "globalincs/def_files.h"
+#include "def_files/def_files.h"
 
 
 #define	ERROR_LENGTH	64

@@ -9,7 +9,7 @@
 
 
 #include "globalincs/pstypes.h"
-#include "globalincs/def_files.h"
+#include "def_files/def_files.h"
 #include "species_defs/species_defs.h"
 #include "cfile/cfile.h"
 #include "parse/parselo.h"

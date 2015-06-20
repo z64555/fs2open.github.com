@@ -5,7 +5,7 @@
  */
 
 #include "globalincs/pstypes.h"
-#include "globalincs/def_files.h"
+#include "def_files/def_files.h"
 #include "mission/missioncampaign.h"
 #include "mission/missionmessage.h"
 #include "mod_table/mod_table.h"

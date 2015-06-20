@@ -3,11 +3,11 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/project.h.in ${GENERATED_SOURCE_DIR}/
 
 INCLUDE(source_groups.cmake)
 
-INCLUDE(default_files.cmake)
-
 INCLUDE(voice_rec.cmake)
 
-ADD_LIBRARY(code STATIC ${file_root} ${DEF_OUT_FILES} ${VOICE_REC_FILES})
+ADD_LIBRARY(code STATIC ${file_root} ${VOICE_REC_FILES})
+
+INCLUDE(default_files.cmake)
 
 target_compile_definitions(code PUBLIC "$<$<CONFIG:RELEASE>:NDEBUG>;$<$<CONFIG:DEBUG>:_DEBUG>")
 if (MSVC)

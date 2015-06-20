@@ -9,7 +9,7 @@
 
 #include "graphics/2d.h"
 #include "parse/parselo.h"
-#include "globalincs/def_files.h"
+#include "def_files/def_files.h"
 #include "globalincs/alphacolors.h"
 
 SCP_map<SCP_string, team_color> Team_Colors;

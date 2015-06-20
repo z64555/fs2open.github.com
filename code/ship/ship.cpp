@@ -12,7 +12,7 @@
 
 #include <setjmp.h>
 
-#include "globalincs/def_files.h"
+#include "def_files/def_files.h"
 #include "globalincs/alphacolors.h"
 #include "ship/ship.h"
 #include "object/object.h"

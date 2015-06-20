@@ -11,7 +11,7 @@
 #include "parse/parselo.h"
 #include "cmdline/cmdline.h"
 #include "mod_table/mod_table.h"
-#include "globalincs/def_files.h"
+#include "def_files/def_files.h"
 #include "ship/ship.h"
 #include "freespace.h"
 #include "lighting/lighting.h"

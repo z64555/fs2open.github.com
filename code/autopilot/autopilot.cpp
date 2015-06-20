@@ -23,7 +23,7 @@
 #include "gamesnd/eventmusic.h"
 #include "cfile/cfile.h"
 #include "parse/parselo.h"
-#include "globalincs/def_files.h"
+#include "def_files/def_files.h"
 #include "localization/localize.h"
 #include "camera/camera.h"
 #include "asteroid/asteroid.h"
