@@ -12,6 +12,7 @@ if(WIN32)
 
     set(RESOURCE_FILES
         ${subpath}/freespace.rc
+        ${subpath}/version.rc2
     )
 
     set(ICONS
@@ -44,15 +45,6 @@ if(WIN32)
     IF(FSO_INSTRUCTION_SET STREQUAL "SSE2" OR FSO_INSTRUCTION_SET STREQUAL "AVX")
     	set_property(SOURCE ${subpath}/freespace.rc APPEND_STRING PROPERTY COMPILE_DEFINITIONS ";_SSE2")
     ENDIF()
-
-    set_property(SOURCE ${subpath}/freespace.rc APPEND_STRING PROPERTY
-        COMPILE_DEFINITIONS ";VERSION_MAJOR=${FSO_VERSION_MAJOR};VERSION_MINOR=${FSO_VERSION_MINOR}")
-
-    set_property(SOURCE ${subpath}/freespace.rc APPEND_STRING PROPERTY
-        COMPILE_DEFINITIONS ";VERSION_BUILD=${FSO_VERSION_BUILD};VERSION_REVISION_NUM=${FSO_VERSION_REVISION_NUM}")
-
-    set_property(SOURCE ${subpath}/freespace.rc APPEND_STRING PROPERTY
-    COMPILE_DEFINITIONS ";FULL_VERSION_STRING=\"${FSO_FULL_VERSION_STRING}\"")
 
 elseif(APPLE)
     # Handling of apple resources

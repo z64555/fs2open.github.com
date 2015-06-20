@@ -9,10 +9,11 @@ set_if_not_defined(FSO_VERSION_MAJOR 3)
 set_if_not_defined(FSO_VERSION_MINOR 7)
 set_if_not_defined(FSO_VERSION_BUILD 3)
 
-# FSO_VERSION_REVISION can be a generic revision string (e.g. git hash),
-# FSO_VERSION_REVISION_NUM mus tbe numeric
-set_if_not_defined(FSO_VERSION_REVISION_NUM 0)
+# A generic revision string, can be anything
 set_if_not_defined(FSO_VERSION_REVISION "")
+
+# A numeric revision e.g. the CI build number
+set_if_not_defined(FSO_VERSION_REVISION_NUM 0)
 
 if("${FSO_VERSION_REVISION}" STREQUAL "")
     set(FSO_VERSION_HAS_REVISION 0)
