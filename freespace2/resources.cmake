@@ -8,7 +8,7 @@ file(GENERATE
 if(WIN32)
     # Handling of windows resources+
 
-    set(subpath res/win)
+    set(subpath resources/win)
 
     set(RESOURCE_FILES
         ${subpath}/freespace.rc
@@ -56,21 +56,15 @@ if(WIN32)
 
 elseif(APPLE)
     # Handling of apple resources
-    set(subpath res/mac)
-
-    set(RESOURCES
-        ${subpath}/FS2_Open.icns
-        ${subpath}/English.lproj/InfoPlist.strings
-    )
-
-    target_sources(Freespace2 PRIVATE ${RESOURCES})
-
-    set_source_files_properties(${subpath}/FS2_Open.icns MACOSX_PACKAGE_LOCATION Resources)
-    set_source_files_properties(${subpath}/English.lproj/InfoPlist.strings MACOSX_PACKAGE_LOCATION Resources/English.lproj)
-
-    source_group("Resources" FILES ${RESOURCES})
+    set(subpath resources/mac)
 
     set_target_properties(Freespace2 PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/${subpath}/Info.plist)
+
+    # Copy everything from the Resources directory
+    add_custom_command(TARGET Freespace2 POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/${subpath}/Resources $<TARGET_FILE_DIR:Freespace2>/../Resources
+        COMMENT "Copying resources into bundle..."
+    )
 
     # Also handle copying frameworks here
     add_custom_command(TARGET Freespace2 POST_BUILD
