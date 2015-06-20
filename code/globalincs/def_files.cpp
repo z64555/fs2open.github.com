@@ -11,6 +11,8 @@
 #include <string.h>
 #include "globalincs/pstypes.h"
 
+#include <iterator>
+
 struct def_file
 {
 	const char* filename;
@@ -21,11 +23,12 @@ struct def_file
 
 const char *defaults_get_file(char *filename)
 {
-	for (auto& def_file : Default_files)
+	auto endIter = std::end(Default_files);
+	for (auto iter = std::begin(Default_files); iter != endIter; ++iter)
 	{
-		if (!stricmp(def_file.filename, filename))
+		if (!stricmp(iter->filename, filename))
 		{
-			return def_file.contents;
+			return iter->contents;
 		}
 	}
 
