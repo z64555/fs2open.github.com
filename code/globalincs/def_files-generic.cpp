@@ -5,34 +5,36 @@
  * create based on the source.
  */
 
-
-
-
-#include <string.h>
 #include "globalincs/pstypes.h"
+#include "globalincs/def_files.h"
 
 #include <iterator>
 
 struct def_file
 {
 	const char* filename;
-	const char *contents;
+	const char* contents;
 };
 
 #include "globalincs/generated_def_files.h"
 
-const char *defaults_get_file(const char *filename)
+default_file defaults_get_file(const char *filename)
 {
+	default_file def;
+
 	auto endIter = std::end(Default_files);
 	for (auto iter = std::begin(Default_files); iter != endIter; ++iter)
 	{
 		if (!stricmp(iter->filename, filename))
 		{
-			return iter->contents;
+			def.data = reinterpret_cast<const void*>(iter->contents);
+			def.size = strlen(iter->contents);
+
+			return def;
 		}
 	}
 
 	//WMC - This is really bad, because it means we have a default table missing.
 	Error(LOCATION, "Default table '%s' missing from executable - contact a coder.", filename);
-	return NULL;
+	return def;
 }

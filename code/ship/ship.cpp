@@ -4039,7 +4039,7 @@ void parse_shiptype_tbl(const char *filename)
 		if (filename != NULL)
 			read_file_text(filename, CF_TYPE_TABLES);
 		else
-			read_file_text_from_array(defaults_get_file("objecttypes.tbl"));
+			read_file_text_from_default(defaults_get_file("objecttypes.tbl"));
 
 		reset_parse();
 

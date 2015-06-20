@@ -11,10 +11,16 @@
 #ifndef __DEF_FILES_H_
 #define __DEF_FILES_H_
 
-//Used to retrieve pointer to file data from def_files.cpp
-const char *defaults_get_file(const char *filename);
+struct default_file
+{
+	const void* data;
+	size_t size;
+};
 
-//WMC - 
+//Used to retrieve pointer to file data from def_files.cpp
+default_file defaults_get_file(const char *filename);
+
+//WMC -
 //There are three parts to adding a file
 //:PART 1: Add variable declaration for new file
 //:PART 2: Add filename of default file to Default_files[] array, along with content variable

@@ -217,7 +217,7 @@ set(file_root_generated
 set (file_root_globalincs
 	globalincs/alphacolors.cpp
 	globalincs/alphacolors.h
-	globalincs/def_files.cpp
+	globalincs/def_files-generic.cpp
 	globalincs/def_files.h
 	globalincs/fsmemory.cpp
 	globalincs/fsmemory.h

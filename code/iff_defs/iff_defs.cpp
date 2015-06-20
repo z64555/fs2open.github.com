@@ -134,7 +134,7 @@ void iff_init()
 		if (cf_exists_full("iff_defs.tbl", CF_TYPE_TABLES))
 			read_file_text("iff_defs.tbl", CF_TYPE_TABLES);
 		else
-			read_file_text_from_array(defaults_get_file("iff_defs.tbl"));
+			read_file_text_from_default(defaults_get_file("iff_defs.tbl"));
 
 		reset_parse();
 

@@ -597,7 +597,7 @@ void parse_fonts_tbl(char *only_parse_first_font, size_t only_parse_first_font_s
 			read_file_text(filename, CF_TYPE_TABLES);
 		}
 		else {
-			read_file_text_from_array(defaults_get_file("fonts.tbl"));
+			read_file_text_from_default(defaults_get_file("fonts.tbl"));
 		}
 
 		reset_parse();

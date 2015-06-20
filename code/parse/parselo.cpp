@@ -25,7 +25,7 @@
 #include "ship/ship.h"
 #include "weapon/weapon.h"
 #include "globalincs/version.h"
-
+#include "globalincs/def_files.h"
 
 
 #define	ERROR_LENGTH	64
@@ -1990,7 +1990,7 @@ void read_file_text(const char *filename, int mode, char *processed_text, char *
 }
 
 // Goober5000
-void read_file_text_from_array(const char *array, char *processed_text, char *raw_text)
+void read_file_text_from_default(const default_file& file, char *processed_text, char *raw_text)
 {
 	// we have no filename, so copy a substitute
 	strcpy_s(Current_filename_sub, "internal default file");
@@ -2001,15 +2001,17 @@ void read_file_text_from_array(const char *array, char *processed_text, char *ra
 	}
 
 	// make sure to do this before anything else
-	allocate_mission_text( strlen(array) + 1 );
+	allocate_mission_text(static_cast<int>(file.size + 1));
 
 	// if we have no raw buffer, set it as the default raw text area
 	if (raw_text == NULL)
 		raw_text = Mission_text_raw;
 
+	auto text = reinterpret_cast<const char*>(file.data);
+
 	// copy text in the array (but only if the raw text and the array are not the same)
-	if (raw_text != array)
-		strcpy(raw_text, array);
+	if (raw_text != text)
+		strncpy(raw_text, text, file.size);
 
 	if (processed_text == NULL)
 		processed_text = Mission_text;
