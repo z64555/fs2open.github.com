@@ -21,7 +21,7 @@ struct def_file
 
 #include "globalincs/generated_def_files.h"
 
-const char *defaults_get_file(char *filename)
+const char *defaults_get_file(const char *filename)
 {
 	auto endIter = std::end(Default_files);
 	for (auto iter = std::begin(Default_files); iter != endIter; ++iter)
