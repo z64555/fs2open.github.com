@@ -54,5 +54,8 @@ default_file defaults_get_file(const char *filename)
 
 	//WMC - This is really bad, because it means we have a default table missing.
 	Error(LOCATION, "Default table '%s' missing from executable - contact a coder.", filename);
+
+	def.data = nullptr;
+	def.data = 0;
 	return def;
 }
