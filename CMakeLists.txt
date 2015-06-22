@@ -9,8 +9,6 @@ set_policy(CMP0051 OLD)
 set_policy(CMP0053 NEW)
 set_policy(CMP0054 NEW)
 
-include(cmake/version.cmake)
-
 SET(FSO_PROJECT_DESCRIPTION "Open source project based on the original FreeSpace 2 source code.")
 
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE PATH "Executable output path")
@@ -121,6 +119,7 @@ IF(COTIRE_ENABLE)
 	include(cotire)
 ENDIF(COTIRE_ENABLE)
 
+include(version)
 INCLUDE(globals)
 INCLUDE(toolchain)
 INCLUDE(platforms)
