@@ -20,36 +20,34 @@ IF(UNIX AND NOT APPLE)
 	add_library(oggvorbis INTERFACE)
 	target_link_libraries(oggvorbis INTERFACE ogg theora vorbis vorbisfile)
 ELSEIF (WIN32)
+	set(ARCH "x86")
+
 	# We have precompiled libs for windows
 	add_library(ogg STATIC IMPORTED GLOBAL)
 	set_target_properties(ogg
 		PROPERTIES
-			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/ogg_static.lib
-			IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_LIST_DIR}/lib/ogg_static_d.lib
+			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH}/ogg_static.lib
 			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
 	)
 
 	add_library(vorbis STATIC IMPORTED GLOBAL)
 	set_target_properties(vorbis
 		PROPERTIES
-			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/vorbis_static.lib
-			IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_LIST_DIR}/lib/vorbis_static_d.lib
+			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH}/vorbis_static.lib
 			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
 	)
 
 	add_library(vorbisfile STATIC IMPORTED GLOBAL)
 	set_target_properties(vorbisfile
 		PROPERTIES
-			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/vorbisfile_static.lib
-			IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_LIST_DIR}/lib/vorbisfile_static_d.lib
+			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH}/vorbisfile_static.lib
 			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
 	)
 
 	add_library(theora STATIC IMPORTED GLOBAL)
 	set_target_properties(theora
 		PROPERTIES
-			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/theora_static.lib
-			IMPORTED_LOCATION_DEBUG ${CMAKE_CURRENT_LIST_DIR}/lib/theora_static_d.lib
+			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH}/theora_static.lib
 			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
 	)
 
