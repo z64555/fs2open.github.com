@@ -71,8 +71,9 @@ void os_set_window_from_hwnd(HWND handle)
 }
 
 // go through all windows and try and find the one that matches the search string
-BOOL __stdcall os_enum_windows( HWND hwnd, char * search_string )
+BOOL __stdcall os_enum_windows( HWND hwnd, LPARAM param )
 {
+	const char* search_string = reinterpret_cast<const char*>(param);
 	char tmp[128];
 	int len;
 
@@ -120,13 +121,13 @@ void os_check_debugger()
 	sprintf( search_string, "[run] - %s -", p );
 
 	// ... and then search for it.
-	EnumWindows( (int (__stdcall *)(struct HWND__ *,long))os_enum_windows, (long)&search_string );
+	EnumWindows(os_enum_windows, (long)&search_string );
 }
 
 void os_set_process_affinity()
 {
 	HANDLE pHandle = GetCurrentProcess();
-	DWORD pMaskProcess = 0, pMaskSystem = 0;
+	DWORD_PTR pMaskProcess = 0, pMaskSystem = 0;
 
 	if ( GetProcessAffinityMask(pHandle, &pMaskProcess, &pMaskSystem) ) {
 		// only do this if we have at least 2 procs
