@@ -96,3 +96,11 @@ macro(configure_cotire target)
 		ENDIF(DEFINED CMAKE_CONFIGURATION_TYPES)
 	ENDIF(COTIRE_ENABLE)
 endmacro(configure_cotire)
+
+macro(add_target_copy_files)
+	INSTALL(FILES ${ARGN}
+			DESTINATION ${BINARY_DESTINATION}
+	)
+
+	SET(TARGET_COPY_FILES ${TARGET_COPY_FILES} ${ARGN} CACHE INTERNAL "" FORCE)
+endmacro(add_target_copy_files)

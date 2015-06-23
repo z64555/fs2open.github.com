@@ -46,7 +46,7 @@ IF(FSO_USE_OPENALSOFT)
 				DESTINATION ${BINARY_DESTINATION}
 		)
 
-		SET(TARGET_COPY_FILES ${TARGET_COPY_FILES} "${install_dir}/bin/OpenAL32.dll" CACHE INTERNAL "")
+		add_target_copy_files("${install_dir}/bin/OpenAL32.dll")
 	ELSE(WIN32)
 		set_target_properties(openalsoft_lib
 			PROPERTIES

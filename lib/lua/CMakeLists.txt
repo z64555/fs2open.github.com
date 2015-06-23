@@ -69,11 +69,7 @@ IF(FSO_USE_LUAJIT)
 					IMPORTED_IMPLIB ${source_dir}/src/lua51.lib
 			)
 
-			INSTALL(FILES ${source_dir}/src/lua51.dll
-					DESTINATION ${BINARY_DESTINATION}
-			)
-
-			SET(TARGET_COPY_FILES ${TARGET_COPY_FILES} "${source_dir}/src/lua51.dll" CACHE INTERNAL "")
+			add_target_copy_files("${source_dir}/src/lua51.dll")
 		ELSE(WIN32)
 			set_target_properties(luajit_lib
 				PROPERTIES
