@@ -121,7 +121,7 @@ void os_check_debugger()
 	sprintf( search_string, "[run] - %s -", p );
 
 	// ... and then search for it.
-	EnumWindows(os_enum_windows, (long)&search_string );
+	EnumWindows(os_enum_windows, reinterpret_cast<LPARAM>(&search_string));
 }
 
 void os_set_process_affinity()
