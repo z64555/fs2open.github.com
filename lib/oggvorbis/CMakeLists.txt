@@ -20,39 +20,53 @@ IF(UNIX AND NOT APPLE)
 	add_library(oggvorbis INTERFACE)
 	target_link_libraries(oggvorbis INTERFACE ogg theora vorbis vorbisfile)
 ELSEIF (WIN32)
-	set(ARCH "x86")
+	IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
+		# 64-bit
+		set(ARCH "x64")
+	ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
+		# 32-bit
+		set(ARCH "x86")
+	ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
 
 	# We have precompiled libs for windows
 	add_library(ogg STATIC IMPORTED GLOBAL)
 	set_target_properties(ogg
 		PROPERTIES
-			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH}/ogg_static.lib
+			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH}/libogg.lib
 			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
 	)
 
 	add_library(vorbis STATIC IMPORTED GLOBAL)
 	set_target_properties(vorbis
 		PROPERTIES
-			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH}/vorbis_static.lib
+			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH}/libvorbis.lib
 			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
 	)
 
 	add_library(vorbisfile STATIC IMPORTED GLOBAL)
 	set_target_properties(vorbisfile
 		PROPERTIES
-			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH}/vorbisfile_static.lib
+			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH}/libvorbisfile.lib
 			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
 	)
 
 	add_library(theora STATIC IMPORTED GLOBAL)
 	set_target_properties(theora
 		PROPERTIES
-			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH}/theora_static.lib
+			IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH}/libtheora.lib
 			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
 	)
 
 	add_library(oggvorbis INTERFACE)
 	target_link_libraries(oggvorbis INTERFACE ogg theora vorbis vorbisfile)
+
+	IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
+		# 64-bit
+		set(ARCH "x64")
+	ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
+		# 32-bit
+		set(ARCH "x86")
+	ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
 ELSEIF(APPLE)
 	macro(find_lib varname libname)
 		find_library(${varname} ${libname} PATHS "${FSO_MAC_FRAMEWORKS}")
