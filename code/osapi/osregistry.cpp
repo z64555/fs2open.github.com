@@ -138,8 +138,12 @@ bool get_user_sid(SCP_string& outStr)
 	return true;
 }
 
-BOOL IsWow64()
+bool needsWOW64()
 {
+#ifdef _WIN64
+	// 64-bit application always use the Wow6432Node
+	return true;
+#else
 	BOOL bIsWow64 = FALSE;
 	if (fnIsWOW64Process != NULL)
 	{
@@ -149,7 +153,8 @@ BOOL IsWow64()
 		}
 	}
 
-	return bIsWow64;
+	return bIsWow64 == TRUE;
+#endif
 }
 
 HKEY get_registry_keyname(char* out_keyname, const char* section)
@@ -158,7 +163,7 @@ HKEY get_registry_keyname(char* out_keyname, const char* section)
 #if _MSC_VER >= 1400
 	if (userSIDValid)
 	{
-		if (IsWow64())
+		if (needsWOW64())
 		{
 			if (section) {
 				sprintf(out_keyname, "%s_Classes\\VirtualStore\\Machine\\Software\\Wow6432Node\\%s\\%s\\%s", userSID.c_str(), szCompanyName, szAppName, section);
