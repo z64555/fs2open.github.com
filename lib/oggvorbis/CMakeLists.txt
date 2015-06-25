@@ -62,10 +62,10 @@ ELSEIF (WIN32)
 
 	IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
 		# 64-bit
-		set(ARCH "x64")
-	ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
-		# 32-bit
-		set(ARCH "x86")
+		add_target_copy_files("${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH}/libogg.dll")
+		add_target_copy_files("${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH}/libtheora.dll")
+		add_target_copy_files("${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH}/libvorbis.dll")
+		add_target_copy_files("${CMAKE_CURRENT_LIST_DIR}/lib/${ARCH}/libvorbisfile.dll")
 	ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
 ELSEIF(APPLE)
 	macro(find_lib varname libname)
