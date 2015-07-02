@@ -11,6 +11,7 @@
 #include <windows.h>
 
 #include <Shlobj.h>
+#include <Sddl.h>
 
 #include "globalincs/pstypes.h"
 #include "osapi/osregistry.h"
@@ -46,57 +47,10 @@ static char tmp_string_data[1024];
 static bool userSIDValid = false;
 static SCP_string userSID;
 
-typedef BOOL(WINAPI *LPFN_ISWOW64PROCESS)(HANDLE, PBOOL);
-typedef BOOL(WINAPI *LPFN_OPENPROCESSTOKEN)(HANDLE, DWORD, PHANDLE);
-typedef BOOL(WINAPI *LPFN_GETTOKENINFORMATION)(HANDLE, TOKEN_INFORMATION_CLASS, LPVOID, DWORD, PDWORD);
-typedef BOOL(WINAPI *LPFN_ISVALIDSID)(PSID);
-typedef BOOL(WINAPI *LPFN_CONVERTSIDTOSTRINGSID)(PSID, LPTSTR*);
-typedef HLOCAL(WINAPI *LPFN_LOCALFREE)(HLOCAL);
-
-LPFN_ISWOW64PROCESS fnIsWOW64Process = NULL;
-LPFN_OPENPROCESSTOKEN fnOpenProcessToken = NULL;
-LPFN_GETTOKENINFORMATION fnGetTokenInformation = NULL;
-LPFN_ISVALIDSID fnIsValidSID = NULL;
-LPFN_CONVERTSIDTOSTRINGSID fnConvertSIDToStringSID = NULL;
-LPFN_LOCALFREE fnLocalFree = NULL;
-
-template<typename FunctionType>
-bool load_function(FunctionType *function, const char* name, const char* libName = "Advapi32")
-{
-	Assert(function != NULL);
-
-	*function = (FunctionType)GetProcAddress(GetModuleHandle(libName), name);
-
-	return *function != NULL;
-}
-
-bool init_advanced_functions()
-{
-	if (!load_function<LPFN_ISWOW64PROCESS>(&fnIsWOW64Process, "IsWow64Process", "Kernel32"))
-		return false;
-
-	if (!load_function<LPFN_OPENPROCESSTOKEN>(&fnOpenProcessToken, "OpenProcessToken"))
-		return false;
-
-	if (!load_function<LPFN_GETTOKENINFORMATION>(&fnGetTokenInformation, "GetTokenInformation"))
-		return false;
-
-	if (!load_function<LPFN_ISVALIDSID>(&fnIsValidSID, "IsValidSid"))
-		return false;
-
-	if (!load_function<LPFN_CONVERTSIDTOSTRINGSID>(&fnConvertSIDToStringSID, "ConvertSidToStringSidA"))
-		return false;
-
-	if (!load_function<LPFN_LOCALFREE>(&fnLocalFree, "LocalFree", "Kernel32"))
-		return false;
-
-	return true;
-}
-
 bool get_user_sid(SCP_string& outStr)
 {
 	HANDLE hToken = NULL;
-	if (fnOpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken) == FALSE)
+	if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken) == FALSE)
 	{
 		mprintf(("Failed to get process token! Error Code: %d", GetLastError()));
 
@@ -104,16 +58,16 @@ bool get_user_sid(SCP_string& outStr)
 	}
 
 	DWORD dwBufferSize;
-	fnGetTokenInformation(hToken, TokenUser, NULL, 0, &dwBufferSize);
+	GetTokenInformation(hToken, TokenUser, NULL, 0, &dwBufferSize);
 
 	PTOKEN_USER ptkUser = (PTOKEN_USER) new byte[dwBufferSize];
 
-	if (fnGetTokenInformation(hToken, TokenUser, ptkUser, dwBufferSize, &dwBufferSize))
+	if (GetTokenInformation(hToken, TokenUser, ptkUser, dwBufferSize, &dwBufferSize))
 	{
 		CloseHandle(hToken);
 	}
 
-	if (fnIsValidSID(ptkUser->User.Sid) == FALSE)
+	if (IsValidSid(ptkUser->User.Sid) == FALSE)
 	{
 		mprintf(("Invalid SID structure detected!"));
 
@@ -122,7 +76,7 @@ bool get_user_sid(SCP_string& outStr)
 	}
 
 	LPTSTR sidName = NULL;
-	if (fnConvertSIDToStringSID(ptkUser->User.Sid, &sidName) == 0)
+	if (ConvertSidToStringSid(ptkUser->User.Sid, &sidName) == 0)
 	{
 		mprintf(("Failed to convert SID structure to string! Error Code: %d", GetLastError()));
 
@@ -132,7 +86,7 @@ bool get_user_sid(SCP_string& outStr)
 
 	outStr.assign(sidName);
 
-	fnLocalFree(sidName);
+	LocalFree(sidName);
 	delete[](byte*) ptkUser;
 
 	return true;
@@ -145,12 +99,10 @@ bool needsWOW64()
 	return true;
 #else
 	BOOL bIsWow64 = FALSE;
-	if (fnIsWOW64Process != NULL)
+	if (!IsWow64Process(GetCurrentProcess(), &bIsWow64))
 	{
-		if (!fnIsWOW64Process(GetCurrentProcess(), &bIsWow64))
-		{
-			//handle error
-		}
+		mprintf(("Failed to determine if we run under Wow64, registry configuration may fail!"));
+		return false;
 	}
 
 	return bIsWow64 == TRUE;
