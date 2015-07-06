@@ -14,7 +14,6 @@ set (file_root_ai
 	ai/aigoals.cpp
 	ai/aigoals.h
 	ai/aiinternal.h
-	ai/ailocal.h
 	ai/aiturret.cpp
 )
 
@@ -506,14 +505,10 @@ set (file_root_missionui
 	missionui/missionloopbrief.h
 	missionui/missionpause.cpp
 	missionui/missionpause.h
-	missionui/missionrecommend.cpp
-	missionui/missionrecommend.h
 	missionui/missionscreencommon.cpp
 	missionui/missionscreencommon.h
 	missionui/missionshipchoice.cpp
 	missionui/missionshipchoice.h
-	missionui/missionstats.cpp
-	missionui/missionstats.h
 	missionui/missionweaponchoice.cpp
 	missionui/missionweaponchoice.h
 	missionui/redalert.cpp

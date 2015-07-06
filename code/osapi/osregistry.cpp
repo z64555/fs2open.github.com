@@ -439,14 +439,7 @@ void os_init_registry_stuff(const char *company, const char *app, const char *ve
 	// Windows Vista is 6.0 which is the first version requiring this
 	if (versionInfo.dwMajorVersion >= 6)
 	{
-		if (init_advanced_functions())
-		{
-			userSIDValid = get_user_sid(userSID);
-		}
-		else
-		{
-			userSIDValid = false;
-		}
+		userSIDValid = get_user_sid(userSID);
 	}
 
 	Os_reg_inited = 1;
