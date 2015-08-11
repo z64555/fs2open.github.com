@@ -22,9 +22,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-write-strings")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wextra -Wshadow -Wno-unused-parameter")
-set(CMAKE_EXE_LINKER_FLAGS "-Wl,-O1 -Wl,--as-needed")
 
-set(CMAKE_EXE_LINKER_FLAGS_DEBUG "-g")
+set(CMAKE_EXE_LINKER_FLAGS "")
+
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE "")
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG "-g -rdynamic")
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
 	SET(CMAKE_EXE_LINKER_FLAGS "-Wl,-zignore")
