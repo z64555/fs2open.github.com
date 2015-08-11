@@ -704,7 +704,7 @@ int required_string_either(char *str1, char *str2)
  * @returns The index number of the found string, if it was found
  * @returns -1 if a string was not found
  *
- * @details By ngld, with some tweaks by MageKing17. 
+ * @details By ngld, with some tweaks by MageKing17.
  */
 int required_string_one_of(int arg_count, ...)
 {
@@ -2018,8 +2018,13 @@ void read_file_text_from_default(const default_file& file, char *processed_text,
 	auto text = reinterpret_cast<const char*>(file.data);
 
 	// copy text in the array (but only if the raw text and the array are not the same)
-	if (raw_text != text)
-		strncpy(raw_text, text, file.size);
+	if (raw_text != file.data)
+	{
+		// Copy the file contents into the array and null-terminate it
+		// We have to make sure to adjust the size if the size of a char is more than 1
+		strncpy(raw_text, text, file.size / sizeof(char));
+		raw_text[file.size / sizeof(char)] = '\0';
+	}
 
 	if (processed_text == NULL)
 		processed_text = Mission_text;
