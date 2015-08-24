@@ -12,11 +12,12 @@
 
 #include "cfile/cfile.h"
 #include "controlconfig/controlsconfig.h"
-#include "io/key.h"
+#include "def_files/def_files.h"
+#include "globalincs/systemvars.h"
 #include "io/joy.h"
+#include "io/key.h"
 #include "localization/localize.h"
 #include "parse/parselo.h"
-#include "globalincs/systemvars.h"
 #include "def_files/def_files.h"
 
 // z64: These enumerations MUST equal to those in controlsconfig.cpp...
@@ -888,6 +889,9 @@ void control_config_common_load_overrides()
 
 					if (optional_string("+Disable")) {
 						r_ccConfig.disabled = true;
+					}
+					if (optional_string("$Disable:")) {
+						stuff_boolean(&r_ccConfig.disabled);
 					}
 					
 					// Nerf the buffer now.

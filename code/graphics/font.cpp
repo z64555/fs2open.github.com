@@ -18,15 +18,16 @@
 #include <stdarg.h>
 #include <limits.h>
 
-#include "graphics/2d.h"
-#include "cfile/cfile.h"
-#include "graphics/font.h"
-#include "palman/palman.h"
-#include "io/key.h"
 #include "bmpman/bmpman.h"
-#include "localization/localize.h"
-#include "parse/parselo.h"
+#include "cfile/cfile.h"
+#include "def_files/def_files.h"
 #include "globalincs/systemvars.h"
+#include "graphics/2d.h"
+#include "graphics/font.h"
+#include "io/key.h"
+#include "localization/localize.h"
+#include "palman/palman.h"
+#include "parse/parselo.h"
 #include "def_files/def_files.h"
 
 

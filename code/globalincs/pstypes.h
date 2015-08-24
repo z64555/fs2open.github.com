@@ -71,6 +71,38 @@ typedef unsigned short ushort;
 typedef unsigned int uint;
 typedef unsigned long ulong;
 
+// Format specifier macros
+#ifdef DOXYGEN
+// Documentation macros, only used by DOXYGEN
+/**
+ * @brief Identifies a printf-style format string
+ */
+#define SCP_FORMAT_STRING
+
+/**
+ * @brief Specifies which arguments are involved in printf-style string formatting
+ *
+ * @details Expands to a compiler specific attribute which specify where the
+ *          format arguments are located. Parameters are 1-based which also includes
+ *          the 'this' parameter at position 1 for class methods.
+ *
+ * @param formatArg The location of the format string argument in the argument list
+ * @param varArgs The location where the variable arguments begin
+ */
+#define SCP_FORMAT_STRING_ARGS(formatArg, varArgs)
+#elif defined(_MSC_VER)
+#include <sal.h>
+
+#define SCP_FORMAT_STRING _Printf_format_string_
+#define SCP_FORMAT_STRING_ARGS(x, y)
+#elif defined(__GNUC__) || defined(__clang__)
+// GCC and clang use function attributes
+#define SCP_FORMAT_STRING
+#define SCP_FORMAT_STRING_ARGS(x, y) __attribute__ ((format (printf, x, y)))
+#else
+#define SCP_FORMAT_STRING
+#define SCP_FORMAT_STRING_ARGS(x, y)
+#endif
 
 #define HARDWARE_ONLY
 
@@ -631,6 +663,30 @@ public:
 // Function to generate a stacktrace
 SCP_string dump_stacktrace();
 
+// Macros for portable printf argument specification
+#ifdef DOXYGEN
+// Special section for doxygen
+/**
+ * @brief Format specifier for a @c size_t argument
+ * Due to different runtimes using different format specifier for these types
+ * it's necessary to hide these changes behind a macro. Use this in place of %zu
+ */
+#define SIZE_T_ARG
+/**
+ * @brief Format specifier for a @c ptrdiff_t argument
+ * Due to different runtimes using different format specifier for these types
+ * it's necessary to hide these changes behind a macro. Use this in place of %zd
+ */
+#define PTRDIFF_T_ARG
+#elif defined(_MSC_VER)
+#define SIZE_T_ARG "%Iu"
+#define PTRDIFF_T_ARG "%Id"
+#else
+	// Asume C99 compatibility for everyone else
+#define SIZE_T_ARG "%zu"
+#define PTRDIFF_T_ARG "%zd"
+#endif
+
 // c++11 standard detection
 // for GCC with autotools, see AX_CXX_COMPILE_STDCXX_11 macro in configure.ac
 // this sets HAVE_CXX11 & -std=c++0x or -std=c++11 appropriately
@@ -652,6 +708,14 @@ SCP_string dump_stacktrace();
 	#endif // defined(__clang__)
 	// TODO: sort out cmake/gcc
 #endif // HAVE_CXX11
+
+//	In compilers before VS 2015, the noexcept keyword isn't defined. Nonetheless, we need to define it in VS 2015 and non-MS compilers.
+#if defined(_MSC_VER) && _MSC_VER < 1900
+#	define NOEXCEPT
+#else
+#	define NOEXCEPT noexcept
+#endif
+
 
 // DEBUG compile time catch for dangerous uses of memset/memcpy/memmove
 // would prefer std::is_trivially_copyable but it's not supported by gcc yet

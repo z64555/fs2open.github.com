@@ -9,18 +9,18 @@
 
 
 
-#include "globalincs/pstypes.h"
 #include "cfile/cfile.h"
 #include "cmdline/cmdline.h"
-#include "sound/sound.h" // jg18 - for enhanced sound
-#include "sound/openal.h"
+#include "globalincs/pstypes.h"
+#include "osapi/osapi.h"
+#include "sound/acm.h"
+#include "sound/audiostr.h"
+#include "sound/channel.h"
 #include "sound/ds.h"
 #include "sound/ds3d.h"
-#include "sound/channel.h"
-#include "sound/acm.h"
-#include "osapi/osapi.h"
 #include "sound/dscap.h"
-#include "sound/audiostr.h"
+#include "sound/openal.h"
+#include "sound/sound.h" // jg18 - for enhanced sound
 
 
 typedef struct sound_buffer
@@ -1012,7 +1012,7 @@ void ds_init_channels()
 	try {
 		Channels = new channel[MAX_CHANNELS];
 	} catch (std::bad_alloc) {
-		Error(LOCATION, "Unable to allocate %d bytes for %d audio channels.", sizeof(channel) * MAX_CHANNELS, MAX_CHANNELS);
+		Error(LOCATION, "Unable to allocate " SIZE_T_ARG " bytes for %d audio channels.", sizeof(channel) * MAX_CHANNELS, MAX_CHANNELS);
 	}
 }
 
@@ -1105,6 +1105,13 @@ int ds_init()
 	}
 
 	alcMakeContextCurrent(ds_sound_context);
+
+	alcGetError(ds_sound_device);
+
+	mprintf(("  OpenAL Vendor     : %s\n", alGetString(AL_VENDOR)));
+	mprintf(("  OpenAL Renderer   : %s\n", alGetString(AL_RENDERER)));
+	mprintf(("  OpenAL Version    : %s\n", alGetString(AL_VERSION)));
+	mprintf(("\n"));
 
 	// we need to clear out all errors before moving on
 	alcGetError(NULL);
@@ -2632,4 +2639,3 @@ int ds_get_sound_id(int channel_id)
 
 	return Channels[channel_id].snd_id;
 }
-

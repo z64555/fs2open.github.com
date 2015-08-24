@@ -12,9 +12,11 @@
 #include "camera/camera.h" //VIEWER_ZOOM_DEFAULT
 #include "cmdline/cmdline.h"
 #include "globalincs/linklist.h"
+#include "globalincs/pstypes.h"
 #include "globalincs/systemvars.h"
-#include "network/multi.h"
+#include "globalincs/version.h"
 #include "hud/hudconfig.h"
+#include "network/multi.h"
 #include "parse/scripting.h"
 #include "parse/sexp.h"
 #include "globalincs/version.h"
@@ -696,6 +698,12 @@ void os_parse_parms(int argc, char *argv[])
 
 	for (int i = 0; i < argc; i++)
 	{
+		// On OS X this gets passed if the application was launched by double-clicking in the Finder
+		if (i == 1 && strncmp(argv[i], "-psn", 4) == 0)
+		{
+			continue;
+		}
+
 		for (parmp = GET_FIRST(&Parm_list); parmp != END_OF_LIST(&Parm_list); parmp = GET_NEXT(parmp)) {
 			if (!stricmp(parmp->name, argv[i]))
 			{
@@ -721,8 +729,14 @@ void os_validate_parms(int argc, char *argv[])
 	{
 		token = argv[i];
 
+		// On OS X this gets passed if the application was launched by double-clicking in the Finder
+		if (i == 1 && strncmp(token, "-psn", 4) == 0) {
+			continue;
+		}
+
 		if (token[0] == '-') {
 			parm_found = 0;
+
 			for (parmp = GET_FIRST(&Parm_list); parmp != END_OF_LIST(&Parm_list); parmp = GET_NEXT(parmp)) {
 				if (!stricmp(parmp->name, token)) {
 					parm_found = 1;
