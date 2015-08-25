@@ -1,11 +1,11 @@
 
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/project.h.in ${GENERATED_SOURCE_DIR}/project.h)
-
 INCLUDE(source_groups.cmake)
 
 INCLUDE(voice_rec.cmake)
 
 ADD_LIBRARY(code STATIC ${file_root} ${VOICE_REC_FILES})
+
+target_compile_features(code PUBLIC ${REQUIRED_CXX_FEATURES})
 
 INCLUDE(default_files.cmake)
 
@@ -54,4 +54,4 @@ ENDIF(FSO_BUILD_TOOLS)
 include(util)
 configure_cotire(code)
 
-include(Cxx11.cmake)
+include(../cmake/Cxx11.cmake)

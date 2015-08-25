@@ -128,7 +128,7 @@ INCLUDE(headers)
 
 SET(GENERATED_SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated_source)
 
-include(compilerChecks)
+include(generateHeaders)
 
 # This includes source code for some tools, either used in the build or also for something else
 ADD_SUBDIRECTORY(tools)

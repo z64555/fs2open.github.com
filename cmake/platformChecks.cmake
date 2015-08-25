@@ -8,4 +8,5 @@ include(CheckStructHasMember)
 include(CheckSymbolExists)
 include(CheckTypeSize)
 
-CONFIGURE_FILE(${CMAKE_CURRENT_LIST_DIR}/compilerChecks.h.in ${GENERATED_SOURCE_DIR}/compilerChecks.h)
+set(PLATFORM_CHECK_HEADER "${GENERATED_SOURCE_DIR}/platformChecks.h")
+CONFIGURE_FILE(${CMAKE_CURRENT_LIST_DIR}/platformChecks.h.in "${PLATFORM_CHECK_HEADER}")
