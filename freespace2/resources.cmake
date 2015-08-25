@@ -62,6 +62,7 @@ elseif(APPLE)
 
     add_custom_command(TARGET Freespace2 POST_BUILD
         COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_BINARY_DIR}/fixup_bundle-$<CONFIG>.cmake"
+        COMMENT "$<TARGET_FILE:Freespace2> ${FSO_MAC_FRAMEWORKS}"
     )
 else()
     # No special resource handling required, add rules for new platforms here
