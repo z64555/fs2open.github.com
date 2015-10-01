@@ -405,6 +405,10 @@ void os_poll()
 
 			break;
 
+		case SDL_JOYAXISMOTION:
+			joy_event(event.jaxis.which, event.jaxis.axis, event.jaxis.value);
+			break;
+
 		case SDL_JOYHATMOTION:
 			joy_set_hat_state(event.jhat.value);
 			break;
@@ -449,34 +453,4 @@ void debug_int3(char *file, int line)
 	os_deinit();
 
 	abort();
-}
-
-void SCP_Messagebox(MessageBoxType type, const char* message, const char* title) 
-{
-	int flags = 1;
-
-	switch (type) 
-	{
-		case MESSAGEBOX_ERROR:
-			flags = SDL_MESSAGEBOX_ERROR;
-			if (title == NULL)
-				title = "Error";
-			break;
-		case MESSAGEBOX_INFORMATION:
-			flags = SDL_MESSAGEBOX_INFORMATION;
-			if (title == NULL)
-				title = "Information";
-			break;
-		case MESSAGEBOX_WARNING:
-			flags = SDL_MESSAGEBOX_WARNING;
-			if (title == NULL)
-				title = "Warning";
-			break;
-		default:
-			Int3();
-			title = ""; // Remove warning about unitialized variable
-			break;
-	}
-
-	SDL_ShowSimpleMessageBox(flags, title, message, os_get_window());
 }

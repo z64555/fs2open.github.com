@@ -100,8 +100,6 @@ typedef unsigned int *PDWORD, *LPDWORD;
 typedef unsigned long FOURCC;
 typedef unsigned long DWORD, *PDWORD, *LPDWORD;
 #endif
-//typedef void *HMMIO;
-typedef SDL_RWops *HMMIO;
 typedef void *HACMSTREAM;
 typedef long LONG;
 typedef long HRESULT;
@@ -183,49 +181,11 @@ typedef struct {
 } WAVEFORMATEX;
 #pragma pack()
 
-// MessageBox-Codes and stuff
-#define MB_ABORTRETRYIGNORE 0
-#define MB_CANCELTRYCONTINUE 0
-#define MB_HELP 0
-#define MB_OK 0
-#define MB_OKCANCEL 0
-#define MB_RETRYCANCEL 0
-#define MB_YESNO 0
-#define MB_YESNOCANCEL 0
-#define MB_ICONEXCLAMATION 0
-#define MB_ICONWARNING 0
-#define MB_ICONINFORMATION 0
-#define MB_ICONASTERISK 0
-#define MB_ICONQUESTION 0
-#define MB_ICONSTOP 0
-#define MB_ICONERROR 0
-#define MB_ICONHAND 0
-#define MB_DEFBUTTON1 0
-#define MB_DEFBUTTON2 0
-#define MB_DEFBUTTON3 0
-#define MB_DEFBUTTON4 0
-#define MB_APPLMODAL 0
-#define MB_SYSTEMMODAL 0
-#define MB_TASKMODAL 0
-#define MB_DEFAULT_DESKTOP_ONLY 0
-#define MB_RIGHT 0
-#define MB_RTLREADING 0
-#define MB_SETFOREGROUND 0
-#define MB_TOPMOST 0
-#define MB_SERVICE_NOTIFICATION 0
-#define MB_SERVICE_NOTIFICATION_NT3X 0
-
-int MessageBox(HWND h, const char *s1, const char *s2, int i);
-
 // thread/process related stuff
 #define _beginthread(x, y, z)
 #define _endthread()
 
 typedef SDL_mutex* CRITICAL_SECTION;
-
-// timer stuff
-typedef timeval TIMEVAL;
-bool QueryPerformanceCounter(LARGE_INTEGER *pcount);
 
 // file related items
 #define _MAX_FNAME					255
@@ -234,43 +194,6 @@ bool QueryPerformanceCounter(LARGE_INTEGER *pcount);
 #define SetCurrentDirectory(s)		_chdir(s)
 #define GetCurrentDirectory(i, s)	_getcwd((s), (i))
 #define _unlink(s)					unlink(s)
-
-// mmio stuff
-typedef struct {
-	DWORD		dwFlags;
-	FOURCC		fccIOProc;
-	LPMMIOPROC	pIOProc;
-	UINT		wErrorRet;
-	HTASK		hTask;
-	LONG		cchBuffer;
-	HPSTR		pchBuffer;
-	HPSTR		pchNext;
-	HPSTR		pchEndRead;
-	HPSTR		pchEndWrite;
-	LONG		lBufOffset;
-	LONG		lDiskOffset;
-	DWORD		adwInfo[4];
-	DWORD		dwReserved1;
-	DWORD		dwReserved2;
-	HMMIO		hmmio;
-} MMIOINFO;
-
-typedef MMIOINFO *LPMMIOINFO;
-
-#define FOURCC_MEM	0
-
-#define MMIO_READ		(1<<0)
-#define MMIO_READWRITE	(1<<1)
-#define MMIO_WRITE		(1<<2)
-#define MMIO_ALLOCBUF	(1<<3)
-
-#define MMIOERR_CANNOTWRITE		1
-
-HMMIO mmioOpen(LPSTR szFilename, LPMMIOINFO lpmmioinfo, DWORD dwOpenFlags);
-long mmioSeek(HMMIO hmmio, long lOffset, int iOrigin);
-long mmioRead(HMMIO hmmio, HPSTR pch, long cch);
-MMRESULT mmioClose(HMMIO hmmio, uint wFlags);
-
 
 int filelength(int fd);
 int _chdir(const char *path);
