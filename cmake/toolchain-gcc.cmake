@@ -27,6 +27,11 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -Wno-unused-variable -Wno-unused-but-set-variab
 
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wextra -Wshadow -Wno-unused-parameter")
 
+if (FSO_FATAL_WARNINGS)
+	# Make warnings fatal if the right variable is set
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+endif()
+
 set(CMAKE_EXE_LINKER_FLAGS "")
 
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "")
