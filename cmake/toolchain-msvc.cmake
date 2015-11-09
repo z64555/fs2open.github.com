@@ -1,4 +1,6 @@
 
+include(CheckCXXCompilerFlag)
+
 MESSAGE(STATUS "Doing configuration specific to visual studio...")
 
 set_property(GLOBAL PROPERTY DEBUG_CONFIGURATIONS Debug)
@@ -48,7 +50,6 @@ INCLUDE(MSVCMultipleProcessCompile)
 
 LIST(FIND POSSIBLE_INSTUCTION_SETS "${FSO_INSTRUCTION_SET}" SET_INDEX)
 
-include(CheckCXXCompilerFlag)
 IF (NOT SET_INDEX EQUAL 0)
 	SET(FOUND)
 
