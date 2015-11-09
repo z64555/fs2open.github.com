@@ -12,5 +12,5 @@ fi
 
 mkdir -p $HOME/cmake/
 
-wget -O /tmp/cmake.tar.gz http://www.cmake.org/files/v3.3/$FILENAME.tar.gz
+wget -O /tmp/cmake.tar.gz --no-check-certificate http://www.cmake.org/files/v3.3/$FILENAME.tar.gz
 tar -xzf /tmp/cmake.tar.gz -C $HOME/cmake/ --strip-components=1
