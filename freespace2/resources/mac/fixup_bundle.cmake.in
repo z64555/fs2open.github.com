@@ -1,5 +1,3 @@
 include(BundleUtilities)
 
-get_filename_component(APP_PATH "$<TARGET_FILE_DIR:Freespace2>/../.." ABSOLUTE)
-
-FIXUP_BUNDLE("${APP_PATH}" "" "@FSO_MAC_FRAMEWORKS@")
+FIXUP_BUNDLE("$<TARGET_FILE:Freespace2>" "" "@FSO_MAC_FRAMEWORKS@")
