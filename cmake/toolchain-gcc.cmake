@@ -7,11 +7,7 @@ if(DEFINED ENV{CXXFLAGS})
 endif(DEFINED ENV{CXXFLAGS})
 
 if(NOT CMAKE_CXX_FLAGS)
-	if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-		set(CMAKE_CXX_FLAGS "-mtune=generic -mfpmath=sse -msse -msse2 -ansi -pipe")
-	elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
-		set(CMAKE_CXX_FLAGS "-m64 -mtune=generic -msse -msse2 -ansi -pipe")
-	endif()
+	set(CMAKE_CXX_FLAGS "-march=native -pipe")
 endif(NOT CMAKE_CXX_FLAGS)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -funroll-loops -fsigned-char -Wno-unknown-pragmas")
