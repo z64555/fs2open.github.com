@@ -80,10 +80,6 @@ ELSEIF(APPLE)
 	find_lib(THEORA_LIBRARY Theora)
 	find_lib(VORBIS_LIBRARY Vorbis)
 
-	message(STATUS "${OGG_LIBRARY}")
-	message(STATUS "${THEORA_LIBRARY}")
-	message(STATUS "${VORBIS_LIBRARY}")
-
 	add_library(oggvorbis INTERFACE)
 	target_link_libraries(oggvorbis INTERFACE ${OGG_LIBRARY} ${THEORA_LIBRARY}
 		${VORBIS_LIBRARY})
