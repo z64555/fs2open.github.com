@@ -2,8 +2,9 @@
 MESSAGE(STATUS "Doing configuration specific to gcc...")
 
 unset(CMAKE_CXX_FLAGS)
-if(DEFINED $ENV{CXXFLAGS})
+if(DEFINED ENV{CXXFLAGS})
 	set(CMAKE_CXX_FLAGS $ENV{CXXFLAGS})
+	message("${CMAKE_CXX_FLAGS}")
 endif()
 
 if(NOT CMAKE_CXX_FLAGS)

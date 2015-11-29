@@ -2,7 +2,9 @@
 MESSAGE(STATUS "Doing configuration specific to clang...")
 
 unset(CMAKE_CXX_FLAGS)
-if(DEFINED $ENV{CXXFLAGS})
+	message(STATUS "$ENV{CXXFLAGS}")
+if(DEFINED ENV{CXXFLAGS})
+	message(STATUS "$ENV{CXXFLAGS}")
 	set(CMAKE_CXX_FLAGS $ENV{CXXFLAGS})
 endif()
 
