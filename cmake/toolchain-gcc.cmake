@@ -2,9 +2,9 @@
 MESSAGE(STATUS "Doing configuration specific to gcc...")
 
 unset(CMAKE_CXX_FLAGS)
-if(DEFINED ENV{CXXFLAGS})
+if(DEFINED $ENV{CXXFLAGS})
 	set(CMAKE_CXX_FLAGS $ENV{CXXFLAGS})
-endif(DEFINED ENV{CXXFLAGS})
+endif()
 
 if(NOT CMAKE_CXX_FLAGS)
 	set(CMAKE_CXX_FLAGS "-march=native -pipe")
