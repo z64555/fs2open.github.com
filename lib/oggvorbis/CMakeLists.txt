@@ -76,9 +76,9 @@ ELSEIF(APPLE)
 		endif()
 	endmacro(find_lib)
 
-	find_lib(OGG_LIBRARY ogg)
-	find_lib(THEORA_LIBRARY theora)
-	find_lib(VORBIS_LIBRARY vorbis)
+	find_lib(OGG_LIBRARY Ogg)
+	find_lib(THEORA_LIBRARY Theora)
+	find_lib(VORBIS_LIBRARY Vorbis)
 
 
 	add_library(oggvorbis INTERFACE)
