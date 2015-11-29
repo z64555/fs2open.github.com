@@ -7,6 +7,7 @@ if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     sudo apt-get install -y ninja-build libsdl2-dev
     FILENAME=cmake-3.3.1-Linux-x86_64
 elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
+    gem install xcpretty
     FILENAME=cmake-3.3.1-Darwin-universal
 fi
 
