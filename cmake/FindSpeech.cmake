@@ -1,4 +1,6 @@
 
+add_library(speech INTERFACE)
+
 if (WIN32)
 	find_package(WindowsSDK REQUIRED)
 	
@@ -11,8 +13,6 @@ if (WIN32)
 		NAMES sapi
 		PATHS ${LIB_DIRS}
 		NO_DEFAULT_PATH)
-	
-	add_library(speech INTERFACE)
 	
 	target_link_libraries(speech INTERFACE ${SPEECH_LIBRARY})
 	target_include_directories(speech INTERFACE ${INCLUDE_DIRS})

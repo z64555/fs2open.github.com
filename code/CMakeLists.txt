@@ -35,6 +35,7 @@ TARGET_LINK_LIBRARIES(code PUBLIC platform)
 TARGET_LINK_LIBRARIES(code PUBLIC compiler)
 
 IF (FSO_USE_SPEECH)
+	find_package(Speech REQUIRED)
 	target_link_libraries(code PUBLIC speech)
 ENDIF(FSO_USE_SPEECH)
 

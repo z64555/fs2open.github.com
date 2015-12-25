@@ -19,10 +19,6 @@ ADD_SUBDIRECTORY(openal)
 
 ADD_SUBDIRECTORY(libsdl)
 
-IF (FSO_USE_SPEECH)
-	ADD_SUBDIRECTORY(speech)
-ENDIF(FSO_USE_SPEECH)
-
 # These are only required for the web-ui which is non-Windows
 IF(UNIX)
 	ADD_SUBDIRECTORY(jansson)
