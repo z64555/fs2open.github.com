@@ -1,8 +1,23 @@
 
-add_library(speech STATIC IMPORTED GLOBAL)
-set_target_properties(speech
-	PROPERTIES
-		IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/lib/i386/sapi.lib
-		INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_LIST_DIR}/include
-)
-SET(SPEECH_LIBRARIES speech CACHE INTERNAL "Speach library")
+if (WIN32)
+	find_package(WindowsSDK REQUIRED)
+	
+	get_windowssdk_from_component(sapi.lib WIN_SDK)
+	
+	get_windowssdk_library_dirs("${WIN_SDK}" LIB_DIRS)
+	get_windowssdk_include_dirs("${WIN_SDK}" INCLUDE_DIRS)
+	
+	find_library(SPEECH_LIBRARY
+		NAMES sapi
+		PATHS ${LIB_DIRS}
+		NO_DEFAULT_PATH)
+	
+	add_library(speech INTERFACE)
+	
+	target_link_libraries(speech INTERFACE ${SPEECH_LIBRARY})
+	target_include_directories(speech INTERFACE ${INCLUDE_DIRS})
+else()
+	message(SEND_ERROR "Text to Speech is not supported on this platform!")
+endif()
+
+target_compile_definitions(speech INTERFACE -DFS2_SPEECH)

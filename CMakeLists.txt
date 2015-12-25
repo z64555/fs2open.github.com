@@ -63,9 +63,9 @@ if(NOT CMAKE_BUILD_TYPE AND NOT DEFINED CMAKE_CONFIGURATION_TYPES)
 endif(NOT CMAKE_BUILD_TYPE AND NOT DEFINED CMAKE_CONFIGURATION_TYPES)
 
 IF (WIN32)
-	OPTION(FSO_USE_SPEECH "Use Windows specific text-to-speach libraries" OFF)
+	OPTION(FSO_USE_SPEECH "Use Windows specific text-to-speach libraries" ON)
 
-	OPTION(FSO_USE_VOICEREC "Enable voice recognition support" OFF)
+	OPTION(FSO_USE_VOICEREC "Enable voice recognition support" ON)
 
 	OPTION(FSO_BUILD_FRED2 "Build FRED2 binary" OFF)
 ENDIF(WIN32)

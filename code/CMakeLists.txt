@@ -35,8 +35,7 @@ TARGET_LINK_LIBRARIES(code PUBLIC platform)
 TARGET_LINK_LIBRARIES(code PUBLIC compiler)
 
 IF (FSO_USE_SPEECH)
-	TARGET_LINK_LIBRARIES(code PUBLIC ${SPEECH_LIBRARIES})
-	target_compile_definitions(code PUBLIC -DFS2_SPEECH)
+	target_link_libraries(code PUBLIC speech)
 ENDIF(FSO_USE_SPEECH)
 
 # Headers for standalone "gui" on UNIX
