@@ -52,13 +52,6 @@ IF (FSO_BUILD_INCLUDED_LIBS OR NOT PNG_FOUND)
 			FOLDER "3rdparty"
 	)
 
-	IF(MSVC)
-		set_target_properties(png
-			PROPERTIES
-				STATIC_LIBRARY_FLAGS "/LTCG"
-		)
-	ENDIF(MSVC)
-
 	target_link_libraries(png PUBLIC ${ZLIB_LIBS})
 
 	SET(PNG_LIBS png CACHE INTERNAL "PNG library")
