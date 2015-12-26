@@ -1791,15 +1791,15 @@ void poly_list::calculate_tangent()
 		vm_vec_normalize_safe(t2);
 
 		// compute handedness (for all 3 verts)
-		vm_vec_crossprod(&cross, &norm[i], &tangent);
+		vm_vec_cross(&cross, &norm[i], &tangent);
 		scale = vm_vec_dot(&cross, &binormal);
 		tsb[i].scaler = (scale < 0.0f) ? -1.0f : 1.0f;
 
-		vm_vec_crossprod(&cross, &norm[i+1], &tangent);
+		vm_vec_cross(&cross, &norm[i+1], &tangent);
 		scale = vm_vec_dot(&cross, &binormal);
 		tsb[i+1].scaler = (scale < 0.0f) ? -1.0f : 1.0f;
 
-		vm_vec_crossprod(&cross, &norm[i+2], &tangent);
+		vm_vec_cross(&cross, &norm[i+2], &tangent);
 		scale = vm_vec_dot(&cross, &binormal);
 		tsb[i+2].scaler = (scale < 0.0f) ? -1.0f : 1.0f;
 	}
@@ -2055,12 +2055,14 @@ void gr_flip()
 	// m!m avoid running CHA_ONFRAME when the "Quit mission" popup is shown. See mantis 2446 for reference
 	if (!quit_mission_popup_shown)
 	{
+		profile_begin("LUA On Frame");
 		//WMC - Evaluate global hook if not override.
 		Script_system.RunBytecode(Script_globalhook);
 		//WMC - Do conditional hooks. Yippee!
 		Script_system.RunCondition(CHA_ONFRAME);
 		//WMC - Do scripting reset stuff
 		Script_system.EndFrame();
+		profile_end("LUA On Frame");
 	}
 
 	gr_screen.gf_flip();

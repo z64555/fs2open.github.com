@@ -1264,7 +1264,7 @@ void game_loading_callback_close()
 	// Make sure bar shows all the way over.
 	game_loading_callback(COUNT_ESTIMATE);
 	
-	int real_count __attribute__((__unused__)) = game_busy_callback( NULL );
+	int real_count __UNUSED = game_busy_callback( NULL );
 	io::mouse::CursorManager::get()->showCursor(true);
 
 	Game_loading_callback_inited = 0;
@@ -1428,7 +1428,7 @@ int game_start_mission()
 {
 	mprintf(( "=================== STARTING LEVEL LOAD ==================\n" ));
 
-	int s1 __attribute__((__unused__)) = timer_get_milliseconds();
+	int s1 __UNUSED = timer_get_milliseconds();
 
 	// clear post processing settings
 	gr_post_process_set_defaults();
@@ -1485,7 +1485,7 @@ int game_start_mission()
 
 	bm_print_bitmaps();
 
-	int e1 __attribute__((__unused__)) = timer_get_milliseconds();
+	int e1 __UNUSED = timer_get_milliseconds();
 
 	mprintf(("Level load took %f seconds.\n", (e1 - s1) / 1000.0f ));
 	return 1;
@@ -1744,7 +1744,7 @@ DCF(gamma,"Sets and saves Gamma Factor")
  */
 void game_init()
 {
-	int s1 __attribute__((__unused__)), e1 __attribute__((__unused__));
+	int s1 __UNUSED, e1 __UNUSED;
 	const char *ptr;
 	char whee[MAX_PATH_LEN];
 
@@ -3272,16 +3272,16 @@ void setup_environment_mapping(camid cid)
 
 	// face 3 (py / up)
 	memset( &new_orient, 0, sizeof(matrix) );
-	new_orient.vec.fvec.xyz.y =  (gr_screen.mode == GR_OPENGL) ? -1.0f :  1.0f;
-	new_orient.vec.uvec.xyz.z =  (gr_screen.mode == GR_OPENGL) ?  1.0f : -1.0f;
+	new_orient.vec.fvec.xyz.y =  (gr_screen.mode == GR_OPENGL) ?  1.0f : -1.0f;
+	new_orient.vec.uvec.xyz.z =  (gr_screen.mode == GR_OPENGL) ? -1.0f :  1.0f;
 	new_orient.vec.rvec.xyz.x =  1.0f;
 	render_environment(i, &cam_pos, &new_orient, new_zoom);
 	i++; // bump!
 
 	// face 4 (ny / down)
 	memset( &new_orient, 0, sizeof(matrix) );
-	new_orient.vec.fvec.xyz.y =  (gr_screen.mode == GR_OPENGL) ?  1.0f : -1.0f;
-	new_orient.vec.uvec.xyz.z =  (gr_screen.mode == GR_OPENGL) ? -1.0f :  1.0f;
+	new_orient.vec.fvec.xyz.y =  (gr_screen.mode == GR_OPENGL) ? -1.0f :  1.0f;
+	new_orient.vec.uvec.xyz.z =  (gr_screen.mode == GR_OPENGL) ?  1.0f : -1.0f;
 	new_orient.vec.rvec.xyz.x =  1.0f;
 	render_environment(i, &cam_pos, &new_orient, new_zoom);
 	i++; // bump!
@@ -5755,6 +5755,10 @@ void game_leave_state( int old_state, int new_state )
 				snd_aav_init();
 
 				freespace_stop_mission();
+				
+				if (Cmdline_benchmark_mode) {
+					gameseq_post_event( GS_EVENT_QUIT_GAME );
+				}
 			}
 			break;
 
@@ -5957,6 +5961,10 @@ void game_leave_state( int old_state, int new_state )
 
 		case GS_STATE_FICTION_VIEWER:
 			fiction_viewer_close();
+			common_select_close();
+			if (new_state == GS_STATE_MAIN_MENU) {
+				freespace_stop_mission();
+			}
 			break;
 
 		case GS_STATE_LAB:
