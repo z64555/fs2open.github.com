@@ -27,13 +27,11 @@ set_target_properties(mongoose
 		FOLDER "3rdparty"
 		INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}
 )
-
-IF(MSVC)
-	set_target_properties(mongoose
-		PROPERTIES
-			STATIC_LIBRARY_FLAGS "/LTCG"
-	)
-ENDIF(MSVC)
+	
+if (MSVC)
+	# Disable warnings if building from source
+	target_compile_options(mongoose PRIVATE "/W0")
+endif()
 
 SET(MONGOOSE_LIBS mongoose CACHE INTERNAL "mongoose library")
 

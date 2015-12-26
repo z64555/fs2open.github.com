@@ -174,13 +174,11 @@ ELSE(FSO_USE_LUAJIT)
 			PROPERTIES
 				FOLDER "3rdparty"
 		)
-
-		IF(MSVC)
-			set_target_properties(lua51
-				PROPERTIES
-					STATIC_LIBRARY_FLAGS "/LTCG"
-			)
-		ENDIF(MSVC)
+	
+		if (MSVC)
+			# Disable warnings if building from source
+			target_compile_options(lua51 PRIVATE "/W0")
+		endif()
 
 		SET(LUA_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE INTERNAL "Lua 5.1 include directory")
 

@@ -38,6 +38,11 @@ IF (FSO_BUILD_INCLUDED_LIBS OR NOT ZLIB_FOUND)
 			FOLDER "3rdparty"
 			DEFINE_SYMBOL ZLIB_DLL # This will only be defined if we are building a shared library
 	)
+	
+	if (MSVC)
+		# Disable warnings if building from source
+		target_compile_options(zlib PRIVATE "/W0")
+	endif()
 
 	IF(BUILD_SHARED_LIBS)
 		target_compile_definitions(zlib INTERFACE ZLIB_DLL)
