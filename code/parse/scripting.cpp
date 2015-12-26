@@ -1029,9 +1029,9 @@ int script_state::OutputMeta(char *filename)
 	}
 	else
 	{
-		fprintf(fp, "<html>\n<head>\n\t<title>Script Output - FSO v%i.%i.%i.%s (%s)</title>\n</head>\n", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD, FS_VERSION_REVIS, StateName);
+		fprintf(fp, "<html>\n<head>\n\t<title>Script Output - FSO v%i.%i.%i.%i (%s)</title>\n</head>\n", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD, FS_VERSION_REVIS, StateName);
 		fputs("<body>", fp);
-		fprintf(fp,"\t<h1>Script Output - FSO v%i.%i.%i.%s (%s)</h1>\n", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD, FS_VERSION_REVIS, StateName);
+		fprintf(fp,"\t<h1>Script Output - FSO v%i.%i.%i.%i (%s)</h1>\n", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD, FS_VERSION_REVIS, StateName);
 	}
 		
 	//Scripting languages links

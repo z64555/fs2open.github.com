@@ -760,7 +760,7 @@ void os_validate_parms(int argc, char *argv[])
 						printf("FreeSpace 2 Open, version %i.%i.%i\n", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD);
 					}
 					else {
-						printf("FreeSpace 2 Open, version %i.%i.%i.%s\n", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD, FS_VERSION_REVIS);
+						printf("FreeSpace 2 Open, version %i.%i.%i.%i\n", FS_VERSION_MAJOR, FS_VERSION_MINOR, FS_VERSION_BUILD, FS_VERSION_REVIS);
 					}
 					printf("Website: http://scp.indiegames.us\n");
 					printf("Mantis (bug reporting): http://scp.indiegames.us/mantis/\n\n");
