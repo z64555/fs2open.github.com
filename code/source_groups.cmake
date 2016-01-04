@@ -244,6 +244,7 @@ set (file_root_globalincs
 	globalincs/safe_strings_test.cpp
 	globalincs/systemvars.cpp
 	globalincs/systemvars.h
+	globalincs/toolchain.h
 	globalincs/version.cpp
 	globalincs/version.h
 	globalincs/vmallocator.h
@@ -258,6 +259,14 @@ IF (WIN32)
 		globalincs/windebug.cpp
 	)
 ENDIF(WIN32)
+
+set(file_root_globalincs_toolchain
+	globalincs/toolchain/clang.h
+	globalincs/toolchain/doxygen.h
+	globalincs/toolchain/gcc.h
+	globalincs/toolchain/mingw.h
+	globalincs/toolchain/msvc.h
+)
 
 # Graphics files
 set (file_root_graphics
@@ -939,6 +948,7 @@ source_group("GameSequence"                       FILES ${file_root_gamesequence
 source_group("GameSnd"                            FILES ${file_root_gamesnd})
 source_group("Generated Files"                    FILES ${file_root_generated})
 source_group("GlobalIncs"                         FILES ${file_root_globalincs})
+source_group("GlobalIncs\\Toolchain"              FILES ${file_root_globalincs_toolchain})
 source_group("Graphics"                           FILES ${file_root_graphics})
 source_group("Graphics\\OpenGLGr"                 FILES ${file_root_graphics_openglgr})
 source_group("Graphics\\OpenGLGr\\OpenGL CPPs"    FILES ${file_root_graphics_openglgr_opengl_cpps})
@@ -1014,6 +1024,7 @@ set (file_root
 	${file_root_gamesnd}
 	${file_root_generated}
 	${file_root_globalincs}
+	${file_root_globalincs_toolchain}
 	${file_root_graphics}
 	${file_root_graphics_openglgr}
 	${file_root_graphics_openglgr_opengl_cpps}
