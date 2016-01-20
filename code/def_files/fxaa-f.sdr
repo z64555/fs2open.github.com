@@ -1,14 +1,6 @@
 #extension GL_EXT_gpu_shader4 : enable
 #define FXAA_EARLY_EXIT 1
 #define FXAA_DISCARD 1
-#if SHADER_MODEL == 2
-	#define FXAA_GLSL_120 1
-	#define FXAA_GLSL_130 0
-#endif
-#if SHADER_MODEL > 2
-	#define FXAA_GLSL_120 0
-	#define FXAA_GLSL_130 1
-#endif
 #ifndef FXAA_FAST_PIXEL_OFFSET
 	#ifdef GL_EXT_gpu_shader4
 		#define FXAA_FAST_PIXEL_OFFSET 1

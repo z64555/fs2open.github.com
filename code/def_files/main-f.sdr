@@ -65,7 +65,7 @@ varying float clip_distance;
 varying vec4 position;
 varying vec3 lNormal;
 
-#if SHADER_MODEL == 2
+#if __VERSION__ == 120
   #define MAX_LIGHTS 2
 #else
   #define MAX_LIGHTS 8
@@ -256,7 +256,7 @@ void main()
    float dist;
    #pragma optionNV unroll all
    for (int i = 0; i < MAX_LIGHTS; ++i) {
- #if SHADER_MODEL > 2
+ #if __VERSION__ > 120
       if (i > n_lights)
          break;
  #endif
@@ -266,7 +266,7 @@ void main()
       lightDir = normalize(gl_LightSource[i].position.xyz);
       float attenuation = 1.0;
  #ifndef FLAG_DEFERRED
-  #if SHADER_MODEL > 2
+  #if __VERSION__ > 120
       if (gl_LightSource[i].position.w == 1.0) {
   #else
       if (gl_LightSource[i].position.w == 1.0 && i != 0) {
@@ -274,7 +274,7 @@ void main()
           // Positional light source
           dist = distance(gl_LightSource[i].position.xyz, position.xyz);
           lightDir = (gl_LightSource[i].position.xyz - position.xyz);
-  #if SHADER_MODEL > 2
+  #if __VERSION__ > 120
           if (gl_LightSource[i].spotCutoff < 91.0) {  // Tube light
               float beamlength = length(gl_LightSource[i].spotDirection);
               vec3 beamDir = normalize(gl_LightSource[i].spotDirection);
