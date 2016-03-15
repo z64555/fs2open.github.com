@@ -9,7 +9,6 @@ target_compile_features(code PUBLIC ${REQUIRED_CXX_FEATURES})
 
 INCLUDE(default_files.cmake)
 
-target_compile_definitions(code PUBLIC "$<$<CONFIG:RELEASE>:NDEBUG>;$<$<CONFIG:DEBUG>:_DEBUG>")
 if (MSVC)
 	target_compile_definitions(code PUBLIC "PDB_DEBUGGING=1")
 endif(MSVC)

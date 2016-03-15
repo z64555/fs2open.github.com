@@ -8,6 +8,8 @@ set_property(GLOBAL PROPERTY DEBUG_CONFIGURATIONS Debug)
 option(MSVC_USE_RUNTIME_DLL "Use the dynamically linked version of the runtime" OFF)
 MARK_AS_ADVANCED(FORCE MSVC_USE_RUNTIME_DLL)
 
+target_compile_definitions(compiler INTERFACE "$<$<CONFIG:RELEASE>:NDEBUG>;$<$<CONFIG:DEBUG>:_DEBUG>")
+
 # Base
 set(CMAKE_C_FLAGS "/MP /GS- /analyze- /Zc:wchar_t /errorReport:prompt /WX- /Zc:forScope /Gd /EHsc /nologo")
 set(CMAKE_CXX_FLAGS "/MP /GS- /analyze- /Zc:wchar_t /errorReport:prompt /WX- /Zc:forScope /Gd /EHsc /nologo")

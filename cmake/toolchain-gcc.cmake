@@ -11,6 +11,8 @@ if(NOT CMAKE_CXX_FLAGS)
 	set(CMAKE_CXX_FLAGS "-march=native -pipe")
 endif(NOT CMAKE_CXX_FLAGS)
 
+target_compile_definitions(compiler INTERFACE "$<$<CONFIG:RELEASE>:NDEBUG>;$<$<CONFIG:DEBUG>:_DEBUG>")
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -funroll-loops -fsigned-char -Wno-unknown-pragmas")
 
 # Omit "deprecated conversion from string constant to 'char*'" warnings.
