@@ -7,7 +7,7 @@ endmacro(set_if_not_defined)
 
 set_if_not_defined(FSO_VERSION_MAJOR 3)
 set_if_not_defined(FSO_VERSION_MINOR 7)
-set_if_not_defined(FSO_VERSION_BUILD 3)
+set_if_not_defined(FSO_VERSION_BUILD 5)
 
 # A numeric revision e.g. the CI build number
 set_if_not_defined(FSO_VERSION_REVISION 0)
