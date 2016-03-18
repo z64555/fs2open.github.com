@@ -8,8 +8,6 @@ if(DEFINED ENV{CXXFLAGS})
 	set(CMAKE_CXX_FLAGS $ENV{CXXFLAGS})
 endif()
 
-target_compile_definitions(compiler INTERFACE "$<$<CONFIG:RELEASE>:NDEBUG>;$<$<CONFIG:DEBUG>:_DEBUG>")
-
 if(NOT CMAKE_CXX_FLAGS)
 	set(CMAKE_CXX_FLAGS "-march=native -pipe")
 endif(NOT CMAKE_CXX_FLAGS)

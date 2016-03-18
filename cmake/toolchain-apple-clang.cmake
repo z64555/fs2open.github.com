@@ -1,8 +1,6 @@
 
 MESSAGE(STATUS "Doing configuration specific to Apple Clang...")
 
-target_compile_definitions(compiler INTERFACE "$<$<CONFIG:RELEASE>:NDEBUG>;$<$<CONFIG:DEBUG>:_DEBUG>")
-
 # TODO: Actually add Mac specific flags here...
 
 # Suppress specific warning
