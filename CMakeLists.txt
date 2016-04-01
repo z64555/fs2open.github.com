@@ -98,6 +98,8 @@ SET(FSO_FREESPACE_PATH "${CMAKE_INSTALL_PREFIX}" CACHE FILEPATH "The path of the
 
 SET(FSO_RUN_ARGUMENTS "" CACHE STRING "Additional arguments passed to a generated executable when run with the generated build files.")
 
+option(FSO_INSTALL_DEBUG_FILES "Install some debug files (currently only PDB files on windows)" OFF)
+
 LIST(FIND POSSIBLE_INSTUCTION_SETS "${FSO_INSTRUCTION_SET}" SET_INDEX)
 
 IF (SET_INDEX LESS 0)
@@ -116,6 +118,7 @@ MARK_AS_ADVANCED(FORCE FSO_USE_LUAJIT)
 MARK_AS_ADVANCED(FORCE FSO_DEVELOPMENT_MODE)
 MARK_AS_ADVANCED(FORCE FSO_FATAL_WARNINGS)
 MARK_AS_ADVANCED(FORCE COTIRE_ENABLE)
+mark_as_advanced(FORCE FSO_INSTALL_DEBUG_FILES)
 
 IF(COTIRE_ENABLE)
 	# Include cotire file from https://github.com/sakra/cotire/
