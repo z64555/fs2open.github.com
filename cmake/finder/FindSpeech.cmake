@@ -13,6 +13,10 @@ if (WIN32)
 		NAMES sapi
 		PATHS ${LIB_DIRS}
 		NO_DEFAULT_PATH)
+		
+	if (NOT SPEECH_LIBRARY)
+		message(SEND_ERROR "Text to speech library could not be found! Either install it or disable the speech option.")
+	endif()
 	
 	target_link_libraries(speech INTERFACE ${SPEECH_LIBRARY})
 	target_include_directories(speech INTERFACE ${INCLUDE_DIRS})
