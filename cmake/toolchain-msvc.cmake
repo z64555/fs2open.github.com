@@ -1,4 +1,5 @@
 
+include(EnableExtraCompilerWarnings)
 include(CheckCXXCompilerFlag)
 
 MESSAGE(STATUS "Doing configuration specific to visual studio...")
@@ -20,6 +21,8 @@ set(CMAKE_C_FLAGS_RELEASE "/GL /W2 /Gy- /Ox /Ot /Ob2 /fp:precise /GF /Oy /Oi /Zi
 set(CMAKE_CXX_FLAGS_RELEASE "/GL /W2 /Gy- /Ox /Ot /Ob2 /fp:precise /GF /Oy /Oi /Zi /W3")
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/OPT:REF /LTCG /INCREMENTAL:NO")
 set(CMAKE_STATIC_LINKER_FLAGS_RELEASE "/LTCG")
+
+globally_enable_extra_compiler_warnings()
 
 CHECK_CXX_COMPILER_FLAG("/Zo" MSVC_COMPILER_SUPPORTS_ARCH_ZO)
 

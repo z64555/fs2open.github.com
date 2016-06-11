@@ -1,4 +1,6 @@
 
+include(EnableExtraCompilerWarnings)
+
 MESSAGE(STATUS "Doing configuration specific to gcc...")
 
 unset(CMAKE_CXX_FLAGS)
@@ -11,7 +13,8 @@ if(NOT CMAKE_CXX_FLAGS)
 	set(CMAKE_CXX_FLAGS "-march=native -pipe")
 endif(NOT CMAKE_CXX_FLAGS)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -funroll-loops -fsigned-char -Wno-unknown-pragmas")
+globally_enable_extra_compiler_warnings()
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -fsigned-char -Wno-unknown-pragmas")
 
 # Omit "deprecated conversion from string constant to 'char*'" warnings.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-write-strings")
@@ -20,9 +23,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated -Wno-char-subscripts")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
+
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-array-bounds")
 
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wextra -Wshadow -Wno-unused-parameter")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wshadow")
 
 if (FSO_FATAL_WARNINGS)
 	# Make warnings fatal if the right variable is set
