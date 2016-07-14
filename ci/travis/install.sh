@@ -4,7 +4,7 @@ set -e
 
 FILENAME=
 if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    sudo apt-get install -y ninja-build libsdl2-dev
+    sudo apt-get install -y libsdl2-dev
     FILENAME=cmake-3.4.3-Linux-x86_64
 elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
     gem install xcpretty xcpretty-travis-formatter thefox-pastebin

@@ -1,5 +1,6 @@
 # Clang
 include(EnableExtraCompilerWarnings)
+include(CheckCXXCompilerFlag)
 
 MESSAGE(STATUS "Doing configuration specific to clang...")
 
@@ -33,9 +34,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-parameter")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-shift-negative-value")
+check_cxx_compiler_flag(-Wshift-negative-value SUPPORTS_SHIFT_NEGATIVE_VALUE)
+if(SUPPORTS_SHIFT_NEGATIVE_VALUE)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-shift-negative-value")
+endif()
 
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 ")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -Wno-unused-variable")
 
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -Wshadow")
 
