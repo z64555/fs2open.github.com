@@ -197,9 +197,20 @@ void gr_opengl_activate(int active)
 
 void gr_opengl_clear()
 {
-	glClearColor(gr_screen.current_clear_color.red / 255.0f,
-		gr_screen.current_clear_color.green / 255.0f,
-		gr_screen.current_clear_color.blue / 255.0f, gr_screen.current_clear_color.alpha / 255.0f);
+	float red = gr_screen.current_clear_color.red / 255.0f;
+	float green = gr_screen.current_clear_color.green / 255.0f;
+	float blue = gr_screen.current_clear_color.blue / 255.0f;
+	float alpha = gr_screen.current_clear_color.alpha / 255.0f;
+
+	if ( High_dynamic_range ) {
+		const float SRGB_GAMMA = 2.2f;
+
+		red = pow(red, SRGB_GAMMA);
+		green = pow(green, SRGB_GAMMA);
+		blue = pow(blue, SRGB_GAMMA);
+	}
+
+	glClearColor(red, green, blue, alpha);
 
 	glClear ( GL_COLOR_BUFFER_BIT );
 }
@@ -354,19 +365,9 @@ void gr_opengl_print_screen(const char *filename)
 	GLuint pbo = 0;
 
 	// save to a "screenshots" directory and tack on the filename
-#ifdef SCP_UNIX
-	snprintf( tmp, MAX_PATH_LEN-1, "%s/%s/screenshots/%s.tga", detect_home(), Osreg_user_dir, filename);
-	_mkdir( tmp );
-#else
-	_getcwd( tmp, MAX_PATH_LEN-1 );
-	strcat_s( tmp, "\\screenshots\\" );
-	_mkdir( tmp );
+	snprintf(tmp, MAX_PATH_LEN-1, "screenshots/%s.tga", filename);
 
-	strcat_s( tmp, filename );
-	strcat_s( tmp, ".tga" );
-#endif
-
-	FILE *fout = fopen(tmp, "wb");
+	FILE *fout = fopen(os_get_config_path(tmp).c_str(), "wb");
 
 	if (fout == NULL) {
 		return;
@@ -1550,6 +1551,10 @@ bool gr_opengl_init()
 
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glHint(GL_FOG_HINT, GL_NICEST);
+
+	if ( Is_Extension_Enabled(OGL_ARB_SEAMLESS_CUBEMAP) ) {
+		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	}
 
 	glDepthRange(0.0, 1.0);
 

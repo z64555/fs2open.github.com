@@ -116,6 +116,9 @@ extern char *Cmdline_spew_mission_crcs;
 extern char *Cmdline_spew_table_crcs;
 extern int Cmdline_objupd;
 
+// Launcher related options
+extern bool Cmdline_portable_mode;
+
 // Troubleshooting
 extern int Cmdline_load_all_weapons;
 extern int Cmdline_nohtl;
@@ -133,6 +136,9 @@ extern char* Cmdline_keyboard_layout;
 extern bool Cmdline_gl_finish;
 extern bool Cmdline_no_geo_sdr_effects;
 extern bool Cmdline_set_cpu_affinity;
+#ifdef WIN32
+extern bool Cmdline_alternate_registry_path;
+#endif
 
 // Developer/Testing related
 extern char *Cmdline_start_mission;

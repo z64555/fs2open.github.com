@@ -670,21 +670,10 @@ set (file_root_osapi
 	osapi/dialogs.h
 	osapi/dialogs.cpp
 	osapi/osregistry.h
+	osapi/osregistry.cpp
 	osapi/outwnd.h
 	osapi/outwnd.cpp
 )
-
-IF(WIN32)
-set (file_root_osapi
-	${file_root_osapi}
-	osapi/osregistry.cpp
-)
-ELSEIF(UNIX)
-set (file_root_osapi
-	${file_root_osapi}
-	osapi/osregistry_unix.cpp
-)
-ENDIF(WIN32)
 
 # Palman files
 set (file_root_palman

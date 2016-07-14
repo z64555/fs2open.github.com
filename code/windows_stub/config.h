@@ -72,6 +72,7 @@
 #include <unistd.h>
 #include "SDL.h"
 #include "SDL_thread.h"
+#include <cmath>
 
 
 // don't verbose stub funtions unless we're debugging
@@ -211,7 +212,7 @@ void strlwr(char *s);
 char *strnset( char *string, int fill, size_t count);
 
 // other stuff
-#define _isnan(f)     isnan(f)
+#define _isnan(f)     std::isnan(f)
 #define _hypot(x, y)  hypot(x, y)
 
 int MulDiv(int number, int numerator, int denominator);

@@ -1,8 +1,8 @@
 /*
  * Copyright (C) Volition, Inc. 1999.  All rights reserved.
  *
- * All source code herein is the property of Volition, Inc. You may not sell 
- * or otherwise commercially exploit the source or things you created based on the 
+ * All source code herein is the property of Volition, Inc. You may not sell
+ * or otherwise commercially exploit the source or things you created based on the
  * source.
  *
 */
@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <algorithm>
 
 #include "globalincs/pstypes.h"
 #include "io/key.h"
@@ -41,6 +42,37 @@
 // used to be a THREADED define but only use multiple process threads if this is defined
 // NOTE: may hang if set
 //#define THREADED_PROCESS
+
+namespace
+{
+	const char* ORGANIZATION_NAME = "HardLightProductions";
+	const char* APPLICATION_NAME = "FreeSpaceOpen";
+
+	char* preferencesPath = nullptr;
+
+	bool checkedLegacyMode = false;
+	bool legacyMode = false;
+
+	const char* getPreferencesPath()
+	{
+		// Lazily initialize the preferences path
+		if (!preferencesPath) {
+			preferencesPath = SDL_GetPrefPath(ORGANIZATION_NAME, APPLICATION_NAME);
+			if (!preferencesPath) {
+				mprintf(("Failed to get preferences path from SDL: %s\n", SDL_GetError()));
+			}
+		}
+
+		if (preferencesPath) {
+			return preferencesPath;
+		}
+		else {
+			// No preferences path, try current directory
+			return "." DIR_SEPARATOR_STR;
+		}
+
+	}
+}
 
 // ----------------------------------------------------------------------------------------------------
 // PLATFORM SPECIFIC FUNCTION FOLLOWING
@@ -78,7 +110,7 @@ BOOL __stdcall os_enum_windows( HWND hwnd, LPARAM param )
 	int len;
 
 	len = GetWindowText( hwnd, tmp, 127 );
-	 
+
 	if ( len )	{
 		if ( strstr( tmp, search_string ))	{
 			Os_debugger_running = 1;		// found the search string!
@@ -103,9 +135,9 @@ void os_check_debugger()
 	// Find my EXE file name
 	hMod = GetModuleHandle(NULL);
 	if ( !hMod ) return;
-	namelen = GetModuleFileName( hMod, myname, 127 );	
+	namelen = GetModuleFileName( hMod, myname, 127 );
 	if ( namelen < 1 ) return;
-	
+
 	// Strip off the .EXE
 	p = strstr( myname, ".exe" );
 	if (!p) return;
@@ -114,7 +146,7 @@ void os_check_debugger()
 	// Move p to point to first letter of EXE filename
 	while( (*p!='\\') && (*p!='/') && (*p!=':') )
 		p--;
-	p++;	
+	p++;
 	if ( strlen(p) < 1 ) return;
 
 	// Build what the debugger's window title would be if the debugger is running...
@@ -172,23 +204,6 @@ void os_deinit();
 // OSAPI FUNCTIONS
 //
 
-// detect home/base directory  (placeholder for possible future Win32 userdir support, just returns current directory for now)
-char Cur_path[MAX_PATH_LEN];
-const char *detect_home(void)
-{
-#ifdef WIN32
-	if ( strlen(Cfile_root_dir) )
-		return Cfile_root_dir;
-
-	memset( Cur_path, 0, MAX_PATH_LEN );
-	GetCurrentDirectory( MAX_PATH_LEN-1, Cur_path );
-
-	return Cur_path;
-#else
-	return (getenv("HOME"));
-#endif
-}
-
 // initialization/shutdown functions -----------------------------------------------
 
 // If app_name is NULL or ommited, then TITLE is used
@@ -198,7 +213,7 @@ void os_init(const char * wclass, const char * title, const char *app_name, cons
 	os_init_registry_stuff(Osreg_company_name, title, version_string);
 
 	strcpy_s( szWinTitle, title );
-	strcpy_s( szWinClass, wclass );	
+	strcpy_s( szWinClass, wclass );
 
 	Os_lock = SDL_CreateMutex();
 
@@ -208,7 +223,7 @@ void os_init(const char * wclass, const char * title, const char *app_name, cons
 	{
 		fprintf(stderr, "Couldn't init SDL: %s", SDL_GetError());
 		mprintf(("Couldn't init SDL: %s", SDL_GetError()));
-		
+
 		exit(1);
 		return;
 	}
@@ -294,13 +309,54 @@ void os_sleep(uint ms)
 // Used to stop message processing
 void os_suspend()
 {
-	SDL_LockMutex( Os_lock );	
+	SDL_LockMutex( Os_lock );
 }
 
 // resume message processing
 void os_resume()
 {
-	SDL_UnlockMutex( Os_lock );	
+	SDL_UnlockMutex( Os_lock );
+}
+
+bool os_is_legacy_mode()
+{
+	// Make this check a little faster by caching the result
+	if (checkedLegacyMode)
+	{
+		return legacyMode;
+	}
+
+	if (Cmdline_portable_mode) {
+		// When the portable mode option is given, non-legacy is implied
+		legacyMode = false;
+		checkedLegacyMode = true;
+	}
+	else {
+		SCP_stringstream path_stream;
+		path_stream << getPreferencesPath() << DIR_SEPARATOR_CHAR << Osreg_config_file_name;
+
+		// Use the existance of the fs2_open.ini file for determining if the launcher supports the new mode
+		auto file = fopen(path_stream.str().c_str(), "r");
+
+		if (file == nullptr)
+		{
+			legacyMode = true;
+		}
+		else
+		{
+			fclose(file);
+			legacyMode = false;
+		}
+	}
+
+	if (legacyMode) {
+		// Print a message for the people running it from the terminal
+		fprintf(stdout, "FSO is running in legacy config mode. Please either update your launcher or"
+			" copy the configuration and pilot files to '%s' for better future compatibility.", getPreferencesPath());
+	}
+
+	checkedLegacyMode = true;
+	return legacyMode;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -310,6 +366,11 @@ void os_resume()
 // called at shutdown. Makes sure all thread processing terminates.
 void os_deinit()
 {
+	if (preferencesPath) {
+		SDL_free(preferencesPath);
+		preferencesPath = nullptr;
+	}
+
 	SDL_DestroyMutex(Os_lock);
 
 	SDL_Quit();
@@ -335,7 +396,7 @@ void os_poll()
 							if (!Cmdline_no_unfocus_pause) {
 								game_pause();
 							}
-							
+
 							fAppActive = false;
 						}
 						break;
@@ -348,7 +409,7 @@ void os_poll()
 							if (!Cmdline_no_unfocus_pause) {
 								game_unpause();
 							}
-							
+
 							fAppActive = true;
 						}
 						break;
@@ -358,9 +419,9 @@ void os_poll()
 						break;
 				}
 			}
-			
+
 			gr_activate(fAppActive);
-			
+
 			break;
 		}
 
@@ -419,7 +480,7 @@ void os_poll()
 				joy_set_button_state(event.jbutton.button, event.jbutton.state);
 			}
 			break;
-		
+
 		case SDL_JOYDEVICEADDED:
 		case SDL_JOYDEVICEREMOVED:
 			joy_device_changed(event.jdevice.type, event.jdevice.which);
@@ -429,10 +490,48 @@ void os_poll()
 			break;
 
 		case SDL_MOUSEWHEEL:
-			mousewheel_motion(event.wheel.x, event.wheel.y);
+		#if SDL_VERSION_ATLEAST(2, 0, 4)
+			mousewheel_motion(event.wheel.x, event.wheel.y, event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED);
+		#else
+			mousewheel_motion(event.wheel.x, event.wheel.y, false);
+		#endif
 			break;
 		}
 	}
+}
+
+SCP_string os_get_config_path(const SCP_string& subpath)
+{
+	// Make path platform compatible
+	SCP_string compatiblePath(subpath);
+	std::replace(compatiblePath.begin(), compatiblePath.end(), '/', DIR_SEPARATOR_CHAR);
+
+	SCP_stringstream ss;
+
+	if (Cmdline_portable_mode) {
+		// Use the current directory
+		ss << "." << DIR_SEPARATOR_CHAR << compatiblePath;
+		return ss.str();
+	}
+
+	// Avoid infinite recursion when checking legacy mode
+	if (os_is_legacy_mode()) {
+#ifdef WIN32
+		// Use the current directory
+		ss << ".";
+#else
+		extern const char* Osreg_user_dir_legacy;
+		// Use the home directory
+		ss << getenv("HOME") << DIR_SEPARATOR_CHAR << Osreg_user_dir_legacy;
+#endif
+
+		ss << DIR_SEPARATOR_CHAR << compatiblePath;
+		return ss.str();
+	}
+
+	ss << getPreferencesPath() << compatiblePath;
+
+	return ss.str();
 }
 
 void debug_int3(char *file, int line)

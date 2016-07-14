@@ -1129,7 +1129,6 @@ static int framenum;
  */
 void game_loading_callback(int count)
 {	
-	int new_framenum;
 	game_do_networking();
 
 	Assert( Game_loading_callback_inited==1 );
@@ -1137,12 +1136,12 @@ void game_loading_callback(int count)
 
 	int do_flip = 0;
 
-	new_framenum = ((Game_loading_ani.num_frames*count) / COUNT_ESTIMATE)+1;
-	if ( new_framenum > Game_loading_ani.num_frames-1 )	{
-		new_framenum = Game_loading_ani.num_frames-1;
-	} else if ( new_framenum < 0 )	{
-		new_framenum = 0;
+	int new_framenum = bm_get_anim_frame(Game_loading_ani.first_frame, static_cast<float>(count), static_cast<float>(COUNT_ESTIMATE));
+	// retail incremented the frame number by one, essentially skipping the 1st frame except for single-frame anims
+	if (Game_loading_ani.num_frames > 1 && new_framenum < Game_loading_ani.num_frames-1) {
+		new_framenum++;
 	}
+
 	//make sure we always run forwards - graphical hack
 	if(new_framenum > framenum)
 		framenum = new_framenum;
@@ -3297,7 +3296,7 @@ void setup_environment_mapping(camid cid)
 void game_environment_map_gen()
 {
 	const int size = 512;
-	int gen_flags = (BMP_FLAG_RENDER_TARGET_STATIC | BMP_FLAG_CUBEMAP);
+	int gen_flags = (BMP_FLAG_RENDER_TARGET_STATIC | BMP_FLAG_CUBEMAP | BMP_FLAG_RENDER_TARGET_MIPMAP);
 
 	if ( !Cmdline_env ) {
 		return;
@@ -5649,6 +5648,7 @@ void game_leave_state( int old_state, int new_state )
 					gameseq_post_event( GS_EVENT_QUIT_GAME );
 				}
 			}
+			io::mouse::CursorManager::get()->showCursor(true);
 			break;
 
 		case GS_STATE_TECH_MENU:
@@ -6198,6 +6198,8 @@ void mouse_force_pos(int x, int y);
 			// clear multiplayer button info			i
 			extern button_info Multi_ship_status_bi;
 			memset(&Multi_ship_status_bi, 0, sizeof(button_info));
+			
+			io::mouse::CursorManager::get()->showCursor(false, true);
 			break;
 
 		case GS_STATE_HUD_CONFIG:
@@ -8604,8 +8606,6 @@ int actual_main(int argc, char *argv[])
 
 	SCP_mspdbcs_Initialise();
 #else
-	char userdir[MAX_PATH];
-
 #ifdef APPLE_APP
 	// Finder sets the working directory to the root of the drive so we have to get a little creative
 	// to find out where on the disk we should be running from for CFILE's sake.
@@ -8615,8 +8615,7 @@ int actual_main(int argc, char *argv[])
 #endif
 
 	// create user's directory	
-	snprintf(userdir, MAX_PATH - 1, "%s/%s/", detect_home(), Osreg_user_dir);
-	_mkdir(userdir);
+	_mkdir(os_get_config_path().c_str());
 #endif
 
 #if defined(GAME_ERRORLOG_TXT) && defined(_MSC_VER)

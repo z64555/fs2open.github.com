@@ -22,6 +22,7 @@
 #include "globalincs/version.h"
 #include "globalincs/pstypes.h"
 #include "osapi/osapi.h"
+#include "cfile/cfilesystem.h"
 
 #ifdef _WIN32
 #include <io.h>
@@ -199,7 +200,6 @@ Flag exe_params[] =
 	{ "-no_glsl",			"Disable GLSL (shader) support",			true,	0,					EASY_DEFAULT,		"Troubleshoot",	"http://www.hard-light.net/wiki/index.php/Command-Line_Reference#-no_glsl", },
 	{ "-ati_swap",			"Fix colour issues on some ATI cards",		true,	0,					EASY_DEFAULT,		"Troubleshoot",	"http://www.hard-light.net/wiki/index.php/Command-Line_Reference#-ati_swap", },
 	{ "-no_3d_sound",		"Use only 2D/stereo for sound effects",		true,	0,					EASY_DEFAULT,		"Troubleshoot",	"http://www.hard-light.net/wiki/index.php/Command-Line_Reference#-no_3d_sound", },
-	{ "-disable_glsl_model","Don't use shaders for model rendering",	true,	0,					EASY_DEFAULT,		"Troubleshoot",	"http://www.hard-light.net/wiki/index.php/Command-Line_Reference#-disable_glsl_model", },
 	{ "-mipmap",			"Enable mipmapping",						true,	0,					EASY_DEFAULT_MEM,	"Troubleshoot",	"http://www.hard-light.net/wiki/index.php/Command-Line_Reference#-mipmap", },
 	{ "-use_gldrawelements","Don't use glDrawRangeElements",			true,	0,					EASY_DEFAULT,		"Troubleshoot",	"http://www.hard-light.net/wiki/index.php/Command-Line_Reference#-use_gldrawelements", },
 	{ "-old_collision",		"Use old collision detection system",		true,	EASY_DEFAULT,		EASY_ALL_ON,		"Troubleshoot",	"http://www.hard-light.net/wiki/index.php/Command-Line_Reference#-old_collision", },
@@ -207,6 +207,9 @@ Flag exe_params[] =
 	{ "-no_batching",		"Disable batched model rendering",			true,	0,					EASY_DEFAULT,		"Troubleshoot", "", },
 	{ "-no_geo_effects",	"Disable geometry shader for effects",		true,	0,					EASY_DEFAULT,		"Troubleshoot", "", },
 	{ "-set_cpu_affinity",	"Sets processor affinity to config value",	true,	0,					EASY_DEFAULT,		"Troubleshoot", "", },
+#ifdef WIN32
+	{ "-fix_registry",	"Use a different registry path",			true,		0,					EASY_DEFAULT,		"Troubleshoot", "", },
+#endif
 
 	{ "-ingame_join",		"Allow in-game joining",					true,	0,					EASY_DEFAULT,		"Experimental",	"http://www.hard-light.net/wiki/index.php/Command-Line_Reference#-ingame_join", },
 	{ "-voicer",			"Enable voice recognition",					true,	0,					EASY_DEFAULT,		"Experimental",	"http://www.hard-light.net/wiki/index.php/Command-Line_Reference#-voicer", },
@@ -413,6 +416,11 @@ char *Cmdline_spew_mission_crcs = NULL;
 char *Cmdline_spew_table_crcs = NULL;
 int Cmdline_objupd = 3;		// client object updates on LAN by default
 
+// Launcher related options
+cmdline_parm portable_mode("-portable_mode", NULL, AT_NONE);
+
+bool Cmdline_portable_mode = false;
+
 // Troubleshooting
 cmdline_parm loadallweapons_arg("-loadallweps", NULL, AT_NONE);	// Cmdline_load_all_weapons
 cmdline_parm htl_arg("-nohtl", NULL, AT_NONE);				// Cmdline_nohtl  -- don't use HT&L
@@ -431,6 +439,9 @@ cmdline_parm old_collision_system("-old_collision", NULL, AT_NONE); // Cmdline_o
 cmdline_parm gl_finish ("-gl_finish", NULL, AT_NONE);
 cmdline_parm no_geo_sdr_effects("-no_geo_effects", NULL, AT_NONE);
 cmdline_parm set_cpu_affinity("-set_cpu_affinity", NULL, AT_NONE);
+#ifdef WIN32
+cmdline_parm fix_registry("-fix_registry", NULL, AT_NONE);
+#endif
 
 int Cmdline_load_all_weapons = 0;
 int Cmdline_nohtl = 0;
@@ -447,6 +458,9 @@ char* Cmdline_keyboard_layout = NULL;
 bool Cmdline_gl_finish = false;
 bool Cmdline_no_geo_sdr_effects = false;
 bool Cmdline_set_cpu_affinity = false;
+#ifdef WIN32
+bool Cmdline_alternate_registry_path = false;
+#endif
 
 // Developer/Testing related
 cmdline_parm start_mission_arg("-start_mission", "Skip mainhall and run this mission", AT_STRING);	// Cmdline_start_mission
@@ -899,59 +913,51 @@ void os_init_cmdline(int argc, char *argv[])
 	FILE *fp;
 	
 	if (!has_cmdline_only_flag(argc, argv)) {
-
-		// read the cmdline_fso.cfg file from the data folder, and pass the command line arguments to
-		// the the parse_parms and validate_parms line.  Read these first so anything actually on
-		// the command line will take precedence
+		// Only parse the config file in the current directory if we are in legacy config mode
+		if (os_is_legacy_mode()) {
+			// read the cmdline_fso.cfg file from the data folder, and pass the command line arguments to
+			// the the parse_parms and validate_parms line.  Read these first so anything actually on
+			// the command line will take precedence
 #ifdef _WIN32
-		fp = fopen("data\\cmdline_fso.cfg", "rt");
+			fp = fopen("data\\cmdline_fso.cfg", "rt");
 #elif defined(APPLE_APP)
-		char resolved_path[MAX_PATH], data_path[MAX_PATH_LEN];
-     
-		GetCurrentDirectory(MAX_PATH_LEN-1, data_path);
-		snprintf(resolved_path, MAX_PATH, "%s/data/cmdline_fso.cfg", data_path);
+			char resolved_path[MAX_PATH], data_path[MAX_PATH_LEN];
 
-		fp = fopen(resolved_path, "rt");
+			GetCurrentDirectory(MAX_PATH_LEN - 1, data_path);
+			snprintf(resolved_path, MAX_PATH, "%s/data/cmdline_fso.cfg", data_path);
+
+			fp = fopen(resolved_path, "rt");
 #else
-		fp = fopen("data/cmdline_fso.cfg", "rt");
+			fp = fopen("data/cmdline_fso.cfg", "rt");
 #endif
 
-		// if the file exists, get a single line, and deal with it
-		if ( fp ) {
-			char *buf, *p;
+			// if the file exists, get a single line, and deal with it
+			if (fp) {
+				char *buf, *p;
 
-			size_t len = filelength( fileno(fp) ) + 2;
-			buf = new char [len];
+				size_t len = filelength(fileno(fp)) + 2;
+				buf = new char[len];
 
-			if (fgets(buf, len-1, fp) != nullptr)
-			{
-				// replace the newline character with a NULL
-				if ( (p = strrchr(buf, '\n')) != NULL ) {
-					*p = '\0';
+				if (fgets(buf, len - 1, fp) != nullptr)
+				{
+					// replace the newline character with a NULL
+					if ((p = strrchr(buf, '\n')) != NULL) {
+						*p = '\0';
+					}
+
+#ifdef SCP_UNIX
+					// append a space for the os_parse_parms() check
+					strcat_s(buf, len, " ");
+#endif
+					os_process_cmdline(buf);
 				}
-
-#ifdef SCP_UNIX
-				// append a space for the os_parse_parms() check
-				strcat_s(buf, len, " ");
-#endif
-				os_process_cmdline(buf);
+				delete[] buf;
+				fclose(fp);
 			}
-			delete [] buf;
-			fclose(fp);
 		}
 
-#ifdef SCP_UNIX
 		// parse user specific cmdline_fso config file (will supersede options in global file)
-		char cmdname[MAX_PATH];
-
-		snprintf(cmdname, MAX_PATH, "%s/%s/data/cmdline_fso.cfg", detect_home(), Osreg_user_dir);
-		fp = fopen(cmdname, "rt");
-
-		if ( !fp ) {
-			// try for non "_fso", for older code versions
-			snprintf(cmdname, MAX_PATH, "%s/%s/data/cmdline.cfg", detect_home(), Osreg_user_dir);
-			fp = fopen(cmdname, "rt");
-		}
+		fp = fopen(os_get_config_path("data/cmdline_fso.cfg").c_str(), "rt");
 
 		// if the file exists, get a single line, and deal with it
 		if ( fp ) {
@@ -975,7 +981,6 @@ void os_init_cmdline(int argc, char *argv[])
 			delete [] buf;
 			fclose(fp);
 		}
-#endif
 	} // If cmdline included PARSE_COMMAND_LINE_STRING
     
 	// By parsing cmdline last, anything actually on the command line will take precedence.
@@ -1620,8 +1625,8 @@ bool SetCmdlineParams()
 	if ( ship_choice_3d_arg.found() )
 		Cmdline_ship_choice_3d = 1;
 
-    if ( weapon_choice_3d_arg.found() )
-        Cmdline_weapon_choice_3d = 1;
+	if ( weapon_choice_3d_arg.found() )
+		Cmdline_weapon_choice_3d = 1;
 
 	if ( show_mem_usage_arg.found() )
 		Cmdline_show_mem_usage = 1;
@@ -1677,6 +1682,17 @@ bool SetCmdlineParams()
 	{
 		Cmdline_set_cpu_affinity = true;
 	}
+
+	if (portable_mode.found())
+	{
+		Cmdline_portable_mode = true;
+	}
+	
+#ifdef WIN32
+	if (fix_registry.found()) {
+		Cmdline_alternate_registry_path = true;
+	}
+#endif
 
 	if ( snd_preload_arg.found() )
 	{
