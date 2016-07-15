@@ -1,22 +1,21 @@
-language: cpp
-sudo: true
+language: generic
+sudo: required
+dist: trusty
 addons:
     apt:
         packages:
+            - build-essential
+            - clang
+            - ninja-build
             - libopenal-dev
             - libogg-dev
             - libvorbis-dev
-            - build-essential
-            - automake
-            - autoconf
             - libtheora-dev
             - libreadline6-dev
             - libpng12-dev
             - libjpeg62-dev
             - liblua5.1-0-dev
             - libjansson-dev
-            - libtool
-            - ninja-build
     coverity_scan:
         project:
             name: "scp-fs2open/fs2open.github.com"
