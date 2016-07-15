@@ -14,6 +14,7 @@ addons:
             - libjpeg62-dev
             - liblua5.1-0-dev
             - libjansson-dev
+            - libsdl2-dev
     coverity_scan:
         project:
             name: "scp-fs2open/fs2open.github.com"
