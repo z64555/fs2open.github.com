@@ -4,8 +4,6 @@ dist: trusty
 addons:
     apt:
         packages:
-            - build-essential
-            - clang
             - ninja-build
             - libopenal-dev
             - libogg-dev
