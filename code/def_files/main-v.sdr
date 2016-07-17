@@ -132,7 +132,6 @@ void main()
  // Environment mapping reflection vector.
 	envReflect = reflect(normalize(position.xyz), normal);
 	envReflect = vec3(envMatrix * vec4(envReflect, 0.0));
-	envReflect = normalize(envReflect);
  #endif
  #ifdef FLAG_FOG
 	fogDist = clamp((gl_Position.z - gl_Fog.start) * 0.75 * gl_Fog.scale, 0.0, 1.0);

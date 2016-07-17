@@ -136,6 +136,7 @@ endif()
 SET(file_root_def_files_files
 	def_files/ai_profiles.tbl
 	def_files/autopilot.tbl
+	def_files/bloom-comp-f.sdr
 	def_files/blur-f.sdr
 	def_files/brightpass-f.sdr
 	def_files/controlconfigdefaults.tbl
@@ -160,12 +161,15 @@ SET(file_root_def_files_files
 	def_files/main-g.sdr
 	def_files/main-v.sdr
 	def_files/objecttypes.tbl
+	def_files/passthrough-f.sdr
+	def_files/passthrough-v.sdr
 	def_files/post-f.sdr
 	def_files/post-v.sdr
 	def_files/post_processing.tbl
 	def_files/shadowdebug-f.sdr
 	def_files/shadowdebug-v.sdr
 	def_files/species_defs.tbl
+	def_files/tonemapping-f.sdr
 	def_files/video-f.sdr
 	def_files/video-v.sdr
 )

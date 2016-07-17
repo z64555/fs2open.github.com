@@ -2,6 +2,7 @@ uniform sampler2D tex;
 uniform float timer;
 uniform sampler2D bloomed;
 uniform float bloom_intensity;
+uniform int levels;
 #ifdef FLAG_DISTORT_NOISE
 uniform float noise_amount;
 #endif
@@ -40,15 +41,19 @@ void main()
 	vec2 distort = vec2(0, 0);
  #endif
  // Global constant
-	vec4 color_in;
+	vec4 color_in = texture2D(tex, gl_TexCoord[0].xy + distort);
 	vec4 color_out;
  // Bloom
 	if (bloom_intensity > 0.0) {
-		color_in = texture2D(tex, gl_TexCoord[0].xy + distort);
-		vec4 color_bloom = texture2D(bloomed, gl_TexCoord[0].xy + distort);
-		color_in = mix(color_in,  max(color_in + 0.7 * color_bloom, color_bloom), bloom_intensity);
-	} else {
-		color_in = texture2D(tex, gl_TexCoord[0].xy + distort);
+		vec3 bloom = vec3(0.0, 0.0, 0.0);
+		float factor = 0.0;
+		for (int mipmap = 0; mipmap < levels; ++mipmap) {
+			float scale = 1.0/exp2(float(mipmap));
+			factor += scale;
+			bloom += texture2DLod(bloomed, gl_TexCoord[0].xy + distort, float(mipmap)).rgb * scale;
+		}
+		bloom /= factor;
+		color_in.rgb += bloom;
 	}
  #ifdef FLAG_SATURATION
  // Saturation

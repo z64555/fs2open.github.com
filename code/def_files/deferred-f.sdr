@@ -24,6 +24,18 @@ uniform vec3 coneDir;
 #define ENV_ALPHA_FACTOR				0.3
 #define GLOW_MAP_INTENSITY				1.5
 #define AMBIENT_LIGHT_BOOST			1.0
+vec3 FresnelSchlick(vec3 specColor, vec3 light, vec3 halfVec)
+{
+	return specColor + (vec3(1.0) - specColor) * pow(1.0 - clamp(dot(light, halfVec), 0.0, 1.0), 5.0);
+}
+vec3 SpecularBlinnPhong(vec3 specColor, vec3 light, vec3 normal, vec3 halfVec, float specPower, float dotNL)
+{
+	return FresnelSchlick(max(specColor, vec3(0.04)), light, halfVec) * ((specPower + 2) / 8 ) * pow(clamp(dot(normal, halfVec), 0.0, 1.0), specPower) * dotNL;
+}
+vec4 SpecularLegacy(vec4 specColor, vec3 normal, vec3 halfVec, float specPower)
+{
+	return specColor * pow(clamp(dot(normal, halfVec), 0.0, 1.0), specPower);
+}
 void main()
 {
 	vec2 screenPos = gl_FragCoord.xy * vec2(invScreenWidth, invScreenHeight);
@@ -53,7 +65,8 @@ void main()
 		discard;
 	vec3 color = texture2D(ColorBuffer, screenPos).rgb;
 	vec4 normal = texture2D(NormalBuffer, screenPos);
-	vec3 specfactor = texture2D(SpecBuffer, screenPos).rgb;
+	vec4 specColor = texture2D(SpecBuffer, screenPos);
+	float gloss = specColor.a;
 	vec3 eyeDir = normalize(-position);
 
 	if(lightType == 1)
@@ -72,7 +85,9 @@ void main()
 	lightDir /= dist;
 	vec3 halfVec = normalize(lightDir + eyeDir);
 	float NdotHV = clamp(dot(normal.xyz, halfVec), 0.0, 1.0);
-	gl_FragData[0].rgb = color * (diffuseLightColor * (max(dot(normal.xyz, lightDir), 0.0)) * attenuation);
-   gl_FragData[0].rgb += pow(NdotHV, specFactor) * SPEC_INTENSITY_POINT * specfactor * specLightColor * attenuation;
+	float NdotL = clamp(dot(normal.xyz, lightDir), 0.0, 1.0);
+	gl_FragData[0].rgb = color * (diffuseLightColor * NdotL * attenuation);
+	gl_FragData[0].rgb += SpecularBlinnPhong(specLightColor, lightDir, normal.xyz, halfVec, exp2(10.0 * gloss + 1.0), NdotL).rgb * specColor.rgb * attenuation;
 	gl_FragData[0].a = 1.0;
+	gl_FragData[0] = max(gl_FragData[0], vec4(0.0));
 }
