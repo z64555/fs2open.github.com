@@ -11,7 +11,8 @@
 struct def_file
 {
 	const char* filename;
-	const char* contents;
+	const void* contents;
+	const size_t size;
 };
 
 #include "def_files/generated_def_files-generic.h"
@@ -25,8 +26,8 @@ default_file defaults_get_file(const char *filename)
 	{
 		if (!stricmp(iter->filename, filename))
 		{
-			def.data = reinterpret_cast<const void*>(iter->contents);
-			def.size = strlen(iter->contents);
+			def.data = iter->contents;
+			def.size = iter->size;
 
 			return def;
 		}

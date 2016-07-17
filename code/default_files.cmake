@@ -53,11 +53,11 @@ else()
 		set(FIELD_NAME "Default_${FIELD_NAME}")
 
 		set(INCLUDE_LIST "${INCLUDE_LIST}\n#include \"${file}.h\"")
-		set(ARRAY_ELEMENTS "${ARRAY_ELEMENTS}\n\t{ \"${FILENAME}\" , ${FIELD_NAME} },")
+		set(ARRAY_ELEMENTS "${ARRAY_ELEMENTS}\n\t{ \"${FILENAME}\" , ${FIELD_NAME} , ${FIELD_NAME}_size },")
 
 		ADD_CUSTOM_COMMAND(
 			OUTPUT ${ALL_OUTPUTS}
-			COMMAND embedfile -text "${INPUT_NAME}" "${OUTPUT}" "${FIELD_NAME}"
+			COMMAND embedfile "${INPUT_NAME}" "${OUTPUT}" "${FIELD_NAME}"
 			DEPENDS ${INPUT_NAME}
 			COMMENT "Generating string file for ${INPUT_NAME}"
 			)
