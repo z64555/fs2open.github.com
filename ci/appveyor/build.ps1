@@ -1,4 +1,4 @@
-cmake --build --config "$Env:CONFIGURATION" .
+cmake --build . --config "$Env:CONFIGURATION"
 
 if (! ($?)) {
     exit 1
