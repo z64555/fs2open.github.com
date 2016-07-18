@@ -17,8 +17,6 @@ install:
   - cinst ninja -y
   - SET PATH=%PATH%;C:\tools\ninja
 before_build:
-  - mkdir build
-  - cd build
-  - cmake -DCMAKE_BUILD_TYPE="%CONFIGURATION%" -DFSO_BUILD_FRED2=ON -G "Ninja" ..
+  - ps: . ci/appveyor/before_build.ps1
 build_script:
-  - cmake --build .
+  - ps: . ci/appveyor/build.ps1
