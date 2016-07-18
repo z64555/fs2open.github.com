@@ -5,6 +5,11 @@ macro(set_if_not_defined VAR VALUE)
     endif()
 endmacro(set_if_not_defined)
 
+if (EXISTS "${PROJECT_SOURCE_DIR}/version_override.cmake")
+    # This allows to override the values by using a special file
+    include("${PROJECT_SOURCE_DIR}/version_override.cmake")
+endif()
+
 set_if_not_defined(FSO_VERSION_MAJOR 3)
 set_if_not_defined(FSO_VERSION_MINOR 7)
 set_if_not_defined(FSO_VERSION_BUILD 5)
@@ -22,6 +27,7 @@ else()
 endif()
 
 set(FSO_FULL_VERSION_STRING "${FSO_VERSION_MAJOR}.${FSO_VERSION_MINOR}.${FSO_VERSION_BUILD}")
+set(FSO_PRODUCT_VERSION_STRING "${FSO_FULL_VERSION_STRING}")
 
 if (NOT "${FSO_VERSION_REVISION}" STREQUAL "0")
     set(FSO_FULL_VERSION_STRING "${FSO_FULL_VERSION_STRING}.${FSO_VERSION_REVISION_STR}")
