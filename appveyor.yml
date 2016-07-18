@@ -5,7 +5,6 @@ branches:
 configuration:
   - Debug
   - Release
-platform: x86
 shallow_clone: true
 environment:
   matrix:
