@@ -1,4 +1,4 @@
-msbuild "FS2_Open.sln" /p:Configuration="$Env:CONFIGURATION" /m /verbosity:minimal
+cmake --build --config "$Env:CONFIGURATION" .
 
 if (! ($?)) {
     exit 1

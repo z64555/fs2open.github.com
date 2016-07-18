@@ -12,11 +12,6 @@ environment:
       CMAKE_GENERATOR: Visual Studio 10 2010
     - VS_VERSION: 14
       CMAKE_GENERATOR: Visual Studio 14 2015
-init:
-  - CALL "C:\Program Files (x86)\Microsoft Visual Studio %VS_VERSION%.0\VC\vcvarsall.bat" x86
-install:
-  - cinst ninja -y
-  - SET PATH=%PATH%;C:\tools\ninja
 before_build:
   - ps: . $Env:APPVEYOR_BUILD_FOLDER/ci/appveyor/before_build.ps1
 build_script:
