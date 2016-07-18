@@ -17,6 +17,6 @@ install:
   - cinst ninja -y
   - SET PATH=%PATH%;C:\tools\ninja
 before_build:
-  - ps: . ci/appveyor/before_build.ps1
+  - ps: . $Env:APPVEYOR_BUILD_FOLDER/ci/appveyor/before_build.ps1
 build_script:
-  - ps: . ci/appveyor/build.ps1
+  - ps: . $Env:APPVEYOR_BUILD_FOLDER/ci/appveyor/build.ps1
