@@ -10,7 +10,7 @@ if [ "$TRAVIS_OS_NAME" = "linux" ]; then
 
 	wget -O /tmp/cmake.tar.gz --no-check-certificate https://www.cmake.org/files/v3.4/$FILENAME.tar.gz
 	tar -xzf /tmp/cmake.tar.gz -C $HOME/cmake/ --strip-components=1
-	export PATH=$HOME/cmake:$PATH
+	export PATH=$HOME/cmake/bin:$PATH
 elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
     gem install xcpretty xcpretty-travis-formatter thefox-pastebin
     
