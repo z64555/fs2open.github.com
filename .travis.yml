@@ -81,7 +81,7 @@ before_install:
     - "./ci/travis/before_install.sh"
 install:
     - "./ci/travis/install.sh"
-    - export PATH=$HOME/cmake:$PATH
+    - export PATH=$HOME/cmake/bin:$PATH
 before_script:
     - "./ci/travis/before_script.sh"
 script:
