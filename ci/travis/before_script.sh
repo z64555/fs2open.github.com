@@ -8,7 +8,7 @@ cd build
 if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     export CXXFLAGS="-m64 -mtune=generic -mfpmath=sse -msse -msse2 -pipe -Wno-unknown-pragmas"
     CMAKE="$HOME/cmake/bin/cmake -G Ninja -DFSO_FATAL_WARNINGS=ON"
-    if [[ "$BUILD_DEPLOYMENT" == true ]]; then
+    if [ "$BUILD_DEPLOYMENT" == true ]; then
         for config in $BUILD_CONFIGS
         do
             mkdir -p $config
