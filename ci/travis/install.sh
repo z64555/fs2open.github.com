@@ -4,6 +4,7 @@ set -ex
 
 FILENAME=
 if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+	sudo apt-get -u upgrade
     sudo apt-get -y install cmake
 elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
     gem install xcpretty xcpretty-travis-formatter thefox-pastebin
