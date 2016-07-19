@@ -27,8 +27,8 @@ if ([ "$RELEASE_BUILD" = true ] || [ "$NIGHTLY_BUILD" = true ]); then
     BUILD_DEPLOYMENT=true;
 fi
 
-if [[ "$BUILD_DEPLOYMENT" == true ]]; then
-    if ([[ "$TRAVIS_OS_NAME" == "linux" ]] && [[ "$CC" == "clang" ]]); then
+if [ "$BUILD_DEPLOYMENT" = true ]; then
+    if ([ "$TRAVIS_OS_NAME" = "linux" ] && [ "$CC" = "clang" ]); then
         echo "Skipping non-release compiler";
         exit 0;
     fi
