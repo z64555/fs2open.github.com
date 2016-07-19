@@ -6,7 +6,6 @@ BUILD_DEPLOYMENT=false
 BUILD_CONFIGS="Debug Release"
 VERSION_NAME=""
 PACKAGE_NAME=""
-TRAVIS_TAG="nightly_$TRAVIS_BUILD_ID"
 
 RELEASE_PATTERN="^release_(.*)$"
 NIGHTLY_PATTERN="^nightly_(.*)$"
