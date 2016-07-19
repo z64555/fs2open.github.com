@@ -4,10 +4,12 @@ set -ex
 mkdir -p /tmp/builds
 
 if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+	cd build
     for config in $BUILD_CONFIGS
     do
-        cd "build/$config"
+        cd "$config"
         ninja install
+        cd ..
     done
 
     ls -al /tmp/release
