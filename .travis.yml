@@ -56,7 +56,7 @@ matrix:
           env: CONFIGURATION="Debug"
         - os: linux
           compiler: clang
-          env: CONFIGURATION="Debug"
+          env: CONFIGURATION="Debug" CC=clang CXX=clang++
         - os: osx
           compiler: clang
           env: CONFIGURATION="Debug"
@@ -66,7 +66,7 @@ matrix:
           env: CONFIGURATION="Release"
         - os: linux
           compiler: clang
-          env: CONFIGURATION="Release"
+          env: CONFIGURATION="Release" CC=clang CXX=clang++
         - os: osx
           compiler: clang
           env: CONFIGURATION="Release"

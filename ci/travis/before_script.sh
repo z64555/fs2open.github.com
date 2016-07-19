@@ -7,7 +7,7 @@ cd build
 
 if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     export CXXFLAGS="-m64 -mtune=generic -mfpmath=sse -msse -msse2 -pipe"
-    CMAKE="$HOME/cmake/bin/cmake -G Ninja -DFSO_FATAL_WARNINGS=ON"
+    CMAKE="cmake -G Ninja -DFSO_FATAL_WARNINGS=ON"
     if [ "$BUILD_DEPLOYMENT" = true ]; then
         for config in $BUILD_CONFIGS
         do
@@ -20,6 +20,5 @@ if [ "$TRAVIS_OS_NAME" = "linux" ]; then
         eval $CMAKE -DCMAKE_BUILD_TYPE=$CONFIGURATION ..
     fi
 elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-    $HOME/cmake/CMake.app/Contents/bin/cmake -G "Xcode" -DFSO_FATAL_WARNINGS=ON -DFSO_INSTALL_DEBUG_FILES=ON \
-        -DCMAKE_INSTALL_PREFIX="/tmp/release" ..
+    cmake -G "Xcode" -DFSO_FATAL_WARNINGS=ON -DFSO_INSTALL_DEBUG_FILES=ON -DCMAKE_INSTALL_PREFIX="/tmp/release" ..
 fi
