@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 
 set -ex
+mkdir -p /tmp/builds
 
 if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     for config in $BUILD_CONFIGS
