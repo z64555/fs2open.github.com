@@ -166,3 +166,13 @@ ENDIF(MSVC_USE_RUNTIME_DLL)
 include(package)
 
 include(doxygen)
+
+# Print used options to log
+IF (WIN32)
+	message(STATUS "Building FRED2: ${FSO_BUILD_FRED2}")
+	message(STATUS "Using text to speech: ${FSO_USE_SPEECH}")
+	message(STATUS "Using voice recogition: ${FSO_USE_VOICEREC}")
+ENDIF(WIN32)
+message(STATUS "Building FSO tools: ${FSO_BUILD_TOOLS}")
+message(STATUS "Building wxFRED: ${FSO_BUILD_WXFRED2}")
+message(STATUS "Fatal warnings: ${FSO_FATAL_WARNINGS}")
