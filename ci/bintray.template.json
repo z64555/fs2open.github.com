@@ -1,8 +1,8 @@
 {
     "package": {
-        "name": "nightly",
+        "subject": "scp-fs2open",
         "repo": "FSO",
-        "subject": "asarium"
+        "name": "nightly",
     },
 
     "version": {
