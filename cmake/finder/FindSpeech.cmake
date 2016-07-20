@@ -3,24 +3,27 @@ add_library(speech INTERFACE)
 
 if (WIN32)
 	find_package(WindowsSDK REQUIRED)
+
+	foreach(dir ${WINDOWSSDK_DIRS})
+		get_windowssdk_library_dirs("${dir}" LIB_DIRS)
 	
-	get_windowssdk_from_component(sapi.lib WIN_SDK)
-	message(STATUS ">>> ${WIN_SDK}")
-	
-	get_windowssdk_library_dirs("${WIN_SDK}" LIB_DIRS)
-	get_windowssdk_include_dirs("${WIN_SDK}" INCLUDE_DIRS)
-	
-	message(STATUS ">>> ${LIB_DIRS}")
-	message(STATUS ">>> ${INCLUDE_DIRS}")
-	
-	find_library(SPEECH_LIBRARY
-		NAMES sapi
-		PATHS ${LIB_DIRS}
-		NO_DEFAULT_PATH)
-		
+		find_library(SPEECH_LIBRARY
+			NAMES sapi
+			PATHS ${LIB_DIRS}
+			NO_DEFAULT_PATH)
+
+		if (SPEECH_LIBRARY)
+			set(SDK_DIR "${dir}")
+			break()
+		endif()
+	endforeach()
+
 	if (NOT SPEECH_LIBRARY)
 		message(SEND_ERROR "Text to speech library could not be found! Either install it or disable the speech option.")
+		return()
 	endif()
+	
+	get_windowssdk_include_dirs("${SDK_DIR}" INCLUDE_DIRS)
 	
 	target_link_libraries(speech INTERFACE ${SPEECH_LIBRARY})
 	target_include_directories(speech INTERFACE ${INCLUDE_DIRS})
