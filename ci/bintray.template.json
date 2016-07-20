@@ -2,7 +2,7 @@
     "package": {
         "subject": "scp-fs2open",
         "repo": "FSO",
-        "name": "nightly",
+        "name": "nightly"
     },
 
     "version": {

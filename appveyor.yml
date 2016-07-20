@@ -29,7 +29,7 @@ deploy:
       username: asarium
       api_key:
           secure: 2lHma1ZreuB4CCE5hSdp+gqFjCMzUDj3tVJhP+D6EyF5wIVMLlwXFrISwnYu1kJi
-      subject: asarium
+      subject: scp-fs2open
       repo: FSO
       package: nightly
       version: $(VersionName)
