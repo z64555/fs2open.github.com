@@ -109,10 +109,10 @@ IF(COTIRE_ENABLE)
 	include(cotire)
 ENDIF(COTIRE_ENABLE)
 
-include(version)
 INCLUDE(globals)
 INCLUDE(toolchain)
 INCLUDE(platforms)
+include(version)
 
 INCLUDE(headers)
 
