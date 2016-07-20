@@ -80,6 +80,12 @@ macro(set_policy policy value)
 	endif ()
 endmacro(set_policy)
 
+macro(set_if_not_defined VAR VALUE)
+    if (NOT DEFINED ${VAR})
+        set(${VAR} ${VALUE})
+    endif()
+endmacro(set_if_not_defined)
+
 macro(configure_cotire target)
 	IF(COTIRE_ENABLE)
 		# Disable unity build as it doesn't work well for us
@@ -104,3 +110,21 @@ macro(add_target_copy_files)
 
 	SET(TARGET_COPY_FILES ${TARGET_COPY_FILES} ${ARGN} CACHE INTERNAL "" FORCE)
 endmacro(add_target_copy_files)
+
+function(detect_simd_instructions _out_var)
+	if(CMAKE_CROSSCOMPILING)
+		set(${_out_var} "" PARENT_SCOPE)
+	else()
+		message(STATUS "Detecting SIMD features of current CPU...")
+		TRY_RUN(RUN_RESULT COMPILE_RESULT "${CMAKE_BINARY_DIR}/temp" "${CMAKE_SOURCE_DIR}/cmake/cpufeatures.cpp"
+			RUN_OUTPUT_VARIABLE FEATURE_OUTPUT)
+		
+		IF(COMPILE_RESULT)
+			MESSAGE(STATUS "Detected compatibility for the ${FEATURE_OUTPUT} feature set.")
+			SET(${_out_var} ${FEATURE_OUTPUT} PARENT_SCOPE)
+		ELSE(COMPILE_RESULT)
+			MESSAGE("Compilation of CPU feature detector failed, please set the instruction set manually.")
+			set(${_out_var} "" PARENT_SCOPE)
+		ENDIF(COMPILE_RESULT)
+	endif()
+endfunction()

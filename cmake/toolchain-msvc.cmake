@@ -1,6 +1,7 @@
 
 include(EnableExtraCompilerWarnings)
 include(CheckCXXCompilerFlag)
+include(util)
 
 MESSAGE(STATUS "Doing configuration specific to visual studio...")
 
@@ -54,35 +55,50 @@ ENDIF(MSVC_USE_RUNTIME_DLL)
 
 INCLUDE(MSVCMultipleProcessCompile)
 
-LIST(FIND POSSIBLE_INSTUCTION_SETS "${FSO_INSTRUCTION_SET}" SET_INDEX)
+# Visual Studio supports compiling for multiple vector instruction sets
+SET(POSSIBLE_INSTUCTION_SETS "" SSE SSE2 AVX)
 
-IF (NOT SET_INDEX EQUAL 0)
-	SET(FOUND)
+if (NOT DEFINED MSVC_SIMD_INSTRUCTIONS)
+	detect_simd_instructions(MSVC_DETECTED_SIMD_INSTRUCTIONS)
 
-	FOREACH(list_index RANGE SET_INDEX 1)
-		CHECK_CXX_COMPILER_FLAG("/arch:${FSO_INSTRUCTION_SET}" COMPILER_SUPPORTS_ARCH_${FSO_INSTRUCTION_SET})
+	SET(MSVC_SIMD_INSTRUCTIONS "${MSVC_DETECTED_SIMD_INSTRUCTIONS}" CACHE FILEPATH "The SIMD instructions which will be used, possible values are ${POSSIBLE_INSTUCTION_SETS}")
+	MARK_AS_ADVANCED(FORCE MSVC_SIMD_INSTRUCTIONS)
+endif()
 
-		IF(COMPILER_SUPPORTS_ARCH_${FSO_INSTRUCTION_SET})
-			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /arch:${FSO_INSTRUCTION_SET}")
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:${FSO_INSTRUCTION_SET}")
+LIST(FIND POSSIBLE_INSTUCTION_SETS "${MSVC_SIMD_INSTRUCTIONS}" SET_INDEX)
 
-			SET(FOUND TRUE)
-			BREAK()
-		ENDIF(COMPILER_SUPPORTS_ARCH_${FSO_INSTRUCTION_SET})
-	ENDFOREACH(list_index)
+if (SET_INDEX LESS 0)
+	MESSAGE(STATUS "An invalid instruction set was specified, defaulting to no special compiler options.")
+else()
+	IF (NOT SET_INDEX EQUAL 0)
+		SET(FOUND)
 
-	IF(NOT FOUND)
-		# Don't set anything, it will likely not work
-		MESSAGE(STATUS "Your compiler does not support any optimization flags, defaulting to none")
-	ENDIF(NOT FOUND)
-ELSE(NOT SET_INDEX EQUAL 0)
-	CHECK_CXX_COMPILER_FLAG("/arch:IA32" COMPILER_SUPPORTS_ARCH_IA32)
+		FOREACH(list_index RANGE ${SET_INDEX} 1)
+			list(GET POSSIBLE_INSTUCTION_SETS ${list_index} _simd_set)
+			CHECK_CXX_COMPILER_FLAG("/arch:${_simd_set}" COMPILER_SUPPORTS_ARCH_${_simd_set})
 
-	IF(COMPILER_SUPPORTS_ARCH_IA32)
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /arch:IA32")
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:IA32")
-	ENDIF(COMPILER_SUPPORTS_ARCH_IA32)
-ENDIF(NOT SET_INDEX EQUAL 0)
+			IF(COMPILER_SUPPORTS_ARCH_${_simd_set})
+				set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /arch:${_simd_set}")
+				set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:${_simd_set}")
+
+				SET(FOUND TRUE)
+				BREAK()
+			ENDIF()
+		ENDFOREACH(list_index)
+
+		IF(NOT FOUND)
+			# Don't set anything, it will likely not work
+			MESSAGE(STATUS "Your compiler does not support any optimization flags, defaulting to none")
+		ENDIF(NOT FOUND)
+	ELSE()
+		CHECK_CXX_COMPILER_FLAG("/arch:IA32" COMPILER_SUPPORTS_ARCH_IA32)
+
+		IF(COMPILER_SUPPORTS_ARCH_IA32)
+			set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /arch:IA32")
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:IA32")
+		ENDIF(COMPILER_SUPPORTS_ARCH_IA32)
+	ENDIF()
+endif()
 
 target_compile_definitions(compiler INTERFACE _CRT_SECURE_NO_DEPRECATE
 	_CRT_SECURE_NO_WARNINGS _SECURE_SCL=0 NOMINMAX)

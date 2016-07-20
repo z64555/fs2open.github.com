@@ -38,10 +38,6 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/finder")
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/external/rpavlik-cmake-modules")
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/external/cotire")
 
-IF(NOT DEFINED FSO_INSTRUCTION_SET)
-	INCLUDE(cpufeatures)
-ENDIF(NOT DEFINED FSO_INSTRUCTION_SET)
-
 IF(RESET_INSTALL_PREFIX)
 	IF(NOT $ENV{FS2PATH} STREQUAL "")
 		IF(NOT IS_DIRECTORY $ENV{FS2PATH})
@@ -85,9 +81,6 @@ ENDIF()
 
 OPTION(FSO_BUILD_INCLUDED_LIBS "Build and use the included libraries istead of using the system headers and libraries" ${FSO_BUILD_INCLUDED_LIBS_DEFAULT})
 
-SET(POSSIBLE_INSTUCTION_SETS "" SSE SSE2 AVX)
-SET(FSO_INSTRUCTION_SET "" CACHE STRING "The instruction set enhancement to use, possible options are ${POSSIBLE_INSTUCTION_SETS}")
-
 OPTION(FSO_USE_LUAJIT "Use LuaJIT for Lua scripting, needs a working internet connection!" OFF)
 
 OPTION(FSO_USE_OPENALSOFT "Download and build OpenAL Soft instead of using the system libraries" OFF)
@@ -99,15 +92,6 @@ SET(FSO_FREESPACE_PATH "${CMAKE_INSTALL_PREFIX}" CACHE FILEPATH "The path of the
 SET(FSO_RUN_ARGUMENTS "" CACHE STRING "Additional arguments passed to a generated executable when run with the generated build files.")
 
 option(FSO_INSTALL_DEBUG_FILES "Install some debug files (currently only PDB files on windows)" OFF)
-
-LIST(FIND POSSIBLE_INSTUCTION_SETS "${FSO_INSTRUCTION_SET}" SET_INDEX)
-
-IF (SET_INDEX LESS 0)
-
-	MESSAGE(WARNING "Unrecognized instruction set '${FSO_INSTRUCTION_SET}'! Possible values: ${POSSIBLE_INSTUCTION_SETS}. Defaulting to no optionizations.")
-
-	SET(FSO_INSTRUCTION_SET "")
-ENDIF(SET_INDEX LESS 0)
 
 OPTION(COTIRE_ENABLE "Enable cotire, this speeds up builds but may cause issues while developing (default = OFF)" OFF)
 

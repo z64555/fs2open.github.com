@@ -1,9 +1,5 @@
 
-macro(set_if_not_defined VAR VALUE)
-    if (NOT DEFINED ${VAR})
-        set(${VAR} ${VALUE})
-    endif()
-endmacro(set_if_not_defined)
+include(util)
 
 if (EXISTS "${PROJECT_SOURCE_DIR}/version_override.cmake")
     # This allows to override the values by using a special file
