@@ -5,13 +5,13 @@ if (WIN32)
 	find_package(WindowsSDK REQUIRED)
 	
 	get_windowssdk_from_component(sapi.lib WIN_SDK)
-	message("${WIN_SDK}")
+	message(STATUS ">>> ${WIN_SDK}")
 	
 	get_windowssdk_library_dirs("${WIN_SDK}" LIB_DIRS)
 	get_windowssdk_include_dirs("${WIN_SDK}" INCLUDE_DIRS)
 	
-	message("${LIB_DIRS}")
-	message("${INCLUDE_DIRS}")
+	message(STATUS ">>> ${LIB_DIRS}")
+	message(STATUS ">>> ${INCLUDE_DIRS}")
 	
 	find_library(SPEECH_LIBRARY
 		NAMES sapi
