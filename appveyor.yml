@@ -1,7 +1,4 @@
 version: 1.0.0.{build}
-branches:
-  only:
-    - cmake
 configuration:
   - Debug
   - Release
@@ -16,3 +13,24 @@ before_build:
   - ps: . $Env:APPVEYOR_BUILD_FOLDER/ci/appveyor/before_build.ps1
 build_script:
   - ps: . $Env:APPVEYOR_BUILD_FOLDER/ci/appveyor/build.ps1
+
+
+deploy:
+    - provider: GitHub
+      auth_token:
+          secure: RWe6hwCcgBdklaYvjB62kzhKn7yDBJdqoDDKYViShaEV9HkJ75HbawsBcGBimRUu
+      on:
+          ReleaseBuild: true        # deploy on release push only
+
+    - provider: BinTray
+      username: asarium
+      api_key:
+          secure: 2lHma1ZreuB4CCE5hSdp+gqFjCMzUDj3tVJhP+D6EyF5wIVMLlwXFrISwnYu1kJi
+      subject: asarium
+      repo: FSO
+      package: nightly
+      version: $(VersionName)
+      publish: true
+      override: true
+      on:
+          NightlyBuild: true        # deploy on nightly push only
