@@ -24,8 +24,8 @@ if ([System.Convert]::ToBoolean($env:APPVEYOR_REPO_TAG) -And ("$env:APPVEYOR_REP
     Set-AppveyorBuildVariable 'PackageName' "nightly_$($matches[1])"
 	Set-AppveyorBuildVariable 'VersionName' "$($matches[1])"
 }
-    
-if (("$Env:CONFIGURATION" -eq "Release") -And ($Env:VS_VERSION -eq "14")) {
+
+if (($Env:Configuration -eq "Release") -And ($Env:VS_VERSION -eq "14")) {
     Set-AppveyorBuildVariable 'DeployConfig' 'true'
 } else {
     Set-AppveyorBuildVariable 'DeployConfig' 'false'
