@@ -2,7 +2,7 @@
 
 set -e
 
-cd travis-build
+cd build
 
 if [ "$TRAVIS_OS_NAME" = "linux" ]; then
     ninja
