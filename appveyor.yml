@@ -12,6 +12,7 @@ environment:
       CMAKE_GENERATOR: Visual Studio 14 2015
       PlatformToolset: v140_xp
 before_build:
+  - ps: . $Env:APPVEYOR_BUILD_FOLDER/ci/appveyor/check_release.ps1
   - ps: . $Env:APPVEYOR_BUILD_FOLDER/ci/appveyor/before_build.ps1
 build_script:
   - ps: . $Env:APPVEYOR_BUILD_FOLDER/ci/appveyor/build.ps1
