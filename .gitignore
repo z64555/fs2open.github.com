@@ -269,6 +269,10 @@ xcuserdata
 *.xccheckout
 
 ####
+# Visual Studio Code
+.vscode
+
+####
 # Documentation
 #
 documentation/doxygen/*
