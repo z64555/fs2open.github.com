@@ -4,7 +4,7 @@ write "$env:DeployConfig"
 
 if ([System.Convert]::ToBoolean($env:DeployBuild)) {
 	# Release build
-	if ([System.Convert]::ToBoolean($env:DeployConfig)) {
+	if (![System.Convert]::ToBoolean($env:DeployConfig)) {
         exit 0 # End the build
 	}
 
