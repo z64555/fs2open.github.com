@@ -1,10 +1,4 @@
 
-Set-AppveyorBuildVariable 'APPVEYOR_REPO_TAG' 'true'
-Set-AppveyorBuildVariable 'APPVEYOR_REPO_TAG_NAME' "nightly_$Env:APPVEYOR_BUILD_NUMBER"
-
-write "$env:APPVEYOR_REPO_TAG"
-write "$env:APPVEYOR_REPO_TAG_NAME"
-
 # Default values
 Set-AppveyorBuildVariable 'ReleaseBuild' 'false'
 Set-AppveyorBuildVariable 'NightlyBuild' 'false'
