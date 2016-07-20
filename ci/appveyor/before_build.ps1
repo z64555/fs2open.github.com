@@ -1,9 +1,9 @@
 New-Item build -type directory
 Set-Location -Path build
 
-$FRED_STATUS="ON"
+$AdditionalFeatures="ON"
 if ($Env:VS_VERSION -eq "10") {
-    $FRED_STATUS="OFF"
+    $AdditionalFeatures="OFF"
 }
 
-cmake -DFSO_BUILD_FRED2="${FRED_STATUS}" -DFSO_USE_SPEECH=OFF -DFSO_USE_VOICEREC=OFF -G "$Env:CMAKE_GENERATOR" ..
+cmake -DFSO_BUILD_FRED2="${AdditionalFeatures}" -DFSO_USE_SPEECH="${AdditionalFeatures}" -DFSO_USE_VOICEREC="${AdditionalFeatures}" -G "$Env:CMAKE_GENERATOR" ..
