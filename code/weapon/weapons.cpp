@@ -6713,6 +6713,234 @@ float Weapon_particle_spew_lifetime = 0.15f;
 float Weapon_particle_spew_scale = 0.8f;
 
 /**
+ * @brief Spews a default particle
+ * @sa weapon_maybe_spew_particles()
+ */
+void weapon_spew_particle_default(object* obj, int psi, vec3d &spawn_pos, vec3d &spawn_vel, vec3d &input_pos, vec3d &input_vel, vec3d &output_pos, vec3d &output_vel) {		// do the default pspew
+	weapon* wp = &Weapons[obj->instance];
+	weapon_info* wip = &Weapon_info[wp->weapon_info_index];
+	vec3d direct, direct_temp, particle_pos;
+	vec3d null_vec = ZERO_VECTOR;
+	vec3d vel;
+	float ang;
+
+	for (auto idx = 0; idx < wip->particle_spewers[psi].particle_spew_count; idx++) {
+		// get the backward vector of the weapon
+		direct = obj->orient.vec.fvec;
+		vm_vec_negate(&direct);
+
+		// randomly perturb x, y and z
+
+		// uvec
+		ang = frand_range(-PI_2, PI_2);	// fl_radian(frand_range(-90.0f, 90.0f));	-optimized by nuke
+		vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->orient.vec.fvec);
+		direct = direct_temp;
+		vm_vec_scale(&direct, wip->particle_spewers[psi].particle_spew_scale);
+
+		// rvec
+		ang = frand_range(-PI_2, PI_2);	// fl_radian(frand_range(-90.0f, 90.0f));	-optimized by nuke
+		vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->orient.vec.rvec);
+		direct = direct_temp;
+		vm_vec_scale(&direct, wip->particle_spewers[psi].particle_spew_scale);
+
+		// fvec
+		ang = frand_range(-PI_2, PI_2);	// fl_radian(frand_range(-90.0f, 90.0f));	-optimized by nuke
+		vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->orient.vec.uvec);
+		direct = direct_temp;
+		vm_vec_scale(&direct, wip->particle_spewers[psi].particle_spew_scale);
+
+		// get a velocity vector of some percentage of the weapon's velocity
+		vel = obj->phys_info.vel;
+		vm_vec_scale(&vel, wip->particle_spewers[psi].particle_spew_vel);
+
+		// maybe add in offset and initial velocity
+		if (!vm_vec_same(&spawn_vel, &vmd_zero_vector)) { // add in particle velocity if its available
+			vm_vec_add2(&vel, &spawn_vel);
+		}
+		if (!vm_vec_same(&spawn_pos, &vmd_zero_vector)) { // add offset if available
+			vm_vec_add2(&direct, &spawn_pos);
+		}
+
+		if (wip->wi_flags[Weapon::Info_Flags::Corkscrew]) {
+			vm_vec_add(&particle_pos, &obj->last_pos, &direct);
+		} else {
+			vm_vec_add(&particle_pos, &obj->pos, &direct);
+		}
+
+		// emit the particle
+		if (wip->particle_spewers[psi].particle_spew_anim.first_frame < 0) {
+			particle::create(&particle_pos, &vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_SMOKE);
+		} else {
+			particle::create(&particle_pos, &vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_BITMAP, wip->particle_spewers[psi].particle_spew_anim.first_frame);
+		}
+	}
+}
+
+/**
+ * @brief Spews a helix type particle
+ * @sa weapon_maybe_spew_particles()
+ */
+void weapon_spew_particle_helix(object* obj, int psi, vec3d &spawn_pos, vec3d &spawn_vel, vec3d &input_pos, vec3d &input_vel, vec3d &output_pos, vec3d &output_vel) {
+	weapon* wp = &Weapons[obj->instance];
+	weapon_info* wip = &Weapon_info[wp->weapon_info_index];
+	float segment_length = wip->max_speed * flFrametime; // determine how long the segment is
+	float segment_angular_length = PI2 * wip->particle_spewers[psi].particle_spew_rotation_rate * flFrametime; 	// determine how much the segment rotates
+	float rotation_value = (wp->lifeleft * PI2 * wip->particle_spewers[psi].particle_spew_rotation_rate) + wp->particle_spew_rand; // calculate a rotational start point based on remaining life
+	float inc = 1.0f / wip->particle_spewers[psi].particle_spew_count;	// determine our incriment
+	float particle_rot;
+	vec3d input_pos_l = ZERO_VECTOR;
+
+	for (float is = 0; is < 1; is += inc) { // use iterator as a scaler
+		particle_rot = rotation_value + (segment_angular_length * is); // find what point of the rotation were at
+		input_vel.xyz.x = sinf(particle_rot) * wip->particle_spewers[psi].particle_spew_scale; // determine x/y velocity based on scale and rotation
+		input_vel.xyz.y = cosf(particle_rot) * wip->particle_spewers[psi].particle_spew_scale;
+		input_vel.xyz.z = wip->max_speed * wip->particle_spewers[psi].particle_spew_vel; // velocity inheritance
+		vm_vec_unrotate(&output_vel, &input_vel, &obj->orient);				// orient velocity to weapon
+		input_pos_l.xyz.x = input_vel.xyz.x * flFrametime * (1.0f - is);	// interpolate particle motion
+		input_pos_l.xyz.y = input_vel.xyz.y * flFrametime * (1.0f - is);
+		input_pos_l.xyz.z = segment_length * is;							// position particle correctly on the z axis
+		vm_vec_unrotate(&input_pos, &input_pos_l, &obj->orient);			// orient to weapon
+		vm_vec_sub(&output_pos, &obj->pos, &input_pos);						// translate to world space
+
+		//maybe add in offset and initial velocity
+		if (!vm_vec_same(&spawn_vel, &vmd_zero_vector)) { // add particle velocity if needed
+			vm_vec_add2(&output_vel, &spawn_vel);
+		}
+		if (!vm_vec_same(&spawn_pos, &vmd_zero_vector)) { // add offset if needed
+			vm_vec_add2(&output_pos, &spawn_pos);
+		}
+
+		//emit particles
+		if (wip->particle_spewers[psi].particle_spew_anim.first_frame < 0) {
+			particle::create(&output_pos, &output_vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_SMOKE);
+		} else {
+			particle::create(&output_pos, &output_vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_BITMAP, wip->particle_spewers[psi].particle_spew_anim.first_frame);
+		}
+	}
+}
+
+/**
+ * @brief Spews a sparkler type particle
+ * @sa weapon_maybe_spew_particles()
+ */
+void weapon_spew_particle_sparkler(object* obj, int psi, vec3d &spawn_pos, vec3d &spawn_vel, vec3d &input_pos, vec3d &input_vel, vec3d &output_pos, vec3d &output_vel) {
+	weapon* wp = &Weapons[obj->instance];
+	weapon_info* wip = &Weapon_info[wp->weapon_info_index];
+	vec3d temp_vel;
+	output_vel = obj->phys_info.vel;
+	vm_vec_scale(&output_vel, wip->particle_spewers[psi].particle_spew_vel);
+
+	for (auto idx = 0; idx < wip->particle_spewers[psi].particle_spew_count; idx++) {
+		// create a random unit vector and scale it
+		vm_vec_rand_vec_quick(&input_vel);
+		vm_vec_scale(&input_vel, wip->particle_spewers[psi].particle_spew_scale);
+
+		if (wip->particle_spewers[psi].particle_spew_z_scale != 1.0f) {	// don't do the extra math for spherical effect
+			temp_vel = input_vel;
+			temp_vel.xyz.z *= wip->particle_spewers[psi].particle_spew_z_scale;	// for an ovoid particle effect to better combine with laser effects
+			vm_vec_unrotate(&input_vel, &temp_vel, &obj->orient);				// so it has to be rotated
+		}
+
+		vm_vec_add2(&output_vel, &input_vel); // add to weapon velocity
+		output_pos = obj->pos;
+
+		// maybe add in offset and initial velocity
+		if (!vm_vec_same(&spawn_vel, &vmd_zero_vector)) { // add particle velocity if needed
+			vm_vec_add2(&output_vel, &spawn_vel);
+		}
+		if (!vm_vec_same(&spawn_pos, &vmd_zero_vector)) { // add offset if needed
+			vm_vec_add2(&output_pos, &spawn_pos);
+		}
+
+		// emit particles
+		if (wip->particle_spewers[psi].particle_spew_anim.first_frame < 0) {
+			particle::create(&output_pos, &output_vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_SMOKE);
+		} else {
+			particle::create(&output_pos, &output_vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_BITMAP, wip->particle_spewers[psi].particle_spew_anim.first_frame);
+		}
+	}
+}
+
+/**
+ * @brief Spews a ring type particle
+ * @sa weapon_maybe_spew_particles()
+ */
+void weapon_spew_particle_ring(object* obj, int psi, vec3d &spawn_pos, vec3d &spawn_vel, vec3d &input_pos, vec3d &input_vel, vec3d &output_pos, vec3d &output_vel) {
+	weapon* wp = &Weapons[obj->instance];
+	weapon_info* wip = &Weapon_info[wp->weapon_info_index];
+	float inc = PI2 / wip->particle_spewers[psi].particle_spew_count;
+
+	for (float ir = 0; ir < PI2; ir += inc) { // use iterator for rotation
+		input_vel.xyz.x = sinf(ir) * wip->particle_spewers[psi].particle_spew_scale; // generate velocity from rotation data
+		input_vel.xyz.y = cosf(ir) * wip->particle_spewers[psi].particle_spew_scale;
+		input_vel.xyz.z = obj->phys_info.fspeed * wip->particle_spewers[psi].particle_spew_vel;
+		vm_vec_unrotate(&output_vel, &input_vel, &obj->orient); // rotate it to model
+
+		output_pos = obj->pos;
+
+		// maybe add in offset amd iitial velocity
+		if (!vm_vec_same(&spawn_vel, &vmd_zero_vector)) { // add particle velocity if needed
+			vm_vec_add2(&output_vel, &spawn_vel);
+		}
+		if (!vm_vec_same(&spawn_pos, &vmd_zero_vector)) { // add offset if needed
+			vm_vec_add2(&output_pos, &spawn_pos);
+		}
+
+		// emit particles
+		if (wip->particle_spewers[psi].particle_spew_anim.first_frame < 0) {
+			particle::create(&output_pos, &output_vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_SMOKE);
+		} else {
+			particle::create(&output_pos, &output_vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_BITMAP, wip->particle_spewers[psi].particle_spew_anim.first_frame);
+		}
+	}
+}
+
+/**
+ * @brief Spews a plume type particle
+ * @sa weapon_maybe_spew_particles()
+ */
+void weapon_spew_particle_plume(object* obj, int psi, vec3d &spawn_pos, vec3d &spawn_vel, vec3d &input_pos, vec3d &input_vel, vec3d &output_pos, vec3d &output_vel)
+{
+	weapon* wp = &Weapons[obj->instance];
+	weapon_info* wip = &Weapon_info[wp->weapon_info_index];
+	float ang_rand, len_rand, sin_ang, cos_ang;
+	vec3d input_pos_l = ZERO_VECTOR;
+
+	for (int i = 0; i < wip->particle_spewers[psi].particle_spew_count; i++) {
+		// use polar coordinates to ensure a disk shaped spew plane
+		ang_rand = frand_range(-PI, PI);
+		len_rand = frand() * wip->particle_spewers[psi].particle_spew_scale;
+		sin_ang = sinf(ang_rand);
+		cos_ang = cosf(ang_rand);
+		// compute velocity
+		input_vel.xyz.x = wip->particle_spewers[psi].particle_spew_z_scale * -sin_ang;
+		input_vel.xyz.y = wip->particle_spewers[psi].particle_spew_z_scale * -cos_ang;
+		input_vel.xyz.z = obj->phys_info.fspeed * wip->particle_spewers[psi].particle_spew_vel;
+		vm_vec_unrotate(&output_vel, &input_vel, &obj->orient); // rotate it to model
+		// place particle on a disk prependicular to the weapon normal and rotate to model space
+		input_pos_l.xyz.x = sin_ang * len_rand;
+		input_pos_l.xyz.y = cos_ang * len_rand;
+		vm_vec_unrotate(&input_pos, &input_pos_l, &obj->orient); // rotate to world
+		vm_vec_sub(&output_pos, &obj->pos, &input_pos); // translate to world
+
+		// maybe add in offset amd iitial velocity
+		if (!vm_vec_same(&spawn_vel, &vmd_zero_vector)) { // add particle velocity if needed
+			vm_vec_add2(&output_vel, &spawn_vel);
+		}
+		if (!vm_vec_same(&spawn_pos, &vmd_zero_vector)) { // add offset if needed
+			vm_vec_add2(&output_pos, &spawn_pos);
+		}
+
+		//emit particles
+		if (wip->particle_spewers[psi].particle_spew_anim.first_frame < 0) {
+			particle::create(&output_pos, &output_vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_SMOKE);
+		} else {
+			particle::create(&output_pos, &output_vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_BITMAP, wip->particle_spewers[psi].particle_spew_anim.first_frame);
+		}
+	}
+}
+
+/**
  * For weapons flagged as particle spewers, spew particles. wheee
  */
 void weapon_maybe_spew_particle(object *obj)
@@ -6732,216 +6960,53 @@ void weapon_maybe_spew_particle(object *obj)
 	vec3d spawn_pos, spawn_vel, output_pos, output_vel, input_pos, input_vel;
 
 	for (int psi = 0; psi < MAX_PARTICLE_SPEWERS; psi++) {	// iterate through spewers	-nuke
-		if (wip->particle_spewers[psi].particle_spew_type != PSPEW_NONE) {
-			// if the weapon's particle timestamp has elapsed
-			if ((wp->particle_spew_time[psi] == -1) || timestamp_elapsed(wp->particle_spew_time[psi])) {
-				// reset the timestamp
-				wp->particle_spew_time[psi] = timestamp(wip->particle_spewers[0].particle_spew_time);
+		if (wip->particle_spewers[psi].particle_spew_type == PSPEW_NONE) {
+			// Inactive spewer, skip
+			continue;
+		}
 
-				// turn normals and origins to world space if we need to
-				if (!vm_vec_same(&wip->particle_spewers[psi].particle_spew_offset, &vmd_zero_vector)) {	// don't xform unused vectors
-					vm_vec_unrotate(&spawn_pos, &wip->particle_spewers[psi].particle_spew_offset, &obj->orient);
-				} else {
-					spawn_pos = vmd_zero_vector;
-				}
+		if ((wp->particle_spew_time[psi] != -1) && !timestamp_elapsed(wp->particle_spew_time[psi])) {
+			// Not time to spew yet, skip
+			continue;
+		} // Else, the weapon's particle timestamp has elapsed
 
-				if (!vm_vec_same(&wip->particle_spewers[psi].particle_spew_velocity, &vmd_zero_vector)) {
-					vm_vec_unrotate(&spawn_vel, &wip->particle_spewers[psi].particle_spew_velocity, &obj->orient);
-				} else {
-					spawn_vel = vmd_zero_vector;
-				}
+		// reset the timestamp
+		wp->particle_spew_time[psi] = timestamp(wip->particle_spewers[0].particle_spew_time);
 
-				// spew some particles
-				if (wip->particle_spewers[psi].particle_spew_type == PSPEW_DEFAULT)	// default pspew type
-				{		// do the default pspew
-						vec3d direct, direct_temp, particle_pos;
-						vec3d null_vec = ZERO_VECTOR;
-						vec3d vel;
-						float ang;
+		// turn normals and origins to world space if we need to
+		if (!vm_vec_same(&wip->particle_spewers[psi].particle_spew_offset, &vmd_zero_vector)) {	// don't xform unused vectors
+			vm_vec_unrotate(&spawn_pos, &wip->particle_spewers[psi].particle_spew_offset, &obj->orient);
+		} else {
+			spawn_pos = vmd_zero_vector;
+		}
 
-					for (idx = 0; idx < wip->particle_spewers[psi].particle_spew_count; idx++) {
-						// get the backward vector of the weapon
-						direct = obj->orient.vec.fvec;
-						vm_vec_negate(&direct);
+		if (!vm_vec_same(&wip->particle_spewers[psi].particle_spew_velocity, &vmd_zero_vector)) {
+			vm_vec_unrotate(&spawn_vel, &wip->particle_spewers[psi].particle_spew_velocity, &obj->orient);
+		} else {
+			spawn_vel = vmd_zero_vector;
+		}
 
-						// randomly perturb x, y and z
-						
-						// uvec
-						ang = frand_range(-PI_2,PI_2);	// fl_radian(frand_range(-90.0f, 90.0f));	-optimized by nuke
-						vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->orient.vec.fvec);			
-						direct = direct_temp;
-						vm_vec_scale(&direct, wip->particle_spewers[psi].particle_spew_scale);
-
-						// rvec
-						ang = frand_range(-PI_2,PI_2);	// fl_radian(frand_range(-90.0f, 90.0f));	-optimized by nuke
-						vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->orient.vec.rvec);			
-						direct = direct_temp;
-						vm_vec_scale(&direct, wip->particle_spewers[psi].particle_spew_scale);
-
-						// fvec
-						ang = frand_range(-PI_2,PI_2);	// fl_radian(frand_range(-90.0f, 90.0f));	-optimized by nuke
-						vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->orient.vec.uvec);			
-						direct = direct_temp;
-						vm_vec_scale(&direct, wip->particle_spewers[psi].particle_spew_scale);
-
-						// get a velocity vector of some percentage of the weapon's velocity
-						vel = obj->phys_info.vel;
-						vm_vec_scale(&vel, wip->particle_spewers[psi].particle_spew_vel);
-
-						// maybe add in offset and initial velocity
-						if (!vm_vec_same(&spawn_vel, &vmd_zero_vector)) { // add in particle velocity if its available
-							vm_vec_add2(&vel, &spawn_vel);
-						}
-						if (!vm_vec_same(&spawn_pos, &vmd_zero_vector)) { // add offset if available
-							vm_vec_add2(&direct, &spawn_pos);
-						}
-
-						if (wip->wi_flags[Weapon::Info_Flags::Corkscrew]) {
-							vm_vec_add(&particle_pos, &obj->last_pos, &direct);
-						} else {
-							vm_vec_add(&particle_pos, &obj->pos, &direct);
-						}
-
-						// emit the particle
-						if (wip->particle_spewers[psi].particle_spew_anim.first_frame < 0) {
-							particle::create(&particle_pos, &vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_SMOKE);
-						} else {
-							particle::create(&particle_pos, &vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_BITMAP, wip->particle_spewers[psi].particle_spew_anim.first_frame);
-						}
-					}
-				} else if (wip->particle_spewers[psi].particle_spew_type == PSPEW_HELIX) { // helix
-					float segment_length = wip->max_speed * flFrametime; // determine how long the segment is
-					float segment_angular_length = PI2 * wip->particle_spewers[psi].particle_spew_rotation_rate * flFrametime; 	// determine how much the segment rotates
-					float rotation_value = (wp->lifeleft * PI2 * wip->particle_spewers[psi].particle_spew_rotation_rate) + wp->particle_spew_rand; // calculate a rotational start point based on remaining life
-					float inc = 1.0f / wip->particle_spewers[psi].particle_spew_count;	// determine our incriment
-					float particle_rot;
-					vec3d input_pos_l = ZERO_VECTOR;
-					
-					for (float is = 0; is < 1; is += inc ) { // use iterator as a scaler
-						particle_rot = rotation_value + (segment_angular_length * is); // find what point of the rotation were at
-						input_vel.xyz.x = sinf(particle_rot) * wip->particle_spewers[psi].particle_spew_scale; // determine x/y velocity based on scale and rotation
-						input_vel.xyz.y = cosf(particle_rot) * wip->particle_spewers[psi].particle_spew_scale;
-						input_vel.xyz.z = wip->max_speed * wip->particle_spewers[psi].particle_spew_vel; // velocity inheritance
-						vm_vec_unrotate(&output_vel, &input_vel, &obj->orient);				// orient velocity to weapon
-						input_pos_l.xyz.x = input_vel.xyz.x * flFrametime * (1.0f - is);	// interpolate particle motion
-						input_pos_l.xyz.y = input_vel.xyz.y * flFrametime * (1.0f - is);
-						input_pos_l.xyz.z = segment_length * is;							// position particle correctly on the z axis
-						vm_vec_unrotate(&input_pos, &input_pos_l, &obj->orient);			// orient to weapon
-						vm_vec_sub(&output_pos, &obj->pos, &input_pos);						// translate to world space
-
-						//maybe add in offset and initial velocity
-						if (!vm_vec_same(&spawn_vel, &vmd_zero_vector)) { // add particle velocity if needed
-							vm_vec_add2(&output_vel, &spawn_vel);
-						}
-						if (!vm_vec_same(&spawn_pos, &vmd_zero_vector)) { // add offset if needed
-							vm_vec_add2(&output_pos, &spawn_pos);
-						}
-
-						//emit particles
-						if (wip->particle_spewers[psi].particle_spew_anim.first_frame < 0) {
-							particle::create(&output_pos, &output_vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_SMOKE);
-						} else {
-							particle::create(&output_pos, &output_vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_BITMAP, wip->particle_spewers[psi].particle_spew_anim.first_frame);
-						}
-					}
-				} else if (wip->particle_spewers[psi].particle_spew_type == PSPEW_SPARKLER) { // sparkler
-					vec3d temp_vel;
-					output_vel = obj->phys_info.vel;
-					vm_vec_scale(&output_vel, wip->particle_spewers[psi].particle_spew_vel);
-
-					for (idx = 0; idx < wip->particle_spewers[psi].particle_spew_count; idx++) {
-						// create a random unit vector and scale it
-						vm_vec_rand_vec_quick(&input_vel);
-						vm_vec_scale(&input_vel, wip->particle_spewers[psi].particle_spew_scale);
-						
-						if (wip->particle_spewers[psi].particle_spew_z_scale != 1.0f) {	// don't do the extra math for spherical effect
-							temp_vel = input_vel;
-							temp_vel.xyz.z *= wip->particle_spewers[psi].particle_spew_z_scale;	// for an ovoid particle effect to better combine with laser effects
-							vm_vec_unrotate(&input_vel, &temp_vel, &obj->orient);				// so it has to be rotated
-						}
-
-						vm_vec_add2(&output_vel, &input_vel); // add to weapon velocity
-						output_pos = obj->pos;
-
-						// maybe add in offset and initial velocity
-						if (!vm_vec_same(&spawn_vel, &vmd_zero_vector)) { // add particle velocity if needed
-							vm_vec_add2(&output_vel, &spawn_vel);
-						}
-						if (!vm_vec_same(&spawn_pos, &vmd_zero_vector)) { // add offset if needed
-							vm_vec_add2(&output_pos, &spawn_pos);
-						}
-
-						// emit particles
-						if (wip->particle_spewers[psi].particle_spew_anim.first_frame < 0) {
-							particle::create(&output_pos, &output_vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_SMOKE);
-						} else {
-							particle::create(&output_pos, &output_vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_BITMAP, wip->particle_spewers[psi].particle_spew_anim.first_frame);
-						}
-					}
-				} else if (wip->particle_spewers[psi].particle_spew_type == PSPEW_RING) {
-					float inc = PI2 / wip->particle_spewers[psi].particle_spew_count;	
-
-					for (float ir = 0; ir < PI2; ir += inc) { // use iterator for rotation
-						input_vel.xyz.x = sinf(ir) * wip->particle_spewers[psi].particle_spew_scale; // generate velocity from rotation data
-						input_vel.xyz.y = cosf(ir) * wip->particle_spewers[psi].particle_spew_scale;
-						input_vel.xyz.z = obj->phys_info.fspeed * wip->particle_spewers[psi].particle_spew_vel;
-						vm_vec_unrotate(&output_vel, &input_vel, &obj->orient); // rotate it to model
-
-						output_pos = obj->pos;
-
-						// maybe add in offset amd iitial velocity
-						if (!vm_vec_same(&spawn_vel, &vmd_zero_vector)) { // add particle velocity if needed
-							vm_vec_add2(&output_vel, &spawn_vel);
-						}
-						if (!vm_vec_same(&spawn_pos, &vmd_zero_vector)) { // add offset if needed
-							vm_vec_add2(&output_pos, &spawn_pos);
-						}
-
-						// emit particles
-						if (wip->particle_spewers[psi].particle_spew_anim.first_frame < 0) {
-							particle::create(&output_pos, &output_vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_SMOKE);
-						} else {
-							particle::create(&output_pos, &output_vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_BITMAP, wip->particle_spewers[psi].particle_spew_anim.first_frame);
-						}
-					}
-				} else if (wip->particle_spewers[psi].particle_spew_type == PSPEW_PLUME) {
-					float ang_rand, len_rand, sin_ang, cos_ang;
-					vec3d input_pos_l = ZERO_VECTOR;
-					
-					for (int i = 0; i < wip->particle_spewers[psi].particle_spew_count; i++) {
-						// use polar coordinates to ensure a disk shaped spew plane
-						ang_rand = frand_range(-PI,PI);
-						len_rand = frand() * wip->particle_spewers[psi].particle_spew_scale;
-						sin_ang = sinf(ang_rand);
-						cos_ang = cosf(ang_rand);
-						// compute velocity
-						input_vel.xyz.x = wip->particle_spewers[psi].particle_spew_z_scale * -sin_ang;
-						input_vel.xyz.y = wip->particle_spewers[psi].particle_spew_z_scale * -cos_ang;
-						input_vel.xyz.z = obj->phys_info.fspeed * wip->particle_spewers[psi].particle_spew_vel;
-						vm_vec_unrotate(&output_vel, &input_vel, &obj->orient); // rotate it to model
-						// place particle on a disk prependicular to the weapon normal and rotate to model space
-						input_pos_l.xyz.x = sin_ang * len_rand;
-						input_pos_l.xyz.y = cos_ang * len_rand;
-						vm_vec_unrotate(&input_pos, &input_pos_l, &obj->orient); // rotate to world
-						vm_vec_sub(&output_pos, &obj->pos, &input_pos); // translate to world
-						
-						// maybe add in offset amd iitial velocity
-						if (!vm_vec_same(&spawn_vel, &vmd_zero_vector)) { // add particle velocity if needed
-							vm_vec_add2(&output_vel, &spawn_vel);
-						}
-						if (!vm_vec_same(&spawn_pos, &vmd_zero_vector)) { // add offset if needed
-							vm_vec_add2(&output_pos, &spawn_pos);
-						}
-
-						//emit particles
-						if (wip->particle_spewers[psi].particle_spew_anim.first_frame < 0) {
-							particle::create(&output_pos, &output_vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_SMOKE);
-						} else {
-							particle::create(&output_pos, &output_vel, wip->particle_spewers[psi].particle_spew_lifetime, wip->particle_spewers[psi].particle_spew_radius, particle::PARTICLE_BITMAP, wip->particle_spewers[psi].particle_spew_anim.first_frame);
-						}
-					}
-				}
-			}
+		// spew some particles
+		switch (wip->particle_spewers[psi].particle_spew_type) {
+			case PSPEW_DEFAULT:
+				weapon_spew_particle_default(obj, psi, spawn_pos, spawn_vel, input_pos, input_vel, output_pos, output_vel);
+				break;
+			case PSPEW_HELIX:
+				weapon_spew_particle_helix(obj, psi, spawn_pos, spawn_vel, input_pos, input_vel, output_pos, output_vel);
+				break;
+			case PSPEW_SPARKLER:
+				weapon_spew_particle_sparkler(obj, psi, spawn_pos, spawn_vel, input_pos, input_vel, output_pos, output_vel);
+				break;
+			case PSPEW_RING:
+				weapon_spew_particle_ring(obj, psi, spawn_pos, spawn_vel, input_pos, input_vel, output_pos, output_vel);
+				break;
+			case PSPEW_PLUME:
+				weapon_spew_particle_plume(obj, psi, spawn_pos, spawn_vel, input_pos, input_vel, output_pos, output_vel);
+				break;
+			default:
+				// This isn't a PSPEW_NONE, so this is an unknown type
+				Warning(LOCATION, "Unknown and/or unimplemented Pspew type '%i'. Get a coder!\n", wip->particle_spewers[psi].particle_spew_type);
+				break;
 		}
 	}
 }
