@@ -101,7 +101,16 @@ static int Lab_viewer_flags = LAB_MODE_NONE;
 static ship_subsys *Lab_ship_subsys = NULL;
 static SCP_vector<model_subsystem> Lab_ship_model_subsys;
 
+// Object management members
+static object Lab_obj_used_list;	// Head of the used object list
+static object Lab_obj_free_list;	// Head of the free object list
+static object Lab_obj_create_list;	// Head of the create object list, these are ones that have been allocated but not created yet
+
+static int Lab_Highest_object_index;		// This is the highest index in the object array that's occupied
+static int Lab_Highest_ever_object_index = 0;	// This is the maxima of the object index, used to determine efficiency
 static object Lab_Objects[MAX_LAB_OBJECTS];
+
+
 static weapon Lab_Weapons[MAX_LAB_WEAPONS];
 static int Lab_num_weapons;		// Number of active weapon instances within the lab
 
@@ -720,6 +729,109 @@ void labviewer_add_model_thrusters(model_render_params *render_info, ship_info *
 	render_info->set_thruster_info(mst);
 }
 
+int lab_obj_create(ubyte type, int parent_obj, int instance, matrix * orient, vec3d * pos, float radius, const flagset<Object::Object_Flags> &flags)
+{
+	// Straight up copy pasta of obj_create, only difference is with obj_allocate and Lab_Objects
+	int objnum;
+	object *obj;
+
+	// Find next free object
+	objnum = 0;
+
+	if (objnum == -1)		//no free objects
+		return -1;
+
+	obj = &Lab_Objects[objnum];
+	Assert(obj->type == OBJ_NONE);		//make sure unused 
+
+	// clear object in preparation for setting of custom values
+	obj->clear();
+
+	Assert(Object_next_signature > 0);	// 0 is bogus!
+	obj->signature = Object_next_signature++;
+
+	obj->type = type;
+	obj->instance = instance;
+	obj->parent = parent_obj;
+	if (obj->parent != -1) {
+		obj->parent_sig = Objects[parent_obj].signature;
+		obj->parent_type = Objects[parent_obj].type;
+	} else {
+		obj->parent_sig = obj->signature;
+		obj->parent_type = obj->type;
+	}
+
+	obj->flags = flags;
+	obj->flags.set(Object::Object_Flags::Not_in_coll);
+	if (pos) {
+		obj->pos = *pos;
+		obj->last_pos = *pos;
+	}
+
+	if (orient) {
+		obj->orient = *orient;
+		obj->last_orient = *orient;
+	}
+	obj->radius = radius;
+
+	obj->n_quadrants = DEFAULT_SHIELD_SECTIONS; // Might be changed by the ship creation code
+	obj->shield_quadrant.resize(obj->n_quadrants);
+	return objnum;
+}
+
+void lab_obj_delete(int objnum) {
+	object *objp;
+
+	Assert(objnum >= 0 && objnum < MAX_LAB_OBJECTS);
+	objp = &Objects[objnum];
+	if (objp->type == OBJ_NONE) {
+		mprintf(("obj_delete() called for already deleted object %d.\n", objnum));
+		return;
+	};
+
+	switch (objp->type) {
+	case OBJ_WEAPON:
+		lab_weapon_delete(objp);
+		break;
+	default:
+		Error(LOCATION, "Unhandled object type %d in lab_obj_delete", objp->type);
+	}
+
+	objp->type = OBJ_NONE;
+	objp->signature = 0;
+
+	lab_obj_free(objnum);
+}
+
+void lab_obj_free(int objnum) {
+	object *objp;
+
+	Assertion(Object_inited, "Lab: Tried to free an object before object manager was inited");
+
+	Assertion(objnum >= 0, "Lab: Tried to free a bogus object with index of %i", objnum);
+
+	// get object pointer
+	objp = &Lab_Objects[objnum];
+
+	// remove objp from the used list
+	list_remove(&obj_used_list, objp);
+
+	// add objp to the end of the free
+	list_append(&obj_free_list, objp);
+
+	// decrement counter
+	Num_objects--;
+
+	Lab_Objects[objnum].type = OBJ_NONE;
+
+	Assert(Num_objects >= 0);
+
+	// If the object index is the highest on hte list, decremement the Lab_Highest_object_index until we find one which is occupied
+	if (objnum == Lab_Highest_object_index)
+		while (Objects[--LabHighest_object_index].type == OBJ_NONE);
+}
+
+
 int lab_weapon_create(vec3d * pos, matrix * porient, int weapon_type, int parent_objnum, int group_id, int is_locked, int is_spawned, float fof_cooldown, ship_subsys * src_turret)
 {
 	int objnum, num_deleted;
@@ -1028,8 +1140,6 @@ int lab_weapon_create(vec3d * pos, matrix * porient, int weapon_type, int parent
 
 	return objnum;
 }
-
-
 
 void light_set_all_relevent();
 
