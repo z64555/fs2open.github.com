@@ -17,6 +17,7 @@
 #include "graphics/opengl/gropenglshader.h"
 #include "graphics/shadows.h"
 #include "hud/hudshield.h"
+#include "iff_defs/iff_defs.h"
 #include "io/key.h"
 #include "io/timer.h"
 #include "lab/wmcgui.h"
@@ -50,6 +51,9 @@
 #define LAB_MODE_SHIP		1	// dealing with ships
 #define LAB_MODE_WEAPON		2	// dealing with weapons
 
+// array sizes
+#define MAX_LAB_OBJECTS 1
+#define MAX_LAB_WEAPONS 1
 
 // variables
 static GUIScreen *Lab_screen = NULL;
@@ -97,6 +101,10 @@ static int Lab_viewer_flags = LAB_MODE_NONE;
 static ship_subsys *Lab_ship_subsys = NULL;
 static SCP_vector<model_subsystem> Lab_ship_model_subsys;
 
+static object Lab_Objects[MAX_LAB_OBJECTS];
+static weapon Lab_Weapons[MAX_LAB_WEAPONS];
+static int Lab_num_weapons;		// Number of active weapon instances within the lab
+
 static int Lab_detail_texture_save = 0;
 
 static int anim_timer_start = 0;
@@ -120,13 +128,39 @@ static int Trackball_active = 0;
 
 SCP_string Lab_team_color = "<none>";
 
-// functions
+// Local function declarations
 void labviewer_change_ship_lod(Tree *caller);
 void labviewer_change_ship(Tree *caller);
 void labviewer_make_desc_window(Button *caller);
 void labviewer_close_weap_window(GUIObject *caller);
 void labviewer_update_flags_window();
 
+/**
+ * @brief Inits a new object within the lab and adds to the list for the given segment
+ *
+ * @param[in] type       The object type
+ * @param[in] parent_obj Lab_Object[] index of this object's parent. (Pass -1 if no parent)
+ * @param[in] instance   Index in a respective array. i.e. If this is a weapon, this is indexed to Lab_Weapons[]
+ * @param[in] orient     Initial orientation of the object. (Pass nullptr if don't care)
+ * @param[in] pos        Initial position of the object. (Pass nullptr if don't care)
+ * @param[in] radius     Radius of this object (used for hit detection)
+ * @param[in] flags      The flags for this object
+
+ * @returns Index in Lab_Objects[] where the new object resides, or
+ * @returns <0 If failed
+ */
+int lab_obj_create(ubyte type, int parent_obj, int instance, matrix * orient, vec3d * pos, float radius, const flagset<Object::Object_Flags> &flags);
+
+/**
+ * @brief Creates a lab weapon.
+ *
+ * @returns Index of weapon in the Lab_Objects[] array, or
+ * @returns -1 if no weapon was created
+ *
+ * @details Slimmed down and modified version of weapon_create() to work within the lab
+ * @sa weapon_create()
+ */
+int lab_weapon_create(vec3d * pos, matrix * orient, int weapon_type, int parent_obj, int group_id = -1, int is_locked = 0, int is_spawned = 0, float fof_cooldown = 0.0f, ship_subsys * src_turret = NULL);
 
 // ---------------------- General/Utility Functions ----------------------------
 void labviewer_setup_subsys_rotation()
@@ -686,8 +720,321 @@ void labviewer_add_model_thrusters(model_render_params *render_info, ship_info *
 	render_info->set_thruster_info(mst);
 }
 
+int lab_weapon_create(vec3d * pos, matrix * porient, int weapon_type, int parent_objnum, int group_id, int is_locked, int is_spawned, float fof_cooldown, ship_subsys * src_turret)
+{
+	int objnum, num_deleted;
+	object *objp, *parent_objp = NULL;
+	weapon *wp;
+	weapon_info *wip;
+
+	Assert(weapon_type >= 0 && weapon_type < Num_weapon_types);
+
+	wip = &Weapon_info[weapon_type];
+
+	if(wip->wi_flags[Weapon::Info_Flags::Beam])
+	{
+		// TODO
+		return -1;
+	}
+
+	parent_objp = NULL;
+	if(parent_objnum >= 0){
+		parent_objp = &Lab_Objects[parent_objnum];
+	}
+
+	// Find an available weapon slot
+	// z64555 - Not needed at the moment, but this sets groundwork for when we want to be able to shoot from within the lab
+	int wep_id;
+	for (wep_id = 0; wep_id < MAX_WEAPONS; wep_id++ ) {
+		if (Lab_Weapons[wep_id].weapon_info_index < 0) {
+			break;
+		}
+	}
+
+	
+	//z64555- This is currently handled by labviewer_change_weapon, but is set up for only one model. When we get around
+	//  to being able to shoot weapons within the lab, this will need to be revised.
+	/*
+	if (wip->render_type == WRT_POF) {
+		if (wip->model_num < 0) {
+			wip->model_num = model_load(wip->pofbitmap_name, 0, NULL);
+
+			if (wip->model_num < 0) {
+				Int3();
+				return -1;
+			}
+		}
+
+		if (weapon_is_used(weapon_index))
+			weapon_load_bitmaps(weapon_type);
+	}
+	*/
+
+	// No FoF support in the lab yet
+	matrix morient = vmd_identity_matrix;
+	matrix *orient = &morient;
+	
+	// Create object
+	flagset<Object::Object_Flags> default_flags;
+	default_flags.set(Object::Object_Flags::Renders);
+	default_flags.set(Object::Object_Flags::Collides);
+	default_flags.set(Object::Object_Flags::Physics);
+
+	objnum = lab_obj_create(OBJ_WEAPON, parent_objnum, wep_id, orient, pos, 2.0f, default_flags);
+	if (objnum < 0) {
+		// Failed to create weapon
+		// In game, this would be a bad thing, but in the lab we can just bail out
+		return -1;
+	}
+
+	objp = &Objects[objnum];
+
+	wp = &Lab_Weapons[wep_id];
+
+	// Set constant velocity physics flag if:
+	//   Lab mode is weapon view, or
+	//   Weapon is a laser, or
+	//   Weapon is a dumbfire missile
+	if ((Lab_mode == LAB_MODE_WEAPON) ||
+	    (wip->subtype == WP_LASER) ||
+	    ((wip->subtype == WP_MISSILE) && !(wip->is_homing()) && wip->acceleration_time == 0.0f))
+	{
+		objp->phys_info.flags |= PF_CONST_VEL;
+	}
+
+	wp->start_pos = *pos;
+	wp->objnum = objnum;
+	wp->model_instance_num = -1;
+	wp->homing_object = &obj_used_list;		//	Assume not homing on anything.
+	wp->homing_subsys = NULL;
+	wp->creation_time = Missiontime;
+	wp->group_id = group_id;
+
+	// we don't necessarily need a parent
+	if(parent_objp != NULL){
+		Assert(parent_objp->type == OBJ_SHIP);	//	Get Mike, a non-ship has fired a weapon!
+		Assert((parent_objp->instance >= 0) && (parent_objp->instance < MAX_SHIPS));
+		wp->team = Ships[parent_objp->instance].team;
+		wp->species = Ship_info[Ships[parent_objp->instance].ship_info_index].species;
+	} else {
+		// ugh - we need to prevent bad array accesses
+		wp->team = Iff_traitor;
+		wp->species = 0;
+	}
+	wp->turret_subsys = NULL;
+	vm_vec_zero(&wp->homing_pos);
+	wp->weapon_flags.reset();
+	wp->target_sig = -1;
+	wp->cmeasure_ignore_list = nullptr;
+	wp->det_range = wip->det_range;
+
+	// Init the thruster info
+	wp->thruster_bitmap = -1;
+	wp->thruster_frame = 0.0f;
+	wp->thruster_glow_bitmap = -1;
+	wp->thruster_glow_noise = 1.0f;
+	wp->thruster_glow_frame = 0.0f;
+
+	// init the laser info
+	wp->laser_bitmap_frame = 0.0f;
+	wp->laser_glow_bitmap_frame = 0.0f;
+
+	// init the weapon state
+	wp->weapon_state = WeaponState::INVALID;
+
+	// if this is a particle spewing weapon, setup some stuff
+	if (wip->wi_flags[Weapon::Info_Flags::Particle_spew]) {
+		for (size_t s = 0; s < MAX_PARTICLE_SPEWERS; s++) {		// allow for multiple time values
+			if (wip->particle_spewers[s].particle_spew_type != PSPEW_NONE) {
+				wp->particle_spew_time[s] = -1;
+				wp->particle_spew_rand = frand_range(0, PI2);	// per weapon randomness
+			}
+		}
+	}
+
+	wp->weapon_info_index = weapon_type;
+
+	// Set the weapon lifetim
+	if (Lab_mode == LAB_MODE_WEAPON) {
+		// We're viewing a weapon, so its lifetime is indefinite
+		wp->lifeleft = -1.0f;
+
+	} else if(wip->life_min < 0.0f && wip->life_max < 0.0f) {
+		// Standard weapon lifetime
+		wp->lifeleft = wip->lifetime;
+
+	} else {
+		// Random weapon lifetime within lifetime min and max
+		float rand_val = frand();
+
+		wp->lifeleft = (rand_val) * (wip->life_max - wip->life_min) / wip->life_min;
+		if((wip->wi_flags[Weapon::Info_Flags::Cmeasure]) && (parent_objp != NULL) && (parent_objp->flags[Object::Object_Flags::Player_ship])) {
+			// If this is a countermeasure, scale the lifetime accordingly
+			wp->lifeleft *= The_mission.ai_profile->cmeasure_life_scale[Game_skill_level];
+		}
+		wp->lifeleft = wip->life_min + wp->lifeleft * (wip->life_max - wip->life_min);
+	}
+
+	// Physics and object stuff
+	objp->phys_info.mass = wip->mass;
+	objp->phys_info.side_slip_time_const = 0.0f;
+	objp->phys_info.rotdamp = 0.0f;
+	vm_vec_zero(&objp->phys_info.max_vel);
+	objp->phys_info.max_vel.xyz.z = wip->max_speed;
+	vm_vec_zero(&objp->phys_info.max_rotvel);
+	objp->shield_quadrant[0] = wip->damage;
+	if (wip->weapon_hitpoints > 0){
+		objp->hull_strength = (float) wip->weapon_hitpoints;
+	} else {
+		objp->hull_strength = 0.0f;
+	}
+
+	if ( wip->render_type == WRT_POF ) {
+		// this should have been checked above, but let's be extra sure
+		Assert(wip->model_num >= 0);
+
+		objp->radius = model_get_radius(wip->model_num);
+
+		// No intrinsic rotations yet
+
+	} else if ( wip->render_type == WRT_LASER ) {
+		objp->radius = wip->laser_head_radius;
+	}
+
+	//	Set desired velocity and initial velocity.
+	//	For lasers, velocity is always the same.
+	//	For missiles, it is a small amount plus the firing ship's velocity.
+	//	For missiles, the velocity trends towards some goal.
+	//	Note: If you change how speed works here, such as adding in speed of parent ship, you'll need to change the AI code
+	//	that predicts collision points.  See Mike Kulas or Dave Andsager.  (Or see ai_get_weapon_speed().)
+	if (wip->acceleration_time > 0.0f) {
+		vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.vec.fvec, 0.01f ); // Tiny initial velocity to avoid possible null vec issues
+		objp->phys_info.vel = objp->phys_info.desired_vel;
+		objp->phys_info.speed = 0.0f;
+		wp->launch_speed = 0.0f;
+	} else if (!(wip->is_homing())) {
+		vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.vec.fvec, objp->phys_info.max_vel.xyz.z );
+		objp->phys_info.vel = objp->phys_info.desired_vel;
+		objp->phys_info.speed = vm_vec_mag(&objp->phys_info.desired_vel);
+	} else {
+		//	For weapons that home, set velocity to sum of forward component of parent's velocity and 1/4 weapon's max speed.
+		//	Note that it is important to extract the forward component of the parent's velocity to factor out sliding, else
+		//	the missile will not be moving forward.
+		if(parent_objp != NULL){
+			if (wip->free_flight_time > 0.0)
+				vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.vec.fvec, vm_vec_dot(&parent_objp->phys_info.vel, &parent_objp->orient.vec.fvec) + objp->phys_info.max_vel.xyz.z/4 );
+			else
+				vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.vec.fvec, objp->phys_info.max_vel.xyz.z );
+		} else {
+			if (!is_locked && wip->free_flight_time > 0.0) {
+				vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.vec.fvec, objp->phys_info.max_vel.xyz.z/4 );
+			} else {
+				vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.vec.fvec, objp->phys_info.max_vel.xyz.z );
+			}
+		}
+		objp->phys_info.vel = objp->phys_info.desired_vel;
+		objp->phys_info.speed = vm_vec_mag(&objp->phys_info.vel);
+	}
+
+	wp->weapon_max_vel = objp->phys_info.max_vel.xyz.z;
+
+	// Turey - maybe make the initial speed of the weapon take into account the velocity of the parent.
+	// Improves aiming during gliding.
+	if ((parent_objp != NULL) && (The_mission.ai_profile->flags[AI::Profile_Flags::Use_additive_weapon_velocity])) {
+		float pspeed = vm_vec_mag( &parent_objp->phys_info.vel );
+		vm_vec_scale_add2( &objp->phys_info.vel, &parent_objp->phys_info.vel, wip->vel_inherit_amount );
+		wp->weapon_max_vel += pspeed * wip->vel_inherit_amount;
+		objp->phys_info.speed = vm_vec_mag(&objp->phys_info.vel);
+
+		if (wip->acceleration_time > 0.0f)
+			wp->launch_speed += pspeed;
+	}
+
+	// Corkscrews unsupported in the lab
+	wp->cscrew_index = -1;
+
+	// Local SSM's unsupported in the lab
+	wp->lssm_stage=-1;
+
+
+	// if this is a flak weapon shell, make it so
+	// NOTE : this function will change some fundamental things about the weapon object
+	if ( (wip->wi_flags[Weapon::Info_Flags::Flak]) && !(wip->wi_flags[Weapon::Info_Flags::Render_flak]) ) {
+		obj_set_flags(&Objects[wp->objnum], Objects[wp->objnum].flags - Object::Object_Flags::Renders);
+	}
+
+	// All missiles are treated as dumbfire within the lab
+	wp->missile_list_index = -1;
+
+	// Weapon trails
+	if (wip->wi_flags[Weapon::Info_Flags::Trail] /*&& !(wip->wi_flags[Weapon::Info_Flags::Corkscrew]) */) {
+		wp->trail_ptr = trail_create(&wip->tr_info);
+
+		if ( wp->trail_ptr != NULL )	{
+			// Add two segments.  One to stay at launch pos, one to move.
+			trail_add_segment( wp->trail_ptr, &objp->pos );
+			trail_add_segment( wp->trail_ptr, &objp->pos );
+		}
+	} else {
+		//If a weapon has no trails, make sure we don't try to do anything with them.
+		wp->trail_ptr = NULL;
+	}
+
+	// Disable flyby sounds
+	wp->weapon_flags.set(Weapon::Weapon_Flags::Played_flyby_sound);
+
+	// Set timestamp, although it's ignored currently
+	wp->pick_big_attack_point_timestamp = timestamp(1);
+
+	//	Set detail levels for POF-type weapons.
+	if (Weapon_info[wp->weapon_info_index].model_num != -1) {
+		polymodel * pm;
+		int i;
+		pm = model_get(Weapon_info[wp->weapon_info_index].model_num);
+
+		for (i = 0; i < pm->n_detail_levels; i++){
+			// for weapons, detail levels are all preset to -1
+			if (wip->detail_distance[i] >= 0)
+				pm->detail_depth[i] = i2fl(wip->detail_distance[i]);
+			else
+				pm->detail_depth[i] = (objp->radius*20.0f + 20.0f) * i;
+		}
+
+#ifndef NDEBUG
+		// since debug builds always have cheats enabled, we don't necessarily get the chance
+		// to enable thrusters for previously non-loaded weapons (ie, weapons_page_in_cheats())
+		// when using cheat-keys, so we need to make sure and enable thrusters here if needed
+		if (pm->n_thrusters > 0) {
+			wip->wi_flags.set(Weapon::Info_Flags::Thruster);
+		}
+#endif
+	}
+
+	//if the weapon was spawned from a spawning type weapon
+	if(is_spawned){
+		wp->weapon_flags.set(Weapon::Weapon_Flags::Spawned);
+	}
+
+	wp->alpha_current = -1.0f;
+	wp->alpha_backward = 0;
+
+	wp->collisionInfo = nullptr;
+	wp->hud_in_flight_snd_sig = -1;
+
+	Lab_num_weapons++;
+
+	extern void weapon_update_state(weapon* wp);
+	weapon_update_state(wp);
+
+	return objnum;
+}
+
+
+
 void light_set_all_relevent();
 
+
+// ---------------------- Rendering Functions ----------------------------
 void labviewer_render_model(float frametime)
 {
 	int i, j;
