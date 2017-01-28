@@ -123,11 +123,7 @@ public:
 	char			parent_type;	// This object's parent's type
 	int				instance;		// which instance.  ie.. if type is Robot, then this indexes into the Robots array
 	flagset<Object::Object_Flags> flags;			// misc flags.  Call obj_set_flags to change this.
-	vec3d			pos;				// absolute x,y,z coordinate of center of object
-	matrix			orient;			// orientation of object in world
 	float			radius;			// 3d size of object - for collision detection
-	vec3d			last_pos;		// where object was last frame
-	matrix			last_orient;	// how the object was oriented last frame
 	physics_info	phys_info;		// a physics object
 	int				n_quadrants;	// how many shield quadrants the ship has
 	SCP_vector<float>	shield_quadrant;	//	Shield is broken into components, quadrants by default.

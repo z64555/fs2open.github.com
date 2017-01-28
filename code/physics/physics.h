@@ -38,6 +38,11 @@
 typedef struct physics_info {
 	uint flags;     //!< misc physics flags
 
+	vec3d  pos;         //!< absolute x,y,z coordinate of center of object
+	vec3d  last_pos;    //!< where object was last frame
+	matrix orient;      //!< orientation of object in world
+	matrix last_orient; //!< how the object was oriented last frame
+
 	float mass;             //!< the mass of this object
 	vec3d center_of_mass;   //!< Goober5000 - this is never ever used by physics; currently physics assumes the center of an object is the center of mass
 	matrix I_body_inv;      //!< inverse moment of inertia tensor (used to calculate rotational effects)
