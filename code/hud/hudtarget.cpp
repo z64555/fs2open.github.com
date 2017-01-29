@@ -1206,7 +1206,7 @@ void hud_target_common(int team_mask, int next_flag)
 				continue;
 		}
 
-		if ( vm_vec_same(&A->pos, &Eye_position) )
+		if ( vm_vec_same(&A->phys_info.pos, &Eye_position) )
 			continue;
 
 		if ( is_ship ) {
@@ -1803,7 +1803,7 @@ void hud_target_live_turret(int next_flag, int auto_advance, int only_player_tar
 					
 					if (!auto_advance && get_closest_turret && !only_player_target) {
 						// if within 3 degrees and not previous subsys, use subsys in front
-						dot = vm_vec_dot(&vec_to_subsys, &Player_obj->orient.vec.fvec);
+						dot = vm_vec_dot(&vec_to_subsys, &Player_obj->phys_info.orient.vec.fvec);
 						if ((dot > 0.9986) && facing) {
 							use_straight_ahead_turret = TRUE;
 							break;
@@ -1957,7 +1957,7 @@ void hud_target_closest_locked_missile(object *locked_obj)
 		
 
 		if (wp->homing_object == locked_obj) {
-			dist = vm_vec_dist_quick(&A->pos, &locked_obj->pos);		// Find distance!
+			dist = vm_vec_dist_quick(&A->phys_info.pos, &locked_obj->phys_info.pos);		// Find distance!
 
 			if (dist < nearest_dist) {
 				nearest_obj = A;
@@ -2049,10 +2049,10 @@ float hud_find_target_distance( object *targetee, object *targeter )
 
 	// New way, that uses bounding box.	
 	if ( model_num > -1 )	{
-		dist = model_find_closest_point( &tmp_pnt, model_num, -1, &targetee->orient, &targetee->pos, &targeter->pos );
+		dist = model_find_closest_point( &tmp_pnt, model_num, -1, &targetee->phys_info.orient, &targetee->phys_info.pos, &targeter->phys_info.pos );
 	}  else {
 		// Old way, that uses radius.
-		dist = vm_vec_dist_quick(&targetee->pos, &targeter->pos) - targetee->radius;
+		dist = vm_vec_dist_quick(&targetee->phys_info.pos, &targeter->phys_info.pos) - targetee->radius;
 		if ( dist < 0.0f )	{
 			dist = 0.0f;
 		}
@@ -2141,9 +2141,9 @@ bool evaluate_ship_as_closest_target(esct *esct_p)
 					if ( !esct_p->turret_attacking_target || (esct_p->turret_attacking_target && (ss->turret_enemy_objnum == esct_p->attacked_objnum)) ) {
 						vec3d gsubpos;
 						// get world pos of subsystem
-						vm_vec_unrotate(&gsubpos, &ss->system_info->pnt, &objp->orient);
-						vm_vec_add2(&gsubpos, &objp->pos);
-						new_distance = vm_vec_dist_quick(&gsubpos, &Player_obj->pos);
+						vm_vec_unrotate(&gsubpos, &ss->system_info->pnt, &objp->phys_info.orient);
+						vm_vec_add2(&gsubpos, &objp->phys_info.pos);
+						new_distance = vm_vec_dist_quick(&gsubpos, &Player_obj->phys_info.pos);
 						
 						/*
 						// GET TURRET TYPE, FAVOR BEAM, FLAK, OTHER
@@ -2181,7 +2181,7 @@ bool evaluate_ship_as_closest_target(esct *esct_p)
 	// consider the ship alone if there are no attacking turrets
 	if ( !turret_is_attacking ) {
 		//new_distance = hud_find_target_distance(objp, Player_obj);
-		new_distance = vm_vec_dist_quick(&objp->pos, &Player_obj->pos);
+		new_distance = vm_vec_dist_quick(&objp->phys_info.pos, &Player_obj->phys_info.pos);
 			
 		if (new_distance <= esct_p->min_distance) {
 			esct_p->min_distance = new_distance;
@@ -2295,7 +2295,7 @@ int hud_target_closest(int team_mask, int attacked_objnum, int play_fail_snd, in
 	/*
 	if (target_found) {
 		// get distance to nearest attacker
-		float dist = vm_vec_dist_quick(&Objects[attacked_objnum].pos, &nearest_obj->pos);
+		float dist = vm_vec_dist_quick(&Objects[attacked_objnum].pos, &nearest_obj->phys_info.pos);
 
 		// no distance limit for player obj
 		if ((attacked_objnum != player_obj_index) && (dist > MIN_DISTANCE_TO_CONSIDER_THREAT)) {
@@ -2353,9 +2353,9 @@ void hud_update_closest_turret()
 			if (ss->system_info->turret_weapon_type >= 0) {
 				vec3d gsubpos;
 				// get world pos of subsystem
-				vm_vec_unrotate(&gsubpos, &ss->system_info->pnt, &objp->orient);
-				vm_vec_add2(&gsubpos, &objp->pos);
-				new_distance = vm_vec_dist_quick(&gsubpos, &Player_obj->pos);
+				vm_vec_unrotate(&gsubpos, &ss->system_info->pnt, &objp->phys_info.orient);
+				vm_vec_add2(&gsubpos, &objp->phys_info.pos);
+				new_distance = vm_vec_dist_quick(&gsubpos, &Player_obj->phys_info.pos);
 
 				// GET TURRET TYPE, FAVOR BEAM, FLAK, OTHER
 				int turret_type = ss->system_info->turret_weapon_type;
@@ -2503,7 +2503,7 @@ void hud_target_in_reticle_new()
 	Reticle_save_timestamp = timestamp(RESET_TARGET_IN_RETICLE);
 
 	//	Get 3d vector through center of reticle
-	vm_vec_scale_add(&terminus, &Eye_position, &Player_obj->orient.vec.fvec, TARGET_IN_RETICLE_DISTANCE);
+	vm_vec_scale_add(&terminus, &Eye_position, &Player_obj->phys_info.orient.vec.fvec, TARGET_IN_RETICLE_DISTANCE);
 
 	mc_info_init(&mc);
 	mc.model_instance_num = -1;
@@ -2568,9 +2568,9 @@ void hud_target_in_reticle_new()
 			// so just check distance of a point
 			vec3d temp_v;
 			float angle;
-			vm_vec_sub(&temp_v, &A->pos, &Eye_position);
+			vm_vec_sub(&temp_v, &A->phys_info.pos, &Eye_position);
 			vm_vec_normalize(&temp_v);
-			angle = vm_vec_dot(&Player_obj->orient.vec.fvec, &temp_v);
+			angle = vm_vec_dot(&Player_obj->phys_info.orient.vec.fvec, &temp_v);
 			if (angle > 0.99f) {
 				dist = vm_vec_mag_squared(&temp_v);
 				hud_reticle_list_update(A, dist, 0);				
@@ -2579,8 +2579,8 @@ void hud_target_in_reticle_new()
 		} else {
 
 			model_clear_instance( mc.model_num );
-			mc.orient = &A->orient;										// The object's orient
-			mc.pos = &A->pos;												// The object's position
+			mc.orient = &A->phys_info.orient;										// The object's orient
+			mc.pos = &A->phys_info.pos;												// The object's position
 			mc.p0 = &Eye_position;										// Point 1 of ray to check
 			mc.p1 = &terminus;											// Point 2 of ray to check
 			mc.flags = MC_CHECK_MODEL;	// | MC_ONLY_BOUND_BOX;		// check the model, but only its bounding box
@@ -2643,12 +2643,12 @@ void hud_target_in_reticle_old()
 			continue;
 		}
 
-		if ( vm_vec_same( &A->pos, &Eye_position ) ) {
+		if ( vm_vec_same( &A->phys_info.pos, &Eye_position ) ) {
 			continue;
 		}
 
-		vm_vec_normalized_dir(&vec_to_target, &A->pos, &Eye_position);
-		dot = vm_vec_dot(&Player_obj->orient.vec.fvec, &vec_to_target);
+		vm_vec_normalized_dir(&vec_to_target, &A->phys_info.pos, &Eye_position);
+		dot = vm_vec_dot(&Player_obj->phys_info.orient.vec.fvec, &vec_to_target);
 
 		if ( dot > MIN_DOT_FOR_TARGET ) {
 			hud_reticle_list_update(A, dot, 1);
@@ -2724,7 +2724,7 @@ void hud_target_subsystem_in_reticle()
 		get_subsystem_world_pos(targetp, subsys, &subobj_pos);
 
 		vm_vec_normalized_dir(&vec_to_target, &subobj_pos, &Eye_position);
-		dot = vm_vec_dot(&Player_obj->orient.vec.fvec, &vec_to_target);
+		dot = vm_vec_dot(&Player_obj->phys_info.orient.vec.fvec, &vec_to_target);
 
 		if ( dot > best_dot ) {
 			best_dot = dot;
@@ -2762,7 +2762,7 @@ void HudGaugeOrientationTee::renderOrientation(object *from_objp, object *to_obj
 	vec3d	target_to_obj;
 	float		x1,y1,x2,y2,x3,y3,x4,y4;
 
-	vm_vec_sub(&target_to_obj, &from_objp->pos, &to_objp->pos);
+	vm_vec_sub(&target_to_obj, &from_objp->phys_info.pos, &to_objp->phys_info.pos);
 
 	vm_vec_normalize(&target_to_obj);
 
@@ -3018,7 +3018,7 @@ void HudGaugeReticleTriangle::renderTriangle(vec3d *hostile_pos, int aspect_flag
 	// determine if the given object is within the targeting reticle 
 	// (which means the triangle is not drawn)
 
-	cur_dist = vm_vec_dist_quick(&Player_obj->pos, hostile_pos);
+	cur_dist = vm_vec_dist_quick(&Player_obj->phys_info.pos, hostile_pos);
 
 	g3_rotate_vertex(&hostile_vertex, hostile_pos);
 	g3_project_vertex(&hostile_vertex);
@@ -3127,7 +3127,7 @@ void hud_process_homing_missiles()
 		wp = &Weapons[A->instance];
 
 		if (wp->homing_object == Player_obj) {
-			dist = vm_vec_dist_quick(&A->pos, &Player_obj->pos);
+			dist = vm_vec_dist_quick(&A->phys_info.pos, &Player_obj->phys_info.pos);
 
 			if (dist < nearest_dist) {
 				nearest_dist = dist;
@@ -3191,7 +3191,7 @@ void HudGaugeMissileTriangles::render(float frametime)
 		wp = &Weapons[A->instance];
 
 		if (wp->homing_object == Player_obj) {
-			renderTriangle(&A->pos, Weapon_info[wp->weapon_info_index].is_locked_homing(), 1, 1);
+			renderTriangle(&A->phys_info.pos, Weapon_info[wp->weapon_info_index].is_locked_homing(), 1, 1);
 		}
 	}
 
@@ -3232,7 +3232,7 @@ void HudGaugeOrientationTee::render(float frametime)
 	} else {
 		hud_set_iff_color( targetp, 1);
 	}
-	renderOrientation(targetp, Player_obj, &targetp->orient);
+	renderOrientation(targetp, Player_obj, &targetp->phys_info.orient);
 }
 
 // routine to draw a bounding box around a remote detonate missile and distance to
@@ -3252,7 +3252,7 @@ void hud_process_remote_detonate_missile()
 		if ((Player_obj != NULL) && (mobjp->parent_sig == Player_obj->parent_sig)) {
 			if (Weapon_info[Weapons[mobjp->instance].weapon_info_index].wi_flags[Weapon::Info_Flags::Remote]) {
 				// get box center point
-				g3_rotate_vertex(&target_point,&mobjp->pos);
+				g3_rotate_vertex(&target_point,&mobjp->phys_info.pos);
 
 				// project vertex
 				g3_project_vertex(&target_point);
@@ -3260,7 +3260,7 @@ void hud_process_remote_detonate_missile()
 				if (!(target_point.flags & PF_OVERFLOW)) {  // make sure point projected
 					switch ( mobjp->type ) {
 					case OBJ_WEAPON:
-						hud_target_add_display_list(mobjp, &target_point, &mobjp->pos, 0, iff_get_color(IFF_COLOR_MESSAGE, 1), NULL, TARGET_DISPLAY_DIST);
+						hud_target_add_display_list(mobjp, &target_point, &mobjp->phys_info.pos, 0, iff_get_color(IFF_COLOR_MESSAGE, 1), NULL, TARGET_DISPLAY_DIST);
 						break;
 
 					default:
@@ -3322,17 +3322,17 @@ void hud_show_message_sender()
     memset(&target_point, 0, sizeof(target_point));
 
 	// find the current target vertex 
-	g3_rotate_vertex(&target_point, &targetp->pos);
+	g3_rotate_vertex(&target_point, &targetp->phys_info.pos);
 	g3_project_vertex(&target_point);
 
 	if (!(target_point.flags & PF_OVERFLOW)) {  // make sure point projected
-		hud_target_add_display_list(targetp, &target_point, &targetp->pos, 10, iff_get_color(IFF_COLOR_MESSAGE, 1), NULL, 0);
+		hud_target_add_display_list(targetp, &target_point, &targetp->phys_info.pos, 10, iff_get_color(IFF_COLOR_MESSAGE, 1), NULL, 0);
 	} else if (target_point.codes != 0) { // target center is not on screen
 		// draw the offscreen indicator at the edge of the screen where the target is closest to
 		// AL 11-19-97: only show offscreen indicator if player sensors are functioning
 		if ( (OBJ_INDEX(targetp) != Player_ai->target_objnum) || (Message_shipnum == Objects[Player_ai->target_objnum].instance) ) {
 			if ( hud_sensors_ok(Player_ship, 0) ) {
-				hud_target_add_display_list(targetp, &target_point, &targetp->pos, 0, iff_get_color(IFF_COLOR_MESSAGE, 1), NULL, TARGET_DISPLAY_DIST);
+				hud_target_add_display_list(targetp, &target_point, &targetp->phys_info.pos, 0, iff_get_color(IFF_COLOR_MESSAGE, 1), NULL, TARGET_DISPLAY_DIST);
 			}
 		}
 	}
@@ -3449,7 +3449,7 @@ void hud_show_selection_set()
 
 		// find the current target vertex 
 		//
-		g3_rotate_vertex(&target_point,&targetp->pos);
+		g3_rotate_vertex(&target_point,&targetp->phys_info.pos);
 		g3_project_vertex(&target_point);
 
 		if (!(target_point.flags & PF_OVERFLOW)) {  // make sure point projected
@@ -3463,12 +3463,12 @@ void hud_show_selection_set()
 				return;
 			}
 			if ( OBJ_INDEX(targetp) == Player_ai->target_objnum ) {
-				hud_target_add_display_list(targetp, &target_point, &targetp->pos, 5, iff_get_color(IFF_COLOR_SELECTION, 1), NULL, 0);
+				hud_target_add_display_list(targetp, &target_point, &targetp->phys_info.pos, 5, iff_get_color(IFF_COLOR_SELECTION, 1), NULL, 0);
 				HUD_drew_selection_bracket_on_target = 1;
 			} else if ( Cmdline_targetinfo ) {		//Backslash -- show the distance and a lead indicator
-				hud_target_add_display_list(targetp, &target_point, &targetp->pos, 5, iff_get_color(IFF_COLOR_SELECTION, 1), NULL, TARGET_DISPLAY_DIST | TARGET_DISPLAY_LEAD);
+				hud_target_add_display_list(targetp, &target_point, &targetp->phys_info.pos, 5, iff_get_color(IFF_COLOR_SELECTION, 1), NULL, TARGET_DISPLAY_DIST | TARGET_DISPLAY_LEAD);
 			} else {
-				hud_target_add_display_list(targetp, &target_point, &targetp->pos, 5, iff_get_color(IFF_COLOR_SELECTION, 1), NULL, 0);
+				hud_target_add_display_list(targetp, &target_point, &targetp->phys_info.pos, 5, iff_get_color(IFF_COLOR_SELECTION, 1), NULL, 0);
 			}
 		}
 
@@ -3478,7 +3478,7 @@ void hud_show_selection_set()
 
 			if ( OBJ_INDEX(targetp) != Player_ai->target_objnum ) {
 				if ( hud_sensors_ok(Player_ship, 0) ) {
-					hud_target_add_display_list(targetp, &target_point, &targetp->pos, 5, iff_get_color(IFF_COLOR_SELECTION, 1), NULL, 0);
+					hud_target_add_display_list(targetp, &target_point, &targetp->phys_info.pos, 5, iff_get_color(IFF_COLOR_SELECTION, 1), NULL, 0);
 				}
 			}
 		}
@@ -3512,7 +3512,7 @@ void hud_show_targeting_gauges(float frametime)
 	if ( Player_ai->targeted_subsys != NULL ) {
 		get_subsystem_world_pos(targetp, Player_ai->targeted_subsys, &target_pos);
 	} else {
-		target_pos = targetp->pos;
+		target_pos = targetp->phys_info.pos;
 	}
 
 	// find the current target vertex 
@@ -3533,7 +3533,7 @@ void hud_show_targeting_gauges(float frametime)
 				target_display_flags = TARGET_DISPLAY_DIST | TARGET_DISPLAY_DOTS | TARGET_DISPLAY_SUBSYS;
 			}
 
-			hud_target_add_display_list(targetp, &target_point, &targetp->pos, 0, NULL, NULL, target_display_flags);
+			hud_target_add_display_list(targetp, &target_point, &targetp->phys_info.pos, 0, NULL, NULL, target_display_flags);
 		}
 	} else {
 		Hud_target_w = 0;
@@ -3559,7 +3559,7 @@ void hud_show_targeting_gauges(float frametime)
 		// AL 11-11-97:	don't draw the indicator if the ship is messaging, the indicator is drawn
 		// in the message sending color in hud_show_message_sender()
 		if ( Message_shipnum != Objects[Player_ai->target_objnum].instance ) {
-			hud_target_add_display_list(targetp, &target_point, &targetp->pos, 0, NULL, NULL, 0);
+			hud_target_add_display_list(targetp, &target_point, &targetp->phys_info.pos, 0, NULL, NULL, 0);
 		}
 	}
 }
@@ -3626,9 +3626,9 @@ void hud_show_hostile_triangle()
 
 						vec3d		gsubpos;
 						// get world pos of subsystem
-						vm_vec_unrotate(&gsubpos, &ss->system_info->pnt, &A->orient);
-						vm_vec_add2(&gsubpos, &A->pos);
-						new_distance = vm_vec_dist_quick(&gsubpos, &Player_obj->pos);
+						vm_vec_unrotate(&gsubpos, &ss->system_info->pnt, &A->phys_info.orient);
+						vm_vec_add2(&gsubpos, &A->phys_info.pos);
+						new_distance = vm_vec_dist_quick(&gsubpos, &Player_obj->phys_info.pos);
 
 						if (new_distance <= min_distance) {
 							min_distance=new_distance;
@@ -3650,7 +3650,7 @@ void hud_show_hostile_triangle()
 				continue;
 			}
 
-			new_distance = vm_vec_dist_quick(&A->pos, &Player_obj->pos);
+			new_distance = vm_vec_dist_quick(&A->phys_info.pos, &Player_obj->phys_info.pos);
 
 			if (new_distance <= min_distance) {
 				min_distance=new_distance;
@@ -3687,7 +3687,7 @@ void HudGaugeHostileTriangle::render(float frametime)
 		
 		// hud_set_iff_color( TEAM_HOSTILE, 1 );	//	Note: This should really be TEAM_HOSTILE, not opposite of Player_ship->team.
 		hud_set_iff_color( hostile_obj, 1 );
-		renderTriangle(&hostile_obj->pos, 0, 1, 0);
+		renderTriangle(&hostile_obj->phys_info.pos, 0, 1, 0);
 
 		if(!in_frame)
 			g3_end_frame();
@@ -3792,7 +3792,7 @@ int hud_get_best_primary_bank(float *range)
 void polish_predicted_target_pos(weapon_info *wip, object *targetp, vec3d *enemy_pos, vec3d *predicted_enemy_pos, float dist_to_enemy, vec3d *last_delta_vec, int num_polish_steps) 
 {
 	int	iteration;
-	vec3d	player_pos = Player_obj->pos;	
+	vec3d	player_pos = Player_obj->phys_info.pos;	
 	float		time_to_enemy;
 	vec3d	last_predicted_enemy_pos = *predicted_enemy_pos;
 
@@ -3982,7 +3982,7 @@ void HudGaugeLeadIndicator::renderLeadCurrentTarget()
 	if ( Player_ai->targeted_subsys != NULL ) {
 		get_subsystem_world_pos(targetp, Player_ai->targeted_subsys, &target_pos);
 	} else {
-		target_pos = targetp->pos;
+		target_pos = targetp->phys_info.pos;
 	}
 	
 	pm = model_get(Ship_info[Player_ship->ship_info_index].model_num);
@@ -4009,10 +4009,10 @@ void HudGaugeLeadIndicator::renderLeadCurrentTarget()
 	// source_pos will contain the world coordinate of where to base the lead indicator prediction
 	// from.  Normally, this will be the world pos of the gun turret of the currently selected primary
 	// weapon.
-	source_pos = Player_obj->pos;
+	source_pos = Player_obj->phys_info.pos;
 	if (rel_pos != NULL) {
 		vec3d	gun_point;
-		vm_vec_unrotate(&gun_point, rel_pos, &Player_obj->orient);
+		vm_vec_unrotate(&gun_point, rel_pos, &Player_obj->phys_info.orient);
 		vm_vec_add2(&source_pos, &gun_point);
 	} 
 	
@@ -4022,7 +4022,7 @@ void HudGaugeLeadIndicator::renderLeadCurrentTarget()
 	//     (playing it safe, will usually be in range at slightly further away due to subsys radius)
 	//   (otherwise) the closest point on the bounding box of the target
 	if ( Player_ai->targeted_subsys != NULL ) {
-		dist_to_target = vm_vec_dist(&target_pos, &Player_obj->pos);
+		dist_to_target = vm_vec_dist(&target_pos, &Player_obj->phys_info.pos);
 	} else {
 		dist_to_target = hud_find_target_distance(targetp, Player_obj);
 	}
@@ -4123,16 +4123,16 @@ void HudGaugeLeadIndicator::renderLeadQuick(vec3d *target_world_pos, object *tar
 		rel_pos = NULL;
 	}
 //							vec3d firing_vec;
-//							vm_vec_unrotate(&firing_vec, &po->gun_banks[bank_to_fire].norm[pt], &obj->orient);
+//							vm_vec_unrotate(&firing_vec, &po->gun_banks[bank_to_fire].norm[pt], &obj->phys_info.orient);
 //							vm_vector_2_matrix(&firing_orient, &firing_vec, NULL, NULL);
 
 	// source_pos will contain the world coordinate of where to base the lead indicator prediction
 	// from.  Normally, this will be the world pos of the gun turret of the currently selected primary
 	// weapon.
-	source_pos = Player_obj->pos;
+	source_pos = Player_obj->phys_info.pos;
 	if (rel_pos != NULL) {
 		vec3d	gun_point;
-		vm_vec_unrotate(&gun_point, rel_pos, &Player_obj->orient);
+		vm_vec_unrotate(&gun_point, rel_pos, &Player_obj->phys_info.orient);
 		vm_vec_add2(&source_pos, &gun_point);
 	} 
 	
@@ -4267,7 +4267,7 @@ void HudGaugeLeadSight::render(float frametime)
 	if ( Player_ai->targeted_subsys != NULL ) {
 		get_subsystem_world_pos(targetp, Player_ai->targeted_subsys, &target_pos);
 	} else {
-		target_pos = targetp->pos;
+		target_pos = targetp->phys_info.pos;
 	}
 	
 	pm = model_get(Ship_info[Player_ship->ship_info_index].model_num);
@@ -4292,10 +4292,10 @@ void HudGaugeLeadSight::render(float frametime)
 	// source_pos will contain the world coordinate of where to base the lead indicator prediction
 	// from.  Normally, this will be the world pos of the gun turret of the currently selected primary
 	// weapon.
-	source_pos = Player_obj->pos;
+	source_pos = Player_obj->phys_info.pos;
 	if (rel_pos != NULL) {
 		vec3d	gun_point;
-		vm_vec_unrotate(&gun_point, rel_pos, &Player_obj->orient);
+		vm_vec_unrotate(&gun_point, rel_pos, &Player_obj->phys_info.orient);
 		vm_vec_add2(&source_pos, &gun_point);
 	} 
 	
@@ -4538,7 +4538,7 @@ void HudGaugeTargetTriangle::render(float frametime)
 	if (!Player->target_is_dying && maybeFlashSexp() != 1) {
 
 		hud_set_iff_color(targetp, 1);
-		renderTriangle(&targetp->pos, 1, 0, 0);
+		renderTriangle(&targetp->phys_info.pos, 1, 0, 0);
 	}
 
 	if(!in_frame)
@@ -6289,7 +6289,7 @@ void HudGaugeOffscreen::render(float frametime)
 				dist = hud_find_target_distance( target_display_list[i].objp, Player_obj );
 			} else { 
 				// if we don't have a corresponding object, use given position to figure out distance
-				dist = vm_vec_dist_quick(&Player_obj->pos, &target_display_list[i].target_pos);
+				dist = vm_vec_dist_quick(&Player_obj->phys_info.pos, &target_display_list[i].target_pos);
 			}
 
 			if( target_display_list[i].bracket_clr.red && target_display_list[i].bracket_clr.green &&
@@ -6327,9 +6327,9 @@ void HudGaugeOffscreen::calculatePosition(vertex* target_point, vec3d *tpos, vec
 	// calculate the dot product between the players forward vector and the vector connecting
 	// the player to the target. Normalize targ_to_player since we want the dot product
 	// to range between 0 -> 1.
-	vm_vec_sub(&targ_to_player, &Player_obj->pos, tpos);
+	vm_vec_sub(&targ_to_player, &Player_obj->phys_info.pos, tpos);
 	vm_vec_normalize(&targ_to_player);
-	dist_behind = vm_vec_dot(&Player_obj->orient.vec.fvec, &targ_to_player);
+	dist_behind = vm_vec_dot(&Player_obj->phys_info.orient.vec.fvec, &targ_to_player);
 
 	if (dist_behind < 0) {	// still in front of player, but not in view
 		dist_behind = dist_behind + 1.0f;

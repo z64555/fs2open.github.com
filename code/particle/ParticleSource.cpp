@@ -15,8 +15,8 @@ void SourceOrigin::getGlobalPosition(vec3d* posOut) const {
 	vec3d offset;
 	switch (m_originType) {
 		case SourceOriginType::OBJECT: {
-			*posOut = m_origin.m_object.objp->pos;
-			vm_vec_unrotate(&offset, &m_offset, &m_origin.m_object.objp->orient);
+			*posOut = m_origin.m_object.objp->phys_info.pos;
+			vm_vec_unrotate(&offset, &m_offset, &m_origin.m_object.objp->phys_info.orient);
 			break;
 		}
 		case SourceOriginType::PARTICLE: {

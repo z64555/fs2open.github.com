@@ -84,8 +84,8 @@ void obj_snd_source_pos(vec3d *sound_pos, obj_snd *osp)
 	object *objp = &Objects[osp->objnum];
 
 	// get sound pos in world coords
-	vm_vec_unrotate(&offset_world, &osp->offset, &objp->orient);
-	vm_vec_add(sound_pos, &objp->pos, &offset_world);
+	vm_vec_unrotate(&offset_world, &osp->offset, &objp->phys_info.orient);
+	vm_vec_add(sound_pos, &objp->phys_info.pos, &offset_world);
 }
 
 // ---------------------------------------------------------------------------------------
@@ -318,8 +318,8 @@ int obj_snd_get_freq(int source_freq, object* source, object* observor, vec3d *s
 	vec3d	v_os, v_so;	// os == observor to source, so == source to observor
 	float		vo, vs, freq;
 
-	vm_vec_normalized_dir(&v_os, source_pos, &observor->pos);
-	vm_vec_normalized_dir(&v_so, &observor->pos, source_pos);
+	vm_vec_normalized_dir(&v_os, source_pos, &observor->phys_info.pos);
+	vm_vec_normalized_dir(&v_so, &observor->phys_info.pos, source_pos);
 	
 	vo = vm_vec_dot(&v_os, &observor->phys_info.vel);
 	vs = vm_vec_dot(&v_so, &source->phys_info.vel);
@@ -432,7 +432,7 @@ void maybe_play_flyby_snd(float closest_dist, object *closest_objp, object *list
 					snd = &Species_info[sip->species].snd_flyby_fighter;
 
 				// play da sound
-				snd_play_3d(snd, &closest_objp->pos, &View_position);
+				snd_play_3d(snd, &closest_objp->phys_info.pos, &View_position);
 
 				//float dist = vm_vec_dist(&closest_objp->pos, &View_position);
 				//nprintf(("AI", "Frame %i: Playing flyby sound, species = %i, size = %i, dist = %7.3f\n", Framecount, species, ship_size, dist));

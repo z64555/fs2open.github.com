@@ -422,7 +422,7 @@ void asteroid_sub_create(object *parent_objp, int asteroid_type, vec3d *relvec)
 	}
 
 	//	Now, bash some values.
-	vm_vec_scale_add(&new_objp->pos, &parent_objp->pos, relvec, 0.5f * parent_objp->radius);
+	vm_vec_scale_add(&new_objp->phys_info.pos, &parent_objp->phys_info.pos, relvec, 0.5f * parent_objp->radius);
 	float parent_speed = vm_vec_mag_quick(&parent_objp->phys_info.vel);
 
 	if ( parent_speed < 0.1f ) {
@@ -440,7 +440,7 @@ void asteroid_sub_create(object *parent_objp, int asteroid_type, vec3d *relvec)
 		vm_vec_scale(&new_objp->phys_info.vel, 0.5f);
 
 	new_objp->phys_info.desired_vel = new_objp->phys_info.vel;
-	vm_vec_scale_add(&new_objp->last_pos, &new_objp->pos, &new_objp->phys_info.vel, -flFrametime);
+	vm_vec_scale_add(&new_objp->phys_info.last_pos, &new_objp->phys_info.pos, &new_objp->phys_info.vel, -flFrametime);
 }
 
 /**
@@ -650,35 +650,35 @@ int asteroid_should_wrap(object *objp, asteroid_field *asfieldp)
 	if ( MULTIPLAYER_CLIENT )
 		return 0;
 
-	if (objp->pos.xyz.x < asfieldp->min_bound.xyz.x) {
+	if (objp->phys_info.pos.xyz.x < asfieldp->min_bound.xyz.x) {
 		return 1;
 	}
 
-	if (objp->pos.xyz.y < asfieldp->min_bound.xyz.y) {
+	if (objp->phys_info.pos.xyz.y < asfieldp->min_bound.xyz.y) {
 		return 1;
 	}
 
-	if (objp->pos.xyz.z < asfieldp->min_bound.xyz.z) {
+	if (objp->phys_info.pos.xyz.z < asfieldp->min_bound.xyz.z) {
 		return 1;
 	}
 
-	if (objp->pos.xyz.x > asfieldp->max_bound.xyz.x) {
+	if (objp->phys_info.pos.xyz.x > asfieldp->max_bound.xyz.x) {
 		return 1;
 	}
 
-	if (objp->pos.xyz.y > asfieldp->max_bound.xyz.y) {
+	if (objp->phys_info.pos.xyz.y > asfieldp->max_bound.xyz.y) {
 		return 1;
 	}
 
-	if (objp->pos.xyz.z > asfieldp->max_bound.xyz.z) {
+	if (objp->phys_info.pos.xyz.z > asfieldp->max_bound.xyz.z) {
 		return 1;
 	}
 
 	// check against inner bound
 	if (asfieldp->has_inner_bound) {
-		if ( (objp->pos.xyz.x > asfieldp->inner_min_bound.xyz.x) && (objp->pos.xyz.x < asfieldp->inner_max_bound.xyz.x)
-		  && (objp->pos.xyz.y > asfieldp->inner_min_bound.xyz.y) && (objp->pos.xyz.y < asfieldp->inner_max_bound.xyz.y)
-		  && (objp->pos.xyz.z > asfieldp->inner_min_bound.xyz.z) && (objp->pos.xyz.z < asfieldp->inner_max_bound.xyz.z) ) {
+		if ( (objp->phys_info.pos.xyz.x > asfieldp->inner_min_bound.xyz.x) && (objp->phys_info.pos.xyz.x < asfieldp->inner_max_bound.xyz.x)
+		  && (objp->phys_info.pos.xyz.y > asfieldp->inner_min_bound.xyz.y) && (objp->phys_info.pos.xyz.y < asfieldp->inner_max_bound.xyz.y)
+		  && (objp->phys_info.pos.xyz.z > asfieldp->inner_min_bound.xyz.z) && (objp->phys_info.pos.xyz.z < asfieldp->inner_max_bound.xyz.z) ) {
 
 			return 1;
 		}
@@ -692,32 +692,32 @@ int asteroid_should_wrap(object *objp, asteroid_field *asfieldp)
  */
 void asteroid_wrap_pos(object *objp, asteroid_field *asfieldp)
 {
-	if (objp->pos.xyz.x < asfieldp->min_bound.xyz.x) {
-		objp->pos.xyz.x = asfieldp->max_bound.xyz.x + (objp->pos.xyz.x - asfieldp->min_bound.xyz.x);
+	if (objp->phys_info.pos.xyz.x < asfieldp->min_bound.xyz.x) {
+		objp->phys_info.pos.xyz.x = asfieldp->max_bound.xyz.x + (objp->phys_info.pos.xyz.x - asfieldp->min_bound.xyz.x);
 	}
 
-	if (objp->pos.xyz.y < asfieldp->min_bound.xyz.y) {
-		objp->pos.xyz.y = asfieldp->max_bound.xyz.y + (objp->pos.xyz.y - asfieldp->min_bound.xyz.y);
+	if (objp->phys_info.pos.xyz.y < asfieldp->min_bound.xyz.y) {
+		objp->phys_info.pos.xyz.y = asfieldp->max_bound.xyz.y + (objp->phys_info.pos.xyz.y - asfieldp->min_bound.xyz.y);
 	}
 	
-	if (objp->pos.xyz.z < asfieldp->min_bound.xyz.z) {
-		objp->pos.xyz.z = asfieldp->max_bound.xyz.z + (objp->pos.xyz.z - asfieldp->min_bound.xyz.z);
+	if (objp->phys_info.pos.xyz.z < asfieldp->min_bound.xyz.z) {
+		objp->phys_info.pos.xyz.z = asfieldp->max_bound.xyz.z + (objp->phys_info.pos.xyz.z - asfieldp->min_bound.xyz.z);
 	}
 
-	if (objp->pos.xyz.x > asfieldp->max_bound.xyz.x) {
-		objp->pos.xyz.x = asfieldp->min_bound.xyz.x + (objp->pos.xyz.x - asfieldp->max_bound.xyz.x);
+	if (objp->phys_info.pos.xyz.x > asfieldp->max_bound.xyz.x) {
+		objp->phys_info.pos.xyz.x = asfieldp->min_bound.xyz.x + (objp->phys_info.pos.xyz.x - asfieldp->max_bound.xyz.x);
 	}
 
-	if (objp->pos.xyz.y > asfieldp->max_bound.xyz.y) {
-		objp->pos.xyz.y = asfieldp->min_bound.xyz.y + (objp->pos.xyz.y - asfieldp->max_bound.xyz.y);
+	if (objp->phys_info.pos.xyz.y > asfieldp->max_bound.xyz.y) {
+		objp->phys_info.pos.xyz.y = asfieldp->min_bound.xyz.y + (objp->phys_info.pos.xyz.y - asfieldp->max_bound.xyz.y);
 	}
 
-	if (objp->pos.xyz.z > asfieldp->max_bound.xyz.z) {
-		objp->pos.xyz.z = asfieldp->min_bound.xyz.z + (objp->pos.xyz.z - asfieldp->max_bound.xyz.z);
+	if (objp->phys_info.pos.xyz.z > asfieldp->max_bound.xyz.z) {
+		objp->phys_info.pos.xyz.z = asfieldp->min_bound.xyz.z + (objp->phys_info.pos.xyz.z - asfieldp->max_bound.xyz.z);
 	}
 
 	// wrap on inner bound, check all 3 axes as needed, use of rand ok for multiplayer with send_asteroid_throw()
-	inner_bound_pos_fixup(asfieldp, &objp->pos);
+	inner_bound_pos_fixup(asfieldp, &objp->phys_info.pos);
 
 }
 
@@ -754,21 +754,21 @@ void asteroid_aim_at_target(object *objp, object *asteroid_objp, float delta_tim
 	vec3d	rand_vec;
 	float		speed;
 
-	vm_vec_scale_add(&predicted_center_pos, &objp->pos, &objp->phys_info.vel, delta_time);
+	vm_vec_scale_add(&predicted_center_pos, &objp->phys_info.pos, &objp->phys_info.vel, delta_time);
 	vm_vec_rand_vec_quick(&rand_vec);
 	vm_vec_scale_add2(&predicted_center_pos, &rand_vec, objp->radius/2.0f);
 
-	vm_vec_add2(&rand_vec, &objp->orient.vec.fvec);
+	vm_vec_add2(&rand_vec, &objp->phys_info.orient.vec.fvec);
 	if (vm_vec_mag_quick(&rand_vec) < 0.1f)
-		vm_vec_add2(&rand_vec, &objp->orient.vec.rvec);
+		vm_vec_add2(&rand_vec, &objp->phys_info.orient.vec.rvec);
 	vm_vec_normalize(&rand_vec);
 
 	speed = Asteroid_info[0].max_speed * (frand()/2.0f + 0.5f);
 	
 	vm_vec_copy_scale(&asteroid_objp->phys_info.vel, &rand_vec, -speed);
 	asteroid_objp->phys_info.desired_vel = asteroid_objp->phys_info.vel;
-	vm_vec_scale_add(&asteroid_objp->pos, &predicted_center_pos, &asteroid_objp->phys_info.vel, -delta_time);
-	vm_vec_scale_add(&asteroid_objp->last_pos, &asteroid_objp->pos, &asteroid_objp->phys_info.vel, -flFrametime);
+	vm_vec_scale_add(&asteroid_objp->phys_info.pos, &predicted_center_pos, &asteroid_objp->phys_info.vel, -delta_time);
+	vm_vec_scale_add(&asteroid_objp->phys_info.last_pos, &asteroid_objp->phys_info.pos, &asteroid_objp->phys_info.vel, -flFrametime);
 }
 
 /**
@@ -806,7 +806,7 @@ void maybe_throw_asteroid(int count)
 				asteroid_aim_at_target(A, objp, ASTEROID_MIN_COLLIDE_TIME + frand() * 20.0f);
 
 				// if asteroid is inside inner bound, kill it
-				if (asteroid_in_inner_bound(&Asteroid_field, &objp->pos, 0.0f)) {
+				if (asteroid_in_inner_bound(&Asteroid_field, &objp->phys_info.pos, 0.0f)) {
 					objp->flags.set(Object::Object_Flags::Should_be_dead);
 				} else {
 					Asteroids[objp->instance].target_objnum = so->objnum;
@@ -861,14 +861,14 @@ void asteroid_maybe_reposition(object *objp, asteroid_field *asfieldp)
 		vec3d	vec_to_asteroid, old_asteroid_pos, old_vel;
 		float		dot, dist;
 
-		old_asteroid_pos = objp->pos;
+		old_asteroid_pos = objp->phys_info.pos;
 		old_vel = objp->phys_info.vel;
 
 		// don't wrap asteroid if it is a target of some ship
 		if ( !asteroid_is_targeted(objp) ) {
 
 			// only wrap if player won't see asteroid disappear/reverse direction
-			dist = vm_vec_normalized_dir(&vec_to_asteroid, &objp->pos, &Eye_position);
+			dist = vm_vec_normalized_dir(&vec_to_asteroid, &objp->phys_info.pos, &Eye_position);
 			dot = vm_vec_dot(&Eye_matrix.vec.fvec, &vec_to_asteroid);
 			
 			if ( (dot < 0.7f) || (dist > asfieldp->bound_rad) ) {
@@ -879,19 +879,19 @@ void asteroid_maybe_reposition(object *objp, asteroid_field *asfieldp)
 					asteroid_wrap_pos(objp, asfieldp);
 					Asteroids[objp->instance].target_objnum = -1;
 
-					dist = vm_vec_normalized_dir(&vec_to_asteroid, &objp->pos, &Eye_position);
+					dist = vm_vec_normalized_dir(&vec_to_asteroid, &objp->phys_info.pos, &Eye_position);
 					dot = vm_vec_dot(&Eye_matrix.vec.fvec, &vec_to_asteroid);
 					
 					if ( (dot > 0.7f) && (dist < (asfieldp->bound_rad * 1.3f)) ) {
 						// player would see asteroid pop out other side, so reverse velocity instead of wrapping						
-						objp->pos = old_asteroid_pos;		
+						objp->phys_info.pos = old_asteroid_pos;		
 						vm_vec_copy_scale(&objp->phys_info.vel, &old_vel, -1.0f);
 						objp->phys_info.desired_vel = objp->phys_info.vel;
 						Asteroids[objp->instance].target_objnum = -1;
 					}
 
 					// update last pos (after vel is known)
-					vm_vec_scale_add(&objp->last_pos, &objp->pos, &objp->phys_info.vel, -flFrametime);
+					vm_vec_scale_add(&objp->phys_info.last_pos, &objp->phys_info.pos, &objp->phys_info.vel, -flFrametime);
 
 					asteroid_update_collide(objp);
 
@@ -943,10 +943,10 @@ int asteroid_check_collision(object *pasteroid, object *other_obj, vec3d *hitpos
 		mc.model_instance_num = Asteroids[num].model_instance_num;
 		mc.model_num = Asteroid_info[Asteroids[num].asteroid_type].model_num[asteroid_subtype];	// Fill in the model to check
 		model_clear_instance( mc.model_num );
-		mc.orient = &pasteroid->orient;					// The object's orient
-		mc.pos = &pasteroid->pos;							// The object's position
-		mc.p0 = &other_obj->last_pos;				// Point 1 of ray to check
-		mc.p1 = &other_obj->pos;					// Point 2 of ray to check
+		mc.orient = &pasteroid->phys_info.orient;					// The object's orient
+		mc.pos = &pasteroid->phys_info.pos;							// The object's position
+		mc.p0 = &other_obj->phys_info.last_pos;				// Point 1 of ray to check
+		mc.p1 = &other_obj->phys_info.pos;					// Point 2 of ray to check
 		mc.flags = (MC_CHECK_MODEL);
 
 		if (model_collide(&mc))
@@ -976,8 +976,8 @@ int asteroid_check_collision(object *pasteroid, object *other_obj, vec3d *hitpos
 
 	vec3d zero, p0, p1;
 	vm_vec_zero( &zero );
-	vm_vec_sub( &p0, &lighter->last_pos, &heavy->last_pos );
-	vm_vec_sub( &p1, &lighter->pos, &heavy->pos );
+	vm_vec_sub( &p0, &lighter->phys_info.last_pos, &heavy->phys_info.last_pos );
+	vm_vec_sub( &p1, &lighter->phys_info.pos, &heavy->phys_info.pos );
 
 	mc.pos = &zero;								// The object's position
 	mc.p0 = &p0;									// Point 1 of ray to check
@@ -991,8 +991,8 @@ int asteroid_check_collision(object *pasteroid, object *other_obj, vec3d *hitpos
 	if ( (vm_vec_mag_squared( &heavy->phys_info.rotvel ) * flFrametime*flFrametime) < (PI*PI/36) ) {
 		// collide_rotate calculate (1) start position and (2) relative velocity
 		asteroid_hit_info->collide_rotate = 1;
-		vm_vec_rotate( &p0_temp, &p0, &heavy->last_orient );
-		vm_vec_unrotate( &p0_rotated, &p0_temp, &heavy->orient );
+		vm_vec_rotate(&p0_temp, &p0, &heavy->phys_info.last_orient);
+		vm_vec_unrotate( &p0_rotated, &p0_temp, &heavy->phys_info.orient );
 		mc.p0 = &p0_rotated;				// Point 1 of ray to check
 		vm_vec_sub( &asteroid_hit_info->light_rel_vel, &p1, &p0_rotated );
 		vm_vec_scale( &asteroid_hit_info->light_rel_vel, 1/flFrametime );
@@ -1011,7 +1011,7 @@ int asteroid_check_collision(object *pasteroid, object *other_obj, vec3d *hitpos
 	if ( asteroid_hit_info->heavy == pship_obj ) {	// ship is heavier, so asteroid is sphere. Check sphere collision against ship poly model
 		mc.model_instance_num = Ships[pship_obj->instance].model_instance_num;
 		mc.model_num = Ship_info[Ships[pship_obj->instance].ship_info_index].model_num;		// Fill in the model to check
-		mc.orient = &pship_obj->orient;								// The object's orient
+		mc.orient = &pship_obj->phys_info.orient;								// The object's orient
 		mc.radius = pasteroid->radius;
 		mc.flags = (MC_CHECK_MODEL | MC_CHECK_SPHERELINE);
 
@@ -1059,10 +1059,10 @@ int asteroid_check_collision(object *pasteroid, object *other_obj, vec3d *hitpos
 
 					// find the start and end positions of the sphere in submodel RF
 					pmi->submodel[submodel_vector[i]].angs = pmi->submodel[submodel_vector[i]].prev_angs;
-					world_find_model_instance_point(&p0, &light_obj->last_pos, pmi, submodel_vector[i], &heavy_obj->last_orient, &heavy_obj->last_pos);
+					world_find_model_instance_point(&p0, &light_obj->phys_info.last_pos, pmi, submodel_vector[i], &heavy_obj->phys_info.last_orient, &heavy_obj->phys_info.last_pos);
 
 					pmi->submodel[submodel_vector[i]].angs = copy_angles;
-					world_find_model_instance_point(&p1, &light_obj->pos, pmi, submodel_vector[i], &heavy_obj->orient, &heavy_obj->pos);
+					world_find_model_instance_point(&p1, &light_obj->phys_info.pos, pmi, submodel_vector[i], &heavy_obj->phys_info.orient, &heavy_obj->phys_info.pos);
 
 					mc.p0 = &p0;
 					mc.p1 = &p1;
@@ -1079,14 +1079,14 @@ int asteroid_check_collision(object *pasteroid, object *other_obj, vec3d *hitpos
 
 							// set up asteroid_hit_info for rotating submodel
 							if (asteroid_hit_info->edge_hit == 0) {
-								model_instance_find_obj_dir(&asteroid_hit_info->collision_normal, &mc.hit_normal, Ships[heavy_obj->instance].model_instance_num, mc.hit_submodel, &heavy_obj->orient);
+								model_instance_find_obj_dir(&asteroid_hit_info->collision_normal, &mc.hit_normal, Ships[heavy_obj->instance].model_instance_num, mc.hit_submodel, &heavy_obj->phys_info.orient);
 							}
 
 							// find position in submodel RF of light object at collison
 							vec3d int_light_pos, diff;
 							vm_vec_sub(&diff, mc.p1, mc.p0);
 							vm_vec_scale_add(&int_light_pos, mc.p0, &diff, mc.hit_dist);
-							model_instance_find_world_point(&asteroid_hit_info->light_collision_cm_pos, &int_light_pos, mc.model_instance_num, mc.hit_submodel, &heavy_obj->orient, &zero);
+							model_instance_find_world_point(&asteroid_hit_info->light_collision_cm_pos, &int_light_pos, mc.model_instance_num, mc.hit_submodel, &heavy_obj->phys_info.orient, &zero);
 						}
 					}
 					// Don't look at this submodel again
@@ -1099,7 +1099,7 @@ int asteroid_check_collision(object *pasteroid, object *other_obj, vec3d *hitpos
 			mc.flags = copy_flags;
 			*mc.p0 = copy_p0;
 			*mc.p1 = copy_p1;
-			mc.orient = &heavy_obj->orient;
+			mc.orient = &heavy_obj->phys_info.orient;
 
 			// usual ship_ship collision test
 			if ( model_collide(&mc) )	{
@@ -1111,7 +1111,7 @@ int asteroid_check_collision(object *pasteroid, object *other_obj, vec3d *hitpos
 
 					// get collision normal if not edge hit
 					if (asteroid_hit_info->edge_hit == 0) {
-						model_instance_find_obj_dir(&asteroid_hit_info->collision_normal, &mc.hit_normal, Ships[heavy_obj->instance].model_instance_num, mc.hit_submodel, &heavy_obj->orient);
+						model_instance_find_obj_dir(&asteroid_hit_info->collision_normal, &mc.hit_normal, Ships[heavy_obj->instance].model_instance_num, mc.hit_submodel, &heavy_obj->phys_info.orient);
 					}
 
 					// find position in submodel RF of light object at collison
@@ -1128,7 +1128,7 @@ int asteroid_check_collision(object *pasteroid, object *other_obj, vec3d *hitpos
 		mc.model_instance_num = Asteroids[num].model_instance_num;
 		mc.model_num = Asteroid_info[Asteroids[num].asteroid_type].model_num[asteroid_subtype];		// Fill in the model to check
 		model_clear_instance( mc.model_num );
-		mc.orient = &pasteroid->orient;				// The object's orient
+		mc.orient = &pasteroid->phys_info.orient;				// The object's orient
 		mc.radius = model_get_core_radius(Ship_info[Ships[pship_obj->instance].ship_info_index].model_num);
 
 		// check for collision between asteroid model and ship sphere
@@ -1141,7 +1141,7 @@ int asteroid_check_collision(object *pasteroid, object *other_obj, vec3d *hitpos
 
 			// set normal if not edge hit
 			if ( !asteroid_hit_info->edge_hit ) {
-				vm_vec_unrotate(&asteroid_hit_info->collision_normal, &mc.hit_normal, &heavy->orient);
+				vm_vec_unrotate(&asteroid_hit_info->collision_normal, &mc.hit_normal, &heavy->phys_info.orient);
 			}
 
 			// find position in submodel RF of light object at collison
@@ -1171,7 +1171,7 @@ int asteroid_check_collision(object *pasteroid, object *other_obj, vec3d *hitpos
 		}
 
 		// get world hitpos
-		vm_vec_add(hitpos, &asteroid_hit_info->heavy->pos, &asteroid_hit_info->r_heavy);
+		vm_vec_add(hitpos, &asteroid_hit_info->heavy->phys_info.pos, &asteroid_hit_info->r_heavy);
 
 		return 1;
 	} else {
@@ -1200,19 +1200,19 @@ void asteroid_render(object * obj, model_draw_list *scene)
 		render_info.set_object_number( OBJ_INDEX(obj) );
 		render_info.set_flags(MR_IS_ASTEROID);
 
-		model_render_queue(&render_info, scene, Asteroid_info[asp->asteroid_type].model_num[asp->asteroid_subtype], &obj->orient, &obj->pos);	//	Replace MR_NORMAL with 0x07 for big yellow blobs
+		model_render_queue(&render_info, scene, Asteroid_info[asp->asteroid_type].model_num[asp->asteroid_subtype], &obj->phys_info.orient, &obj->phys_info.pos);	//	Replace MR_NORMAL with 0x07 for big yellow blobs
 	}
 }
 
 /**
- * Create a normalized vector generally in the direction from *hitpos to other_obj->pos
+ * Create a normalized vector generally in the direction from *hitpos to other_obj->phys_info.pos
  */
 void asc_get_relvec(vec3d *relvec, object *other_obj, vec3d *hitpos)
 {
 	vec3d	tvec, rand_vec;
 	int		count = 0;
 
-	vm_vec_normalized_dir(&tvec, &other_obj->pos, hitpos);
+	vm_vec_normalized_dir(&tvec, &other_obj->phys_info.pos, hitpos);
 
 	//	Try up to three times to get a good vector.
 	while (count++ < 3) {
@@ -1277,7 +1277,7 @@ float asteroid_create_explosion(object *objp)
 
 	fireball_scale_multiplier = asteroid_get_fireball_scale_multiplier(objp->instance);
 
-	fireball_objnum = fireball_create( &objp->pos, fireball_type, FIREBALL_LARGE_EXPLOSION, OBJ_INDEX(objp), objp->radius*fireball_scale_multiplier, 0, &objp->phys_info.vel );
+	fireball_objnum = fireball_create( &objp->phys_info.pos, fireball_type, FIREBALL_LARGE_EXPLOSION, OBJ_INDEX(objp), objp->radius*fireball_scale_multiplier, 0, &objp->phys_info.vel );
 	if ( fireball_objnum > -1 )	{
 		explosion_life = fireball_lifeleft(&Objects[fireball_objnum]);
 	} else {
@@ -1312,7 +1312,7 @@ void asteriod_explode_sound(object *objp, int type, int play_loud)
 		range_factor = 1.0f;
 	}
 
-	snd_play_3d( &Snds[sound_index], &objp->pos, &Eye_position, objp->radius, NULL, 0, 1.0f, SND_PRIORITY_MUST_PLAY, NULL, range_factor );
+	snd_play_3d( &Snds[sound_index], &objp->phys_info.pos, &Eye_position, objp->radius, NULL, 0, 1.0f, SND_PRIORITY_MUST_PLAY, NULL, range_factor );
 }
 
 /**
@@ -1343,11 +1343,11 @@ void asteroid_do_area_effect(object *asteroid_objp)
 			continue;
 		}
 
-		if ( weapon_area_calc_damage(ship_objp, &asteroid_objp->pos, asip->inner_rad, asip->outer_rad, asip->blast, asip->damage, &blast, &damage, asip->outer_rad) == -1 )
+		if ( weapon_area_calc_damage(ship_objp, &asteroid_objp->phys_info.pos, asip->inner_rad, asip->outer_rad, asip->blast, asip->damage, &blast, &damage, asip->outer_rad) == -1 )
 			continue;
 
-		ship_apply_global_damage(ship_objp, asteroid_objp, &asteroid_objp->pos, damage );
-		weapon_area_apply_blast(NULL, ship_objp, &asteroid_objp->pos, blast, 0);
+		ship_apply_global_damage(ship_objp, asteroid_objp, &asteroid_objp->phys_info.pos, damage );
+		weapon_area_apply_blast(NULL, ship_objp, &asteroid_objp->phys_info.pos, blast, 0);
 	}	// end for
 }
 
@@ -1389,7 +1389,7 @@ void asteroid_hit( object * pasteroid_obj, object * other_obj, vec3d * hitpos, f
 			if ( hitpos ) {
 				asp->death_hit_pos = *hitpos;
 			} else {
-				asp->death_hit_pos = pasteroid_obj->pos;
+				asp->death_hit_pos = pasteroid_obj->phys_info.pos;
 				// randomize hit pos a bit, otherwise we will get a NULL vector when trying to find direction to toss child asteroids
 				vec3d rand_vec;
 				vm_vec_rand_vec_quick(&rand_vec);
@@ -1501,7 +1501,7 @@ void asteroid_maybe_break_up(object *pasteroid_obj)
 							asc_get_relvec(&relvec, pasteroid_obj, &asp->death_hit_pos);
 							asteroid_sub_create(pasteroid_obj, ASTEROID_TYPE_SMALL, &relvec);
 						
-							vm_vec_normalized_dir(&vfh, &pasteroid_obj->pos, &asp->death_hit_pos);
+							vm_vec_normalized_dir(&vfh, &pasteroid_obj->phys_info.pos, &asp->death_hit_pos);
 							vm_vec_copy_scale(&tvec, &vfh, 2.0f);
 							vm_vec_sub2(&tvec, &relvec);
 							asteroid_sub_create(pasteroid_obj, ASTEROID_TYPE_SMALL, &tvec);
@@ -1511,7 +1511,7 @@ void asteroid_maybe_break_up(object *pasteroid_obj)
 							asc_get_relvec(&relvec, pasteroid_obj, &asp->death_hit_pos);
 							asteroid_sub_create(pasteroid_obj, ASTEROID_TYPE_MEDIUM, &relvec);
 						
-							vm_vec_normalized_dir(&vfh, &pasteroid_obj->pos, &asp->death_hit_pos);
+							vm_vec_normalized_dir(&vfh, &pasteroid_obj->phys_info.pos, &asp->death_hit_pos);
 							vm_vec_copy_scale(&tvec, &vfh, 2.0f);
 							vm_vec_sub2(&tvec, &relvec);
 							asteroid_sub_create(pasteroid_obj, ASTEROID_TYPE_MEDIUM, &tvec);
@@ -1573,7 +1573,7 @@ void asteroid_maybe_break_up(object *pasteroid_obj)
 						vm_vec_scale(&parent_vel, 0.5f);
 
 						// Make the hit position affect the direction, but only a little
-						vm_vec_sub(&hit_rel_vec, &pasteroid_obj->pos, &asp->death_hit_pos);
+						vm_vec_sub(&hit_rel_vec, &pasteroid_obj->phys_info.pos, &asp->death_hit_pos);
 						vm_vec_normalize(&hit_rel_vec);
 						vm_vec_scale(&hit_rel_vec, 0.25f);
 
@@ -1598,7 +1598,7 @@ int asteroid_get_random_in_cone(vec3d *pos, vec3d *dir, float ang, int danger)
 
 	// just pick the first asteroid which satisfies our condition
 	for(idx=0; idx<Num_asteroids; idx++){
-		vm_vec_sub(&asteroid_dir, &Objects[Asteroids[idx].objnum].pos, pos);
+		vm_vec_sub(&asteroid_dir, &Objects[Asteroids[idx].objnum].phys_info.pos, pos);
 		vm_vec_normalize_quick(&asteroid_dir);
 
 		// if it satisfies the condition
@@ -1620,19 +1620,19 @@ void asteroid_test_collide(object *pasteroid_obj, object *pship_obj, mc_info *mc
 	asteroid_fvec = pasteroid_obj->phys_info.desired_vel;
 
 	if(IS_VEC_NULL_SQ_SAFE(&asteroid_fvec)){
-		terminus = pasteroid_obj->pos;
+		terminus = pasteroid_obj->phys_info.pos;
 	} else {
 		vm_vec_normalize(&asteroid_fvec);
-		vm_vec_scale_add(&terminus, &pasteroid_obj->pos, &asteroid_fvec, asteroid_ray_dist);
+		vm_vec_scale_add(&terminus, &pasteroid_obj->phys_info.pos, &asteroid_fvec, asteroid_ray_dist);
 	}
 
 	Assert(pship_obj->type == OBJ_SHIP);
 
 	mc->model_instance_num = Ships[pship_obj->instance].model_instance_num;
 	mc->model_num = Ship_info[Ships[pship_obj->instance].ship_info_index].model_num;			// Fill in the model to check
-	mc->orient = &pship_obj->orient;										// The object's orientation
-	mc->pos = &pship_obj->pos;												// The object's position
-	mc->p0 = &pasteroid_obj->pos;											// Point 1 of ray to check
+	mc->orient = &pship_obj->phys_info.orient;										// The object's orientation
+	mc->pos = &pship_obj->phys_info.pos;												// The object's position
+	mc->p0 = &pasteroid_obj->phys_info.pos;											// Point 1 of ray to check
 	mc->p1 = &terminus;														// Point 2 of ray to check
 	if (lazy) {
 		mc->flags = MC_CHECK_MODEL | MC_ONLY_BOUND_BOX;
@@ -1797,7 +1797,7 @@ float asteroid_time_to_impact(object *asteroid_objp)
 	asteroid_test_collide(asteroid_objp, &Objects[asp->collide_objnum], &mc, true);
 
 	if ( mc.num_hits ) {
-		total_dist = vm_vec_dist(&mc.hit_point_world, &asteroid_objp->pos) - asteroid_objp->radius;
+		total_dist = vm_vec_dist(&mc.hit_point_world, &asteroid_objp->phys_info.pos) - asteroid_objp->radius;
 		if ( total_dist < 0 ) {
 			total_dist = 0.0f;
 		}
@@ -2099,13 +2099,13 @@ int set_asteroid_throw_objnum()
 		float		radius = ship_objp->radius*2.0f;
 
 		if (Ship_info[Ships[ship_objp->instance].ship_info_index].is_big_or_huge()) {
-			if (ship_objp->pos.xyz.x + radius > Asteroid_field.min_bound.xyz.x)
-				if (ship_objp->pos.xyz.y + radius > Asteroid_field.min_bound.xyz.y)
-				if (ship_objp->pos.xyz.z + radius > Asteroid_field.min_bound.xyz.z)
-				if (ship_objp->pos.xyz.x - radius < Asteroid_field.max_bound.xyz.x)
-				if (ship_objp->pos.xyz.y - radius < Asteroid_field.max_bound.xyz.y)
-				if (ship_objp->pos.xyz.z - radius < Asteroid_field.max_bound.xyz.z)
-				if (!asteroid_in_inner_bound(&Asteroid_field, &ship_objp->pos, radius))
+			if (ship_objp->phys_info.pos.xyz.x + radius > Asteroid_field.min_bound.xyz.x)
+				if (ship_objp->phys_info.pos.xyz.y + radius > Asteroid_field.min_bound.xyz.y)
+				if (ship_objp->phys_info.pos.xyz.z + radius > Asteroid_field.min_bound.xyz.z)
+				if (ship_objp->phys_info.pos.xyz.x - radius < Asteroid_field.max_bound.xyz.x)
+				if (ship_objp->phys_info.pos.xyz.y - radius < Asteroid_field.max_bound.xyz.y)
+				if (ship_objp->phys_info.pos.xyz.z - radius < Asteroid_field.max_bound.xyz.z)
+				if (!asteroid_in_inner_bound(&Asteroid_field, &ship_objp->phys_info.pos, radius))
 					return so->objnum;
 		}
 	}
@@ -2169,13 +2169,13 @@ void asteroid_show_brackets()
 			continue;
 		}
 
-		g3_rotate_vertex(&asteroid_vertex,&asteroid_objp->pos);
+		g3_rotate_vertex(&asteroid_vertex,&asteroid_objp->phys_info.pos);
 		g3_project_vertex(&asteroid_vertex);
 
 		if ( Cmdline_targetinfo ) {
-			hud_target_add_display_list(asteroid_objp, &asteroid_vertex, &asteroid_objp->pos, 0, NULL, NULL, TARGET_DISPLAY_DIST | TARGET_DISPLAY_LEAD);
+			hud_target_add_display_list(asteroid_objp, &asteroid_vertex, &asteroid_objp->phys_info.pos, 0, NULL, NULL, TARGET_DISPLAY_DIST | TARGET_DISPLAY_LEAD);
 		} else {
-			hud_target_add_display_list(asteroid_objp, &asteroid_vertex, &asteroid_objp->pos, 0, NULL, NULL, TARGET_DISPLAY_DIST);
+			hud_target_add_display_list(asteroid_objp, &asteroid_vertex, &asteroid_objp->phys_info.pos, 0, NULL, NULL, TARGET_DISPLAY_DIST);
 		}
 	}
 }
@@ -2200,7 +2200,7 @@ void asteroid_target_closest_danger()
 			continue;
 		}
 
-		dist = vm_vec_dist_quick(&Player_obj->pos, &asteroid_objp->pos);
+		dist = vm_vec_dist_quick(&Player_obj->phys_info.pos, &asteroid_objp->phys_info.pos);
 
 		if ( dist < closest_dist ) {
 			closest_dist = dist;

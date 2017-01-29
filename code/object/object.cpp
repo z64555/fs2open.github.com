@@ -139,9 +139,7 @@ void object::clear()
 	signature = num_pairs = collision_group_id = 0;
 	parent = parent_sig = instance = -1;
 	type = parent_type = OBJ_NONE;
-    flags.reset();
-	pos = last_pos = vmd_zero_vector;
-	orient = last_orient = vmd_identity_matrix;
+	flags.reset();
 	radius = hull_strength = sim_hull_strength = 0.0f;
 	physics_init( &phys_info );
 	shield_quadrant.clear();
@@ -498,13 +496,13 @@ int obj_create(ubyte type,int parent_obj,int instance, matrix * orient,
 	obj->flags 					= flags;
     obj->flags.set(Object::Object_Flags::Not_in_coll);
 	if (pos)	{
-		obj->pos 				= *pos;
-		obj->last_pos			= *pos;
+		obj->phys_info.pos 				= *pos;
+		obj->phys_info.last_pos			= *pos;
 	}
 
 	if (orient)	{
-		obj->orient 			= *orient;
-		obj->last_orient		= *orient;
+		obj->phys_info.orient 			= *orient;
+		obj->phys_info.last_orient		= *orient;
 	}
 	obj->radius 				= radius;
 
@@ -855,7 +853,7 @@ void obj_move_call_physics(object *objp, float frametime)
 
 		if (physics_paused)	{
 			if (objp==Player_obj){
-				physics_sim(&objp->pos, &objp->orient, &objp->phys_info, frametime );		// simulate the physics
+				physics_sim(&objp->phys_info.pos, &objp->phys_info.orient, &objp->phys_info, frametime );		// simulate the physics
 			}
 		} else {
 			//	Hack for dock mode.
@@ -890,7 +888,7 @@ void obj_move_call_physics(object *objp, float frametime)
 				goto obj_maybe_fire;
 			}
 
-				physics_sim(&objp->pos, &objp->orient, &objp->phys_info, frametime );		// simulate the physics
+				physics_sim(&objp->phys_info.pos, &objp->phys_info.orient, &objp->phys_info, frametime );		// simulate the physics
 
 			// if the object is the player object, do things that need to be done after the ship
 			// is moved (like firing weapons, etc).  This routine will get called either single
@@ -923,12 +921,12 @@ obj_maybe_fire:
 	if(The_mission.flags[Mission::Mission_Flags::Mission_2d])
 	{
 		angles old_angles, new_angles;
-		objp->pos.xyz.y = objp->last_pos.xyz.y;
-		vm_extract_angles_matrix(&old_angles, &objp->last_orient);
-		vm_extract_angles_matrix(&new_angles, &objp->orient);
+		objp->phys_info.pos.xyz.y = objp->phys_info.last_pos.xyz.y;
+		vm_extract_angles_matrix(&old_angles, &objp->phys_info.last_orient);
+		vm_extract_angles_matrix(&new_angles, &objp->phys_info.orient);
 		new_angles.p = old_angles.p;
 		new_angles.b = old_angles.b;
-		vm_angles_2_matrix(&objp->orient, &new_angles);
+		vm_angles_2_matrix(&objp->phys_info.orient, &new_angles);
 
 		//Phys stuff hack
 		new_angles.h = old_angles.h;
@@ -1208,10 +1206,10 @@ void obj_move_all_post(object *objp, float frametime)
 						g = i2fl(c.green)/255.0f;
 						b = i2fl(c.blue)/255.0f;
 
-						//light_add_point( &objp->pos, 10.0f, 20.0f, 1.0f, r, g, b, objp->parent );
-						light_add_point( &objp->pos, 10.0f, 100.0f, 1.0f, r, g, b, objp->parent );
+						//light_add_point( &objp->phys_info.pos, 10.0f, 20.0f, 1.0f, r, g, b, objp->parent );
+						light_add_point( &objp->phys_info.pos, 10.0f, 100.0f, 1.0f, r, g, b, objp->parent );
 					} else {
-						light_add_point( &objp->pos, 10.0f, 20.0f, 1.0f, 1.0f, 1.0f, 1.0f, objp->parent );
+						light_add_point( &objp->phys_info.pos, 10.0f, 20.0f, 1.0f, 1.0f, 1.0f, 1.0f, objp->parent );
 					} 
 				}
 			}
@@ -1239,11 +1237,11 @@ void obj_move_all_post(object *objp, float frametime)
 						if ( timestamp_valid( shipp->arc_timestamp[i] ) )	{
 							// Move arc endpoints into world coordinates	
 							vec3d tmp1, tmp2;
-							vm_vec_unrotate(&tmp1,&shipp->arc_pts[i][0],&objp->orient);
-							vm_vec_add2(&tmp1,&objp->pos);
+							vm_vec_unrotate(&tmp1,&shipp->arc_pts[i][0],&objp->phys_info.orient);
+							vm_vec_add2(&tmp1,&objp->phys_info.pos);
 
-							vm_vec_unrotate(&tmp2,&shipp->arc_pts[i][1],&objp->orient);
-							vm_vec_add2(&tmp2,&objp->pos);
+							vm_vec_unrotate(&tmp2,&shipp->arc_pts[i][1],&objp->phys_info.orient);
+							vm_vec_add2(&tmp2,&objp->phys_info.pos);
 
 							light_add_point( &tmp1, 10.0f, 20.0f, frand(), 1.0f, 1.0f, 1.0f, -1 );
 							light_add_point( &tmp2, 10.0f, 20.0f, frand(), 1.0f, 1.0f, 1.0f, -1 );
@@ -1300,7 +1298,7 @@ void obj_move_all_post(object *objp, float frametime)
 					// P goes from 0 to 1 to 0 over the life of the explosion
 					// Only do this if rad is > 0.0000001f
 					if (rad > 0.0001f)
-						light_add_point( &objp->pos, rad * 2.0f, rad * 5.0f, intensity, r, g, b, -1 );
+						light_add_point( &objp->phys_info.pos, rad * 2.0f, rad * 5.0f, intensity, r, g, b, -1 );
 				}
 			}
 
@@ -1330,11 +1328,11 @@ void obj_move_all_post(object *objp, float frametime)
 							if ( timestamp_valid( db->arc_timestamp[i] ) )	{
 								// Move arc endpoints into world coordinates	
 								vec3d tmp1, tmp2;
-								vm_vec_unrotate(&tmp1,&db->arc_pts[i][0],&objp->orient);
-								vm_vec_add2(&tmp1,&objp->pos);
+								vm_vec_unrotate(&tmp1,&db->arc_pts[i][0],&objp->phys_info.orient);
+								vm_vec_add2(&tmp1,&objp->phys_info.pos);
 
-								vm_vec_unrotate(&tmp2,&db->arc_pts[i][1],&objp->orient);
-								vm_vec_add2(&tmp2,&objp->pos);
+								vm_vec_unrotate(&tmp2,&db->arc_pts[i][1],&objp->phys_info.orient);
+								vm_vec_add2(&tmp2,&objp->phys_info.pos);
 
 								light_add_point( &tmp1, 10.0f, 20.0f, frand(), 1.0f, 1.0f, 1.0f, -1 );
 								light_add_point( &tmp2, 10.0f, 20.0f, frand(), 1.0f, 1.0f, 1.0f, -1 );
@@ -1425,7 +1423,7 @@ void obj_move_all(float frametime)
 			continue;
 		}
 
-		vec3d cur_pos = objp->pos;			// Save the current position
+		vec3d cur_pos = objp->phys_info.pos;			// Save the current position
 
 #ifdef OBJECT_CHECK 
 			obj_check_object( objp );
@@ -1435,8 +1433,8 @@ void obj_move_all(float frametime)
 		obj_move_all_pre(objp, frametime);
 
 		// store last pos and orient
-		objp->last_pos = cur_pos;
-		objp->last_orient = objp->orient;
+		objp->phys_info.last_pos = cur_pos;
+		objp->phys_info.last_orient = objp->phys_info.orient;
 
 		// Goober5000 - skip objects which don't move, but only until they're destroyed
 		if (!(objp->flags[Object::Object_Flags::Immobile] && objp->hull_strength > 0.0f)) {
@@ -1494,7 +1492,7 @@ void obj_move_all(float frametime)
 		if ( &objp->phys_info == Viewer_physics_info )	{
 			vec3d tangles_r;
 			vm_vec_unrotate(&tangles_r, &tangles, &Eye_matrix);
-			vm_vec_rotate(&tangles, &tangles_r, &objp->orient);
+			vm_vec_rotate(&tangles, &tangles_r, &objp->phys_info.orient);
 
 			if(objp->dock_list && objp->dock_list->docked_objp->type == OBJ_SHIP && Ai_info[Ships[objp->dock_list->docked_objp->instance].ai_index].submode == AIS_DOCK_4) {
 				Physics_viewer_bank -= tangles.xyz.z*0.65f;
@@ -1618,13 +1616,13 @@ void obj_queue_render(object* obj, model_draw_list* scene)
 				continue;
 			}
 
-			jnp->Render(scene, &obj->pos, &Eye_position);
+			jnp->Render(scene, &obj->phys_info.pos, &Eye_position);
 		}
 		break;
 	case OBJ_WAYPOINT:
 		// 		if (Show_waypoints)	{
 		// 			gr_set_color( 128, 128, 128 );
-		// 			g3_draw_sphere_ez( &obj->pos, 5.0f );
+		// 			g3_draw_sphere_ez( &obj->phys_info.pos, 5.0f );
 		// 		}
 		break;
 	case OBJ_GHOST:
@@ -1680,8 +1678,8 @@ void obj_client_pre_interpolate()
 			obj_move_all_pre(objp, flFrametime);
 
 			// store position and orientation
-			objp->last_pos = objp->pos;
-			objp->last_orient = objp->orient;
+			objp->phys_info.last_pos = objp->phys_info.pos;
+			objp->phys_info.last_orient = objp->phys_info.orient;
 
 			// call physics
 			obj_move_call_physics(objp, flFrametime);
@@ -1731,8 +1729,8 @@ void obj_observer_move(float frame_time)
 
 	objp = Player_obj;
 
-	objp->last_pos = objp->pos;
-	objp->last_orient = objp->orient;		// save the orientation -- useful in multiplayer.
+	objp->phys_info.last_pos = objp->phys_info.pos;
+	objp->phys_info.last_orient = objp->phys_info.orient;		// save the orientation -- useful in multiplayer.
 
 	ft = flFrametime;
 	obj_move_call_physics( objp, ft );
@@ -1755,7 +1753,7 @@ void obj_get_average_ship_pos( vec3d *pos )
 	for ( objp = GET_FIRST(&obj_used_list); objp != END_OF_LIST(&obj_used_list); objp = GET_NEXT(objp) ) {
 		if ( objp->type != OBJ_SHIP )
 			continue;
-		vm_vec_add2( pos, &objp->pos );
+		vm_vec_add2( pos, &objp->phys_info.pos );
 		count++;
 	}
 
@@ -1983,7 +1981,7 @@ void object_set_gliding(object *objp, bool enable, bool force)
 		} else {
 			objp->phys_info.flags &= ~PF_FORCE_GLIDE;
 		}
-		vm_vec_rotate(&objp->phys_info.prev_ramp_vel, &objp->phys_info.vel, &objp->orient);	//Backslash
+		vm_vec_rotate(&objp->phys_info.prev_ramp_vel, &objp->phys_info.vel, &objp->phys_info.orient);	//Backslash
 	}
 }
 

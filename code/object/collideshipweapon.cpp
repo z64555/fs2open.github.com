@@ -72,7 +72,7 @@ void ship_weapon_do_hit_stuff(object *pship_obj, object *weapon_obj, vec3d *worl
 	vec3d force;
 
 	vec3d worldNormal;
-	model_instance_find_world_dir(&worldNormal, &hit_dir, shipp->model_instance_num, submodel_num, &pship_obj->orient);
+	model_instance_find_world_dir(&worldNormal, &hit_dir, shipp->model_instance_num, submodel_num, &pship_obj->phys_info.orient);
 
 	// Apply hit & damage & stuff to weapon
 	weapon_hit(weapon_obj, pship_obj,  world_hitpos, quadrant_num, &worldNormal);
@@ -153,7 +153,7 @@ int ship_weapon_check_collision(object *ship_objp, object *weapon_objp, float ti
 	
 	//	Return information for AI to detect incoming fire.
 	//	Could perhaps be done elsewhere at lower cost --MK, 11/7/97
-	float	dist = vm_vec_dist_quick(&ship_objp->pos, &weapon_objp->pos);
+	float	dist = vm_vec_dist_quick(&ship_objp->phys_info.pos, &weapon_objp->phys_info.pos);
 	if (dist < weapon_objp->phys_info.speed) {
 		update_danger_weapon(ship_objp, weapon_objp);
 	}
@@ -164,7 +164,7 @@ int ship_weapon_check_collision(object *ship_objp, object *weapon_objp, float ti
 
 	//	total time is flFrametime + time_limit (time_limit used to predict collisions into the future)
 	vec3d weapon_end_pos;
-	vm_vec_scale_add( &weapon_end_pos, &weapon_objp->pos, &weapon_objp->phys_info.vel, time_limit );
+	vm_vec_scale_add( &weapon_end_pos, &weapon_objp->phys_info.pos, &weapon_objp->phys_info.vel, time_limit );
 
 
 	// Goober5000 - I tried to make collision code here much saner... here begin the (major) changes
@@ -174,9 +174,9 @@ int ship_weapon_check_collision(object *ship_objp, object *weapon_objp, float ti
 	mc.model_instance_num = shipp->model_instance_num;
 	mc.model_num = sip->model_num;
 	mc.submodel_num = -1;
-	mc.orient = &ship_objp->orient;
-	mc.pos = &ship_objp->pos;
-	mc.p0 = &weapon_objp->last_pos;
+	mc.orient = &ship_objp->phys_info.orient;
+	mc.pos = &ship_objp->phys_info.pos;
+	mc.p0 = &weapon_objp->phys_info.last_pos;
 	mc.p1 = &weapon_end_pos;
 	mc.lod = sip->collision_lod;
 	memcpy(&mc_shield, &mc, sizeof(mc_info));
@@ -209,9 +209,9 @@ int ship_weapon_check_collision(object *ship_objp, object *weapon_objp, float ti
 	if (!(ship_objp->flags[Object::Object_Flags::No_shields])) {
 		if (sip->flags[Ship::Info_Flags::Auto_spread_shields]) {
 			// The weapon is not allowed to impact the shield before it reaches this point
-			vec3d shield_ignored_until = weapon_objp->last_pos;
+			vec3d shield_ignored_until = weapon_objp->phys_info.last_pos;
 
-			float weapon_flown_for = vm_vec_dist(&wp->start_pos, &weapon_objp->last_pos);
+			float weapon_flown_for = vm_vec_dist(&wp->start_pos, &weapon_objp->phys_info.last_pos);
 			float min_weapon_span;
 
 			if (sip->auto_shield_spread_min_span >= 0.0f) {
@@ -230,7 +230,7 @@ int ship_weapon_check_collision(object *ship_objp, object *weapon_objp, float ti
 				vm_vec_add2(&shield_ignored_until, &wp->start_pos);
 			}
 
-			float this_range = vm_vec_dist(&weapon_objp->last_pos, &weapon_end_pos);
+			float this_range = vm_vec_dist(&weapon_objp->phys_info.last_pos, &weapon_end_pos);
 
 			// The range during which the weapon is not allowed to collide with the
 			// shield, except if it actually hits the hull
@@ -239,7 +239,7 @@ int ship_weapon_check_collision(object *ship_objp, object *weapon_objp, float ti
 			// If the weapon has not yet surpassed the ignore range, calculate the
 			// remaining ignore range
 			if (vm_vec_dist(&wp->start_pos, &shield_ignored_until) > weapon_flown_for)
-				ignored_range = vm_vec_dist(&weapon_objp->last_pos, &shield_ignored_until);
+				ignored_range = vm_vec_dist(&weapon_objp->phys_info.last_pos, &shield_ignored_until);
 			else
 				ignored_range = 0.0f;
 
@@ -282,7 +282,7 @@ int ship_weapon_check_collision(object *ship_objp, object *weapon_objp, float ti
 				// Because we manipulated p0 and p1 above, hit_dist will be
 				// relative to the values we used, not the values the rest of
 				// the code expects; this fixes that
-				mc_shield.p0 = &weapon_objp->last_pos;
+				mc_shield.p0 = &weapon_objp->phys_info.last_pos;
 				mc_shield.p1 = &weapon_end_pos;
 				mc_shield.hit_dist = (ignored_range + (active_range * mc_shield.hit_dist)) / this_range;
 			}
@@ -302,8 +302,8 @@ int ship_weapon_check_collision(object *ship_objp, object *weapon_objp, float ti
 				// Re-calculate hit_point because it's likely pointing to the wrong
 				// place
 				vec3d tempv;
-				vm_vec_sub(&tempv, &mc_shield.hit_point_world, &ship_objp->pos);
-				vm_vec_rotate(&mc_shield.hit_point, &tempv, &ship_objp->orient);
+				vm_vec_sub(&tempv, &mc_shield.hit_point_world, &ship_objp->phys_info.pos);
+				vm_vec_rotate(&mc_shield.hit_point, &tempv, &ship_objp->phys_info.orient);
 			}
 		} else if (sip->flags[Ship::Info_Flags::Surface_shields]) {
 			if (pm->shield.ntris > 0) {
@@ -321,8 +321,8 @@ int ship_weapon_check_collision(object *ship_objp, object *weapon_objp, float ti
 				// in a submodel's frame of reference, so we need to ensure we end up
 				// in the ship's frame of reference
 				vec3d local_pos;
-				vm_vec_sub(&local_pos, &mc_shield.hit_point_world, &ship_objp->pos);
-				vm_vec_rotate(&mc_shield.hit_point, &local_pos, &ship_objp->orient);
+				vm_vec_sub(&local_pos, &mc_shield.hit_point_world, &ship_objp->phys_info.pos);
+				vm_vec_rotate(&mc_shield.hit_point, &local_pos, &ship_objp->phys_info.orient);
 			}
 		} else {
 			// Normal collision check against a shield mesh
@@ -445,9 +445,9 @@ int ship_weapon_check_collision(object *ship_objp, object *weapon_objp, float ti
 		if (dist < wip->shockwave.inner_rad) {
 			vec3d	vec_to_ship;
 
-			vm_vec_normalized_dir(&vec_to_ship, &ship_objp->pos, &weapon_objp->pos);
+			vm_vec_normalized_dir(&vec_to_ship, &ship_objp->phys_info.pos, &weapon_objp->phys_info.pos);
 
-			if (vm_vec_dot(&vec_to_ship, &weapon_objp->orient.vec.fvec) < 0.0f) {
+			if (vm_vec_dot(&vec_to_ship, &weapon_objp->phys_info.orient.vec.fvec) < 0.0f) {
 				// check if we're colliding against "invisible" ship
 				if (!(shipp->flags[Ship::Ship_Flags::Dont_collide_invis])) {
 					wp->lifeleft = 0.001f;
@@ -499,7 +499,7 @@ int collide_ship_weapon( obj_pair * pair )
 		// within the sphere with little time between.  There may be some time for "small" big ships
 		// Note: culling ships with auto spread shields seems to waste more performance than it saves,
 		// so we're not doing that here
-		if ( !(sip->flags[Ship::Info_Flags::Auto_spread_shields]) && vm_vec_dist_squared(&ship->pos, &weapon_obj->pos) < (1.2f*ship->radius*ship->radius) ) {
+		if ( !(sip->flags[Ship::Info_Flags::Auto_spread_shields]) && vm_vec_dist_squared(&ship->phys_info.pos, &weapon_obj->phys_info.pos) < (1.2f*ship->radius*ship->radius) ) {
 			return check_inside_radius_for_big_ships( ship, weapon_obj, pair );
 		}
 	}
@@ -556,11 +556,11 @@ int check_inside_radius_for_big_ships( object *ship, object *weapon_obj, obj_pai
 	if (max_error < 2)
 		max_error = 2.0f;
 
-	time_to_exit_sphere = (ship->radius + vm_vec_dist(&ship->pos, &weapon_obj->pos)) / (weapon_obj->phys_info.max_vel.xyz.z - ship->phys_info.max_vel.xyz.z);
+	time_to_exit_sphere = (ship->radius + vm_vec_dist(&ship->phys_info.pos, &weapon_obj->phys_info.pos)) / (weapon_obj->phys_info.max_vel.xyz.z - ship->phys_info.max_vel.xyz.z);
 	ship_speed_at_exit_sphere = estimate_ship_speed_upper_limit( ship, time_to_exit_sphere );
 	// update estimated time to exit sphere
-	time_to_exit_sphere = (ship->radius + vm_vec_dist(&ship->pos, &weapon_obj->pos)) / (weapon_obj->phys_info.max_vel.xyz.z - ship_speed_at_exit_sphere);
-	vm_vec_scale_add( &error_vel, &ship->phys_info.vel, &weapon_obj->orient.vec.fvec, -vm_vec_dot(&ship->phys_info.vel, &weapon_obj->orient.vec.fvec) );
+	time_to_exit_sphere = (ship->radius + vm_vec_dist(&ship->phys_info.pos, &weapon_obj->phys_info.pos)) / (weapon_obj->phys_info.max_vel.xyz.z - ship_speed_at_exit_sphere);
+	vm_vec_scale_add( &error_vel, &ship->phys_info.vel, &weapon_obj->phys_info.orient.vec.fvec, -vm_vec_dot(&ship->phys_info.vel, &weapon_obj->phys_info.orient.vec.fvec) );
 	error_vel_mag = vm_vec_mag_quick( &error_vel );
 	error_vel_mag += 0.5f * (ship->phys_info.max_vel.xyz.z - error_vel_mag)*(time_to_exit_sphere/ship->phys_info.forward_accel_time_const);
 	// error_vel_mag is now average velocity over period

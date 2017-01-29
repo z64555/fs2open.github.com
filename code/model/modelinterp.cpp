@@ -1626,15 +1626,15 @@ float get_world_closest_box_point_with_delta(vec3d *closest_box_point, object *b
 	modelnum = Ship_info[Ships[box_obj->instance].ship_info_index].model_num;
 
 	// rotate start_point to box_obj RF
-	vm_vec_sub(&temp, start_point, &box_obj->pos);
-	vm_vec_rotate(&box_start, &temp, &box_obj->orient);
+	vm_vec_sub(&temp, start_point, &box_obj->phys_info.pos);
+	vm_vec_rotate(&box_start, &temp, &box_obj->phys_info.orient);
 
 	dist = get_model_closest_box_point_with_delta(closest_box_point, &box_start, modelnum, is_inside, delta);
 
 	// rotate closest_box_point to world RF
 	if (closest_box_point) {
-		vm_vec_unrotate(&temp, closest_box_point, &box_obj->orient);
-		vm_vec_add(closest_box_point, &temp, &box_obj->pos);
+		vm_vec_unrotate(&temp, closest_box_point, &box_obj->phys_info.orient);
+		vm_vec_add(closest_box_point, &temp, &box_obj->phys_info.pos);
 	}
 
 	return dist;

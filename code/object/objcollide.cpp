@@ -366,7 +366,7 @@ void obj_add_pair( object *A, object *B, int check_time, int add_to_end )
 			if (Weapon_info[Weapons[B->instance].weapon_info_index].subtype == WP_LASER) {
 				vec3d velocity_rel_weapon;
 				vm_vec_sub(&velocity_rel_weapon, &B->phys_info.vel, &A->phys_info.vel);
-				vdot = -vm_vec_dot(&velocity_rel_weapon, &B->orient.vec.fvec);
+				vdot = -vm_vec_dot(&velocity_rel_weapon, &B->phys_info.orient.vec.fvec);
 			} else {
 				vdot = vm_vec_dot( &A->phys_info.vel, &B->phys_info.vel);
 			}
@@ -374,8 +374,8 @@ void obj_add_pair( object *A, object *B, int check_time, int add_to_end )
 				// They're heading in opposite directions...
 				// check their positions
 				vec3d weapon2other;
-				vm_vec_sub( &weapon2other, &A->pos, &B->pos );
-				float pdot = vm_vec_dot( &B->orient.vec.fvec, &weapon2other );
+				vm_vec_sub( &weapon2other, &A->phys_info.pos, &B->phys_info.pos );
+				float pdot = vm_vec_dot( &B->phys_info.orient.vec.fvec, &weapon2other );
 				if ( pdot <= -A->radius )	{
 					// The other object is behind the weapon by more than
 					// its radius, so it will never hit...
@@ -386,12 +386,12 @@ void obj_add_pair( object *A, object *B, int check_time, int add_to_end )
 			// check dist vs. dist moved during weapon lifetime
 			vec3d delta_v;
 			vm_vec_sub(&delta_v, &B->phys_info.vel, &A->phys_info.vel);
-			if (vm_vec_dist_squared(&A->pos, &B->pos) > (vm_vec_mag_squared(&delta_v)*Weapons[B->instance].lifeleft*Weapons[B->instance].lifeleft)) {
+			if (vm_vec_dist_squared(&A->phys_info.pos, &B->phys_info.pos) > (vm_vec_mag_squared(&delta_v)*Weapons[B->instance].lifeleft*Weapons[B->instance].lifeleft)) {
 				return;
 			}
 
 			// for nonplayer ships, only create collision pair if close enough
-			if ( (B->parent >= 0) && !((Objects[B->parent].signature == B->parent_sig) && (Objects[B->parent].flags[Object::Object_Flags::Player_ship])) && (vm_vec_dist(&B->pos, &A->pos) < (4.0f*A->radius + 200.0f)) )
+			if ( (B->parent >= 0) && !((Objects[B->parent].signature == B->parent_sig) && (Objects[B->parent].flags[Object::Object_Flags::Player_ship])) && (vm_vec_dist(&B->phys_info.pos, &A->phys_info.pos) < (4.0f*A->radius + 200.0f)) )
 				return;
 		}
 	}
@@ -678,8 +678,8 @@ int objects_will_collide(object *A, object *B, float duration, float radius_scal
 	int ret;
 
 
-	prev_pos = A->pos;
-	vm_vec_scale_add2(&A->pos, &A->phys_info.vel, duration);
+	prev_pos = A->phys_info.pos;
+	vm_vec_scale_add2(&A->phys_info.pos, &A->phys_info.vel, duration);
 
 	if (radius_scale == 0.0f) {
 		ret = ship_check_collision_fast(B, A, &hitpos);
@@ -692,21 +692,21 @@ int objects_will_collide(object *A, object *B, float duration, float radius_scal
 
 		//	If A is moving, check along vector.
 		if (A->phys_info.speed != 0.0f) {
-			r = find_nearest_point_on_line(&nearest_point, &prev_pos, &A->pos, &B->pos);
+			r = find_nearest_point_on_line(&nearest_point, &prev_pos, &A->phys_info.pos, &B->phys_info.pos);
 			if (r < 0) {
 				nearest_point = prev_pos;
 			} else if (r > 1) {
-				nearest_point = A->pos;
+				nearest_point = A->phys_info.pos;
 			}
-			dist = vm_vec_dist_quick(&B->pos, &nearest_point);
+			dist = vm_vec_dist_quick(&B->phys_info.pos, &nearest_point);
 			ret = (dist < size_A + size_B);
 		} else {
-			ret = vm_vec_dist_quick(&B->pos, &prev_pos) < size_A + size_B;
+			ret = vm_vec_dist_quick(&B->phys_info.pos, &prev_pos) < size_A + size_B;
 		}
 	}
 
 	// Reset the position to the previous value
-	A->pos = prev_pos;
+	A->phys_info.pos = prev_pos;
 
 	return ret;
 }
@@ -717,9 +717,9 @@ int vector_object_collision(vec3d *start_pos, vec3d *end_pos, object *objp, floa
 	float		dist, r;
 	vec3d	nearest_point;
 
-	r = find_nearest_point_on_line(&nearest_point, start_pos, end_pos, &objp->pos);
+	r = find_nearest_point_on_line(&nearest_point, start_pos, end_pos, &objp->phys_info.pos);
 	if ((r >= 0.0f) && (r <= 1.0f)) {
-		dist = vm_vec_dist_quick(&objp->pos, &nearest_point);
+		dist = vm_vec_dist_quick(&objp->phys_info.pos, &nearest_point);
 
 		return (dist < objp->radius * radius_scale);
 	} else
@@ -750,7 +750,7 @@ int weapon_will_never_hit( object *obj_weapon, object *other, obj_pair * current
 		if (wip->subtype == WP_LASER) {
 			vec3d velocity_rel_weapon;
 			vm_vec_sub(&velocity_rel_weapon, &obj_weapon->phys_info.vel, &other->phys_info.vel);
-			vdot = -vm_vec_dot(&velocity_rel_weapon, &obj_weapon->orient.vec.fvec);
+			vdot = -vm_vec_dot(&velocity_rel_weapon, &obj_weapon->phys_info.orient.vec.fvec);
 		} else {
 			vdot = vm_vec_dot( &other->phys_info.vel, &obj_weapon->phys_info.vel);
 		}
@@ -758,8 +758,8 @@ int weapon_will_never_hit( object *obj_weapon, object *other, obj_pair * current
 			// They're heading in opposite directions...
 			// check their positions
 			vec3d weapon2other;
-			vm_vec_sub( &weapon2other, &other->pos, &obj_weapon->pos );
-			float pdot = vm_vec_dot( &obj_weapon->orient.vec.fvec, &weapon2other );
+			vm_vec_sub( &weapon2other, &other->phys_info.pos, &obj_weapon->phys_info.pos );
+			float pdot = vm_vec_dot( &obj_weapon->phys_info.orient.vec.fvec, &weapon2other );
 			if ( pdot <= -other->radius )	{
 				// The other object is behind the weapon by more than
 				// its radius, so it will never hit...
@@ -823,9 +823,9 @@ int weapon_will_never_hit( object *obj_weapon, object *other, obj_pair * current
 				return 0;
 			}
 
-			vm_vec_sub( &delta_x, &obj_weapon->pos, &other->pos );
+			vm_vec_sub( &delta_x, &obj_weapon->phys_info.pos, &other->phys_info.pos );
 			laser_vel = obj_weapon->phys_info.vel;
-			// vm_vec_copy_scale( &laser_vel, &weapon->orient.vec.fvec, max_vel_weapon );
+			// vm_vec_copy_scale( &laser_vel, &weapon->phys_info.orient.vec.fvec, max_vel_weapon );
 			delta_t = (other->radius + 10.0f) / max_vel_other;		// time to get from center to radius of other obj
 			delta_x_dot_vl = vm_vec_dot( &delta_x, &laser_vel );
 
@@ -897,7 +897,7 @@ int weapon_will_never_hit( object *obj_weapon, object *other, obj_pair * current
 			max_vel = max_vel_weapon + max_vel_other;
 
 			// suggest that fudge factor for other radius be changed to other_radius + const (~10)
-			dist = vm_vec_dist( &other->pos, &obj_weapon->pos ) - (other->radius + 10.0f);
+			dist = vm_vec_dist( &other->phys_info.pos, &obj_weapon->phys_info.pos ) - (other->radius + 10.0f);
 			if ( dist > 0.0f )	{
 				time = (dist*1000.0f) / max_vel;
 				int time_ms = fl2i(time);
@@ -934,8 +934,8 @@ int pp_collide(vec3d *curpos, vec3d *goalpos, object *goalobjp, float radius)
 
 	mc.model_instance_num = Ships[goalobjp->instance].model_instance_num;
 	mc.model_num = Ship_info[Ships[goalobjp->instance].ship_info_index].model_num;			// Fill in the model to check
-	mc.orient = &goalobjp->orient;	// The object's orient
-	mc.pos = &goalobjp->pos;			// The object's position
+	mc.orient = &goalobjp->phys_info.orient;	// The object's orient
+	mc.pos = &goalobjp->phys_info.pos;			// The object's position
 	mc.p0 = curpos;					// Point 1 of ray to check
 	mc.p1 = goalpos;					// Point 2 of ray to check
 	mc.flags = MC_CHECK_MODEL | MC_CHECK_SPHERELINE;
@@ -958,7 +958,7 @@ int cpls_aux(vec3d *goal_pos, object *objp2, object *objp)
 	else
 		radius = 70.0f;
 
-	if (pp_collide(&objp->pos, goal_pos, objp2, radius))
+	if (pp_collide(&objp->phys_info.pos, goal_pos, objp2, radius))
 		return 1;
 	else
 		return 0;
@@ -974,9 +974,9 @@ int collide_predict_large_ship(object *objp, float distance)
 
 	sip = &Ship_info[Ships[objp->instance].ship_info_index];
 
-	cur_pos = objp->pos;
+	cur_pos = objp->phys_info.pos;
 
-	vm_vec_scale_add(&goal_pos, &cur_pos, &objp->orient.vec.fvec, distance);
+	vm_vec_scale_add(&goal_pos, &cur_pos, &objp->phys_info.orient.vec.fvec, distance);
 
 	for ( objp2 = GET_FIRST(&obj_used_list); objp2 != END_OF_LIST(&obj_used_list); objp2 = GET_NEXT(objp2) ) {
 		if ((objp != objp2) && (objp2->type == OBJ_SHIP)) {
@@ -988,7 +988,7 @@ int collide_predict_large_ship(object *objp, float distance)
 					return 1;
 			}
 		} else if (!(sip->is_big_or_huge()) && (objp2->type == OBJ_ASTEROID)) {
-			if (vm_vec_dist_quick(&objp2->pos, &objp->pos) < (distance + objp2->radius)*2.5f) {
+			if (vm_vec_dist_quick(&objp2->phys_info.pos, &objp->phys_info.pos) < (distance + objp2->radius)*2.5f) {
 				vec3d	pos, delvec;
 				int		count;
 				float		d1;
@@ -1000,7 +1000,7 @@ int collide_predict_large_ship(object *objp, float distance)
 				vm_vec_scale(&delvec, d1/count);
 
 				for (; count>0; count--) {
-					if (vm_vec_dist_quick(&pos, &objp2->pos) < objp->radius + objp2->radius)
+					if (vm_vec_dist_quick(&pos, &objp2->phys_info.pos) < objp->radius + objp2->radius)
 						return 1;
 					vm_vec_add2(&pos, &delvec);
 				}
@@ -1328,12 +1328,12 @@ float obj_get_collider_endpoint(int obj_num, int axis, bool min)
 	} else if ( Objects[obj_num].type == OBJ_WEAPON ) {
 		float min_end, max_end;
 
-		if ( Objects[obj_num].pos.a1d[axis] > Objects[obj_num].last_pos.a1d[axis] ) {
-			min_end = Objects[obj_num].last_pos.a1d[axis];
-			max_end = Objects[obj_num].pos.a1d[axis];
+		if ( Objects[obj_num].phys_info.pos.a1d[axis] > Objects[obj_num].phys_info.last_pos.a1d[axis] ) {
+			min_end = Objects[obj_num].phys_info.last_pos.a1d[axis];
+			max_end = Objects[obj_num].phys_info.pos.a1d[axis];
 		} else {
-			min_end = Objects[obj_num].pos.a1d[axis];
-			max_end = Objects[obj_num].last_pos.a1d[axis];
+			min_end = Objects[obj_num].phys_info.pos.a1d[axis];
+			max_end = Objects[obj_num].phys_info.last_pos.a1d[axis];
 		}
 
 		if ( min ) {
@@ -1342,7 +1342,7 @@ float obj_get_collider_endpoint(int obj_num, int axis, bool min)
 			return max_end + Objects[obj_num].radius;
 		}
 	} else {
-		vec3d *pos = &Objects[obj_num].pos;
+		vec3d *pos = &Objects[obj_num].phys_info.pos;
 
 		if ( min ) {
 			return pos->a1d[axis] - Objects[obj_num].radius;
@@ -1609,7 +1609,7 @@ void obj_collide_pair(object *A, object *B)
 				if (Weapon_info[Weapons[B->instance].weapon_info_index].subtype == WP_LASER) {
 					vec3d velocity_rel_weapon;
 					vm_vec_sub(&velocity_rel_weapon, &B->phys_info.vel, &A->phys_info.vel);
-					vdot = -vm_vec_dot(&velocity_rel_weapon, &B->orient.vec.fvec);
+					vdot = -vm_vec_dot(&velocity_rel_weapon, &B->phys_info.orient.vec.fvec);
 				} else {
 					vdot = vm_vec_dot( &A->phys_info.vel, &B->phys_info.vel);
 				}
@@ -1617,8 +1617,8 @@ void obj_collide_pair(object *A, object *B)
 					// They're heading in opposite directions...
 					// check their positions
 					vec3d weapon2other;
-					vm_vec_sub( &weapon2other, &A->pos, &B->pos );
-					float pdot = vm_vec_dot( &B->orient.vec.fvec, &weapon2other );
+					vm_vec_sub( &weapon2other, &A->phys_info.pos, &B->phys_info.pos );
+					float pdot = vm_vec_dot( &B->phys_info.orient.vec.fvec, &weapon2other );
 					if ( pdot <= -A->radius )	{
 						// The other object is behind the weapon by more than
 						// its radius, so it will never hit...
@@ -1630,13 +1630,13 @@ void obj_collide_pair(object *A, object *B)
 				// check dist vs. dist moved during weapon lifetime
 				vec3d delta_v;
 				vm_vec_sub(&delta_v, &B->phys_info.vel, &A->phys_info.vel);
-				if (vm_vec_dist_squared(&A->pos, &B->pos) > (vm_vec_mag_squared(&delta_v)*Weapons[B->instance].lifeleft*Weapons[B->instance].lifeleft)) {
+				if (vm_vec_dist_squared(&A->phys_info.pos, &B->phys_info.pos) > (vm_vec_mag_squared(&delta_v)*Weapons[B->instance].lifeleft*Weapons[B->instance].lifeleft)) {
 					collision_info->next_check_time = -1;
 					return;
 				}
 
 				// for nonplayer ships, only create collision pair if close enough
-				if ( (B->parent >= 0) && !((Objects[B->parent].signature == B->parent_sig) && (Objects[B->parent].flags[Object::Object_Flags::Player_ship])) && (vm_vec_dist(&B->pos, &A->pos) < (4.0f*A->radius + 200.0f)) ) {
+				if ( (B->parent >= 0) && !((Objects[B->parent].signature == B->parent_sig) && (Objects[B->parent].flags[Object::Object_Flags::Player_ship])) && (vm_vec_dist(&B->phys_info.pos, &A->phys_info.pos) < (4.0f*A->radius + 200.0f)) ) {
 					collision_info->next_check_time = -1;
 					return;
 				}

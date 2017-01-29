@@ -39,7 +39,7 @@ int collide_weapon_weapon( obj_pair * pair )
 
 	//	Only shoot down teammate's missile if not traveling in nearly same direction.
 	if (Weapons[A->instance].team == Weapons[B->instance].team)
-		if (vm_vec_dot(&A->orient.vec.fvec, &B->orient.vec.fvec) > 0.7f)
+		if (vm_vec_dot(&A->phys_info.orient.vec.fvec, &B->phys_info.orient.vec.fvec) > 0.7f)
 			return 1;
 
 	//	Ignore collisions involving a bomb if the bomb is not yet armed.
@@ -80,7 +80,7 @@ int collide_weapon_weapon( obj_pair * pair )
 	}
 
 	//	Rats, do collision detection.
-	if (collide_subdivide(&A->last_pos, &A->pos, A_radius, &B->last_pos, &B->pos, B_radius))
+	if (collide_subdivide(&A->phys_info.last_pos, &A->phys_info.pos, A_radius, &B->phys_info.last_pos, &B->phys_info.pos, B_radius))
 	{
 		Script_system.SetHookObjects(4, "Weapon", A, "WeaponB", B, "Self",A, "Object", B);
 		bool a_override = Script_system.IsConditionOverride(CHA_COLLIDEWEAPON, A);

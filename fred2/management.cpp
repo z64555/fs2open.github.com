@@ -607,7 +607,7 @@ int dup_object(object *objp)
 
 	inst = objp->instance;
 	if ((objp->type == OBJ_SHIP) || (objp->type == OBJ_START)) {
-		obj = create_ship(&objp->orient, &objp->pos, Ships[inst].ship_info_index);
+		obj = create_ship(&objp->phys_info.orient, &objp->phys_info.pos, Ships[inst].ship_info_index);
 		if (obj == -1)
 			return -1;
 
@@ -666,15 +666,15 @@ int dup_object(object *objp)
 			}
 
 	} else if (objp->type == OBJ_WAYPOINT) {
-		obj = create_waypoint(&objp->pos, waypoint_instance);
+		obj = create_waypoint(&objp->phys_info.pos, waypoint_instance);
 		waypoint_instance = Objects[obj].instance;
 	}
 
 	if (obj == -1)
 		return -1;
 
-	Objects[obj].pos = objp->pos;
-	Objects[obj].orient = objp->orient;
+	Objects[obj].phys_info.pos = objp->phys_info.pos;
+	Objects[obj].phys_info.orient = objp->phys_info.orient;
     Objects[obj].flags.set(Object::Object_Flags::Temp_marked);
 	return obj;
 }
@@ -2316,7 +2316,7 @@ void object_moved(object *objp)
 	{
 		waypoint *wpt = find_waypoint_with_instance(objp->instance);
 		Assert(wpt != NULL);
-		wpt->set_pos(&objp->pos);
+		wpt->set_pos(&objp->phys_info.pos);
 	}
 
 	if ((objp->type == OBJ_SHIP) || (objp->type == OBJ_START)) // do we have a ship?

@@ -49,7 +49,7 @@ void flak_pick_range(object *objp, vec3d *firing_pos, vec3d *predicted_target_po
 	weapon_info* wip = &Weapon_info[Weapons[objp->instance].weapon_info_index];
 
 	// get the range to the target
-	vm_vec_sub(&temp, &objp->pos, predicted_target_pos);
+	vm_vec_sub(&temp, &objp->phys_info.pos, predicted_target_pos);
 	final_range = vm_vec_mag(&temp);
 
 	//Is it larger than det_range?

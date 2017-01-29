@@ -87,7 +87,7 @@ bool CanAutopilot(vec3d targetPos, bool send_msg=false);
 
 // Check if autopilot is allowed at player's current position
 // See CanAutopilot(vec3d, bool) for more information
-inline bool CanAutopilot(bool send_msg=false) { return CanAutopilot(Player_obj->pos, send_msg); }
+inline bool CanAutopilot(bool send_msg=false) { return CanAutopilot(Player_obj->phys_info.pos, send_msg); }
 
 // Engages autopilot
 // This does:

@@ -6798,11 +6798,11 @@ void render_dock_bays(object *objp)
 	vertex	v0, v1;
 	vec3d	p0, p1, p2, p3, nr;
 
-	vm_vec_unrotate(&p0, &db->pnt[0], &objp->orient);
+	vm_vec_unrotate(&p0, &db->pnt[0], &objp->phys_info.orient);
 	vm_vec_add2(&p0, &objp->pos);
 	g3_rotate_vertex(&v0, &p0);
 
-	vm_vec_unrotate(&p1, &db->pnt[1], &objp->orient);
+	vm_vec_unrotate(&p1, &db->pnt[1], &objp->phys_info.orient);
 	vm_vec_add2(&p1, &objp->pos);
 	g3_rotate_vertex(&v1, &p1);
 
@@ -6811,7 +6811,7 @@ void render_dock_bays(object *objp)
 
 	vm_vec_avg(&p2, &p0, &p1);
 
-	vm_vec_unrotate(&nr, &db->norm[0], &objp->orient);
+	vm_vec_unrotate(&nr, &db->norm[0], &objp->phys_info.orient);
 	vm_vec_scale_add(&p3, &p2, &nr, 10.0f);
 
 	g3_rotate_vertex(&v0, &p2);
@@ -6935,7 +6935,7 @@ void ship_render_show_ship_cockpit(object *objp)
 	render_info.set_object_number(OBJ_INDEX(objp));
 	render_info.set_detail_level_lock(0);
 
-	model_render_immediate(&render_info, Ship_info[Ships[objp->instance].ship_info_index].model_num, &objp->orient, &vmd_zero_vector); // Render ship model with fixed detail level 0 so its not switching LOD when moving away from origin
+	model_render_immediate(&render_info, Ship_info[Ships[objp->instance].ship_info_index].model_num, &objp->phys_info.orient, &vmd_zero_vector); // Render ship model with fixed detail level 0 so its not switching LOD when moving away from origin
 	Glowpoint_override = false;
 
 	gr_end_view_matrix();
@@ -7681,7 +7681,7 @@ void do_dying_undock_physics(object *dying_objp, ship *dying_shipp)
 		vm_vec_rand_vec_quick(&pos);
 		vm_vec_scale(&pos, docked_objp->radius);
 		// apply whack to docked object
-		physics_apply_whack(&impulse_vec, &pos, &docked_objp->phys_info, &docked_objp->orient, docked_objp->phys_info.mass);
+		physics_apply_whack(&impulse_vec, &pos, &docked_objp->phys_info, &docked_objp->phys_info.orient, docked_objp->phys_info.mass);
 		// enhance rotation of the docked object
 		vm_vec_scale(&docked_objp->phys_info.rotvel, 2.0f);
 
@@ -7689,7 +7689,7 @@ void do_dying_undock_physics(object *dying_objp, ship *dying_shipp)
 		vm_vec_negate(&impulse_vec);
 		vm_vec_rand_vec_quick(&pos);
 		vm_vec_scale(&pos, dying_objp->radius);
-		physics_apply_whack(&impulse_vec, &pos, &dying_objp->phys_info, &dying_objp->orient, dying_objp->phys_info.mass);
+		physics_apply_whack(&impulse_vec, &pos, &dying_objp->phys_info, &dying_objp->phys_info.orient, dying_objp->phys_info.mass);
 
 		// unlink the two objects, since dying_objp has blown up
 		dock_dead_undock_objects(dying_objp, docked_objp);
@@ -7764,7 +7764,7 @@ void ship_dying_frame(object *objp, int ship_num)
 					submodel_get_two_random_points_better(pm->id, pm->detail[0], &pnt1, &pnt2 );
 				}
 
-				model_find_world_point(&outpnt, &pnt1, sip->model_num, pm->detail[0], &objp->orient, &objp->pos );
+				model_find_world_point(&outpnt, &pnt1, sip->model_num, pm->detail[0], &objp->phys_info.orient, &objp->pos );
 
 				float rad = objp->radius*0.1f;
 				
@@ -7797,8 +7797,8 @@ void ship_dying_frame(object *objp, int ship_num)
 			if ( timestamp_elapsed(shipp->next_fireball)) {
 				vec3d rand_vec, outpnt; // [0-.7 rad] in plane
 				vm_vec_rand_vec_quick(&rand_vec);
-				float scale = -vm_vec_dot(&objp->orient.vec.fvec, &rand_vec) * (0.9f + 0.2f * frand());
-				vm_vec_scale_add2(&rand_vec, &objp->orient.vec.fvec, scale);
+				float scale = -vm_vec_dot(&objp->phys_info.orient.vec.fvec, &rand_vec) * (0.9f + 0.2f * frand());
+				vm_vec_scale_add2(&rand_vec, &objp->phys_info.orient.vec.fvec, scale);
 				vm_vec_normalize_quick(&rand_vec);
 				scale = objp->radius * frand() * 0.717f;
 				vm_vec_scale(&rand_vec, scale);
@@ -7824,7 +7824,7 @@ void ship_dying_frame(object *objp, int ship_num)
 				pe.vel = objp->phys_info.vel;	// Initial velocity of all the particles
 				pe.min_life = pef.min_life;	// How long the particles live
 				pe.max_life = pef.max_life;	// How long the particles live
-				pe.normal = objp->orient.vec.uvec;	// What normal the particle emit around
+				pe.normal = objp->phys_info.orient.vec.uvec;	// What normal the particle emit around
 				pe.normal_variance = pef.variance;		//	How close they stick to that normal 0=on normal, 1=180, 2=360 degree
 				pe.min_vel = pef.min_vel;
 				pe.max_vel = pef.max_vel;
@@ -7879,7 +7879,7 @@ void ship_dying_frame(object *objp, int ship_num)
 				}
 
 				vm_vec_avg( &tmp, &pnt1, &pnt2 );
-				model_find_world_point(&outpnt, &tmp, pm->id, pm->detail[0], &objp->orient, &objp->pos );
+				model_find_world_point(&outpnt, &tmp, pm->id, pm->detail[0], &objp->phys_info.orient, &objp->pos );
 
 				float rad = objp->radius*0.40f;
 
@@ -7951,7 +7951,7 @@ void ship_dying_frame(object *objp, int ship_num)
 					pe.vel = objp->phys_info.vel;	// Initial velocity of all the particles
 					pe.min_life = pef.min_life;				// How long the particles live
 					pe.max_life = pef.max_life;				// How long the particles live
-					pe.normal = objp->orient.vec.uvec;	// What normal the particle emit around
+					pe.normal = objp->phys_info.orient.vec.uvec;	// What normal the particle emit around
 					pe.normal_variance = pef.variance;		//	How close they stick to that normal 0=on normal, 1=180, 2=360 degree
 					pe.min_vel = pef.min_vel;				// How fast the slowest particle can move
 					pe.max_vel = pef.max_vel;				// How fast the fastest particle can move
@@ -9102,7 +9102,7 @@ int ship_check_collision_fast( object * obj, object * other_obj, vec3d * hitpos)
 	mc_info_init(&mc);
 	mc.model_instance_num = Ships[num].model_instance_num;
 	mc.model_num = Ship_info[Ships[num].ship_info_index].model_num;	// Fill in the model to check
-	mc.orient = &obj->orient;					// The object's orient
+	mc.orient = &obj->phys_info.orient;					// The object's orient
 	mc.pos = &obj->pos;							// The object's position
 	mc.p0 = &other_obj->last_pos;			// Point 1 of ray to check
 	mc.p1 = &other_obj->pos;					// Point 2 of ray to check
@@ -10220,10 +10220,10 @@ int ship_fire_primary_debug(object *objp)
 		if (!stricmp(Weapon_info[i].name, NOX("Debug Laser")))
 			break;
 	
-	vm_vec_add(&wpos, &objp->pos, &(objp->orient.vec.fvec) );
+	vm_vec_add(&wpos, &objp->pos, &(objp->phys_info.orient.vec.fvec) );
 	if (i != MAX_WEAPONS) {
 		int weapon_objnum;
-		weapon_objnum = weapon_create( &wpos, &objp->orient, i, OBJ_INDEX(objp) );
+		weapon_objnum = weapon_create( &wpos, &objp->phys_info.orient, i, OBJ_INDEX(objp) );
 		weapon_set_tracking_info(weapon_objnum, OBJ_INDEX(objp), Ai_info[shipp->ai_index].target_objnum);
 		return 1;
 	} else
@@ -10314,9 +10314,9 @@ int ship_launch_countermeasure(object *objp, int rand_val)
 	cmeasure_count = shipp->cmeasure_count;
 	shipp->cmeasure_count--;
 
-	vm_vec_scale_add(&pos, &objp->pos, &objp->orient.vec.fvec, -objp->radius/2.0f);
+	vm_vec_scale_add(&pos, &objp->pos, &objp->phys_info.orient.vec.fvec, -objp->radius/2.0f);
 
-	cobjnum = weapon_create(&pos, &objp->orient, shipp->current_cmeasure, OBJ_INDEX(objp));
+	cobjnum = weapon_create(&pos, &objp->phys_info.orient, shipp->current_cmeasure, OBJ_INDEX(objp));
 	if (cobjnum >= 0)
 	{
 		cmeasure_set_ship_launch_vel(&Objects[cobjnum], objp, arand);
@@ -10837,7 +10837,7 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 		if ( pm->n_guns > 0 ) {
 			int num_slots = pm->gun_banks[bank_to_fire].num_slots;
 			vec3d predicted_target_pos, plr_to_target_vec;
-			vec3d player_forward_vec = obj->orient.vec.fvec;
+			vec3d player_forward_vec = obj->phys_info.orient.vec.fvec;
 			bool in_automatic_aim_fov = false;
 			float dist_to_aim = 0;
 
@@ -11093,7 +11093,7 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 								}
 							}
 
-							vm_vec_unrotate(&gun_point, &pnt, &obj->orient);
+							vm_vec_unrotate(&gun_point, &pnt, &obj->phys_info.orient);
 							vm_vec_add(&firing_pos, &gun_point, &obj->pos);
 
 							matrix firing_orient;
@@ -11133,7 +11133,7 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 								
 								// if there is convergence offset then make use of it)
 								if (sip->aiming_flags[Ship::Aiming_Flags::Convergence_offset]) {
-									vm_vec_unrotate(&convergence_offset, &sip->convergence_offset, &obj->orient);
+									vm_vec_unrotate(&convergence_offset, &sip->convergence_offset, &obj->phys_info.orient);
 									vm_vec_add2(&target_vec, &convergence_offset);
 								}
 
@@ -11145,11 +11145,11 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 							} else if (sip->flags[Ship::Info_Flags::Gun_convergence]) {
 								// model file defined convergence
 								vec3d firing_vec;
-								vm_vec_unrotate(&firing_vec, &pm->gun_banks[bank_to_fire].norm[pt], &obj->orient);
+								vm_vec_unrotate(&firing_vec, &pm->gun_banks[bank_to_fire].norm[pt], &obj->phys_info.orient);
 								vm_vector_2_matrix(&firing_orient, &firing_vec, NULL, NULL);
 							} else {
 								// no autoaim or convergence
-								firing_orient = obj->orient;
+								firing_orient = obj->phys_info.orient;
 							}
 							
 							if (winfo_p->wi_flags[Weapon::Info_Flags::Apply_recoil]){	// Function to add recoil functionality - DahBlount
@@ -11204,13 +11204,13 @@ int ship_fire_primary(object * obj, int stream_weapons, int force)
 
 								if ((winfo_p->muzzle_flash>=0) && (((shipp==Player_ship) && (vm_vec_mag(&Player_obj->phys_info.vel)>=45)) || (shipp!=Player_ship)))
 								{
-									flak_muzzle_flash(&firing_pos,&obj->orient.vec.fvec, &obj->phys_info, swp->primary_bank_weapons[bank_to_fire]);
+									flak_muzzle_flash(&firing_pos,&obj->phys_info.orient.vec.fvec, &obj->phys_info, swp->primary_bank_weapons[bank_to_fire]);
 								}
 							}
 							// create the muzzle flash effect
 							if ( (obj != Player_obj) || (sip->flags[Ship::Info_Flags::Show_ship_model]) || (Viewer_mode) ) {
 								// show the flash only if in not cockpit view, or if "show ship" flag is set
-								shipfx_flash_create( obj, sip->model_num, &pnt, &obj->orient.vec.fvec, 1, weapon_idx );
+								shipfx_flash_create( obj, sip->model_num, &pnt, &obj->phys_info.orient.vec.fvec, 1, weapon_idx );
 							}
 
 							// maybe shudder the ship - if its me
@@ -11895,7 +11895,7 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 					vm_vec_add2(&pnt, &weapon_model->gun_banks[0].pnt[0]);
 				}
 			}
-			vm_vec_unrotate(&missile_point, &pnt, &obj->orient);
+			vm_vec_unrotate(&missile_point, &pnt, &obj->phys_info.orient);
 			vm_vec_add(&firing_pos, &missile_point, &obj->pos);
 
 			if ( Game_mode & GM_MULTIPLAYER ) {
@@ -11905,12 +11905,12 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 			matrix firing_orient;
 			if(!(sip->flags[Ship::Info_Flags::Gun_convergence]))
 			{
-				firing_orient = obj->orient;
+				firing_orient = obj->phys_info.orient;
 			}
 			else
 			{
 				vec3d firing_vec;
-				vm_vec_unrotate(&firing_vec, &pm->missile_banks[bank].norm[pnt_index-1], &obj->orient);
+				vm_vec_unrotate(&firing_vec, &pm->missile_banks[bank].norm[pnt_index-1], &obj->phys_info.orient);
 				vm_vector_2_matrix(&firing_orient, &firing_vec, NULL, NULL);
 			}
 
@@ -11926,7 +11926,7 @@ int ship_fire_secondary( object *obj, int allow_swarm )
 				// create the muzzle flash effect
 				if ( (obj != Player_obj) || (sip->flags[Ship::Info_Flags::Show_ship_model]) || (Viewer_mode) ) {
 					// show the flash only if in not cockpit view, or if "show ship" flag is set
-					shipfx_flash_create(obj, sip->model_num, &pnt, &obj->orient.vec.fvec, 0, weapon_idx);
+					shipfx_flash_create(obj, sip->model_num, &pnt, &obj->phys_info.orient.vec.fvec, 0, weapon_idx);
 				}
 
 				if((wip->wi_flags[Weapon::Info_Flags::Shudder]) && (obj == Player_obj) && !(Game_mode & GM_STANDALONE_SERVER)){
@@ -12750,12 +12750,12 @@ int get_subsystem_pos(vec3d *pos, object *objp, ship_subsys *subsysp)
 	if (mss->subobj_num == -1) {
 		// If it's a special point subsys, we can use its offset directly
 
-		vm_vec_unrotate(pos, &subsysp->system_info->pnt, &objp->orient);
+		vm_vec_unrotate(pos, &subsysp->system_info->pnt, &objp->phys_info.orient);
 		vm_vec_add2(pos, &objp->pos);
 	} else {
 		// Submodel subsystems may require a more complicated calculation
 
-		find_submodel_instance_world_point(pos, Ships[objp->instance].model_instance_num, mss->subobj_num, &objp->orient, &objp->pos);
+		find_submodel_instance_world_point(pos, Ships[objp->instance].model_instance_num, mss->subobj_num, &objp->phys_info.orient, &objp->pos);
 	}
 
 	return 1;
@@ -12884,7 +12884,7 @@ void ship_model_update_instance(object *objp)
 	model_do_intrinsic_rotations(model_instance_num);
 
 	// preprocess subobject orientations for collision detection
-	model_collide_preprocess(&objp->orient, model_instance_num);
+	model_collide_preprocess(&objp->phys_info.orient, model_instance_num);
 }
 
 /**
@@ -12999,7 +12999,7 @@ void ship_get_eye( vec3d *eye_pos, matrix *eye_orient, object *obj, bool do_slew
 	// check to be sure that we have a view eye to look at.....spit out nasty debug message
 	if ( shipp->current_viewpoint < 0 || pm->n_view_positions == 0 || shipp->current_viewpoint > pm->n_view_positions) {
 		*eye_pos = obj->pos;
-		*eye_orient = obj->orient;
+		*eye_orient = obj->phys_info.orient;
 		return;
 	}
 
@@ -13010,14 +13010,14 @@ void ship_get_eye( vec3d *eye_pos, matrix *eye_orient, object *obj, bool do_slew
 	if (ep->parent >= 0 && pm->submodel[ep->parent].can_move) {
 		find_submodel_instance_point_orient(eye_pos, eye_orient, shipp->model_instance_num, ep->parent, &ep->pnt, &vmd_identity_matrix);
 		vec3d tvec = *eye_pos;
-		vm_vec_unrotate(eye_pos, &tvec, &obj->orient);
+		vm_vec_unrotate(eye_pos, &tvec, &obj->phys_info.orient);
 		vm_vec_add2(eye_pos, &obj->pos);
 
 		matrix tempmat = *eye_orient;
-		vm_matrix_x_matrix(eye_orient, &obj->orient, &tempmat);
+		vm_matrix_x_matrix(eye_orient, &obj->phys_info.orient, &tempmat);
 	} else {
-		model_find_world_point( eye_pos, &ep->pnt, pm->id, ep->parent, &obj->orient, from_origin ? &vmd_zero_vector : &obj->pos );
-		*eye_orient = obj->orient;
+		model_find_world_point( eye_pos, &ep->pnt, pm->id, ep->parent, &obj->phys_info.orient, from_origin ? &vmd_zero_vector : &obj->pos );
+		*eye_orient = obj->phys_info.orient;
 	}
 
 	//	Modify the orientation based on head orientation.
@@ -13964,7 +13964,7 @@ void ship_assign_sound(ship *sp)
 	sip = &Ship_info[sp->ship_info_index];
 
 	if ( sip->engine_snd != -1 ) {
-		vm_vec_copy_scale(&engine_pos, &objp->orient.vec.fvec, -objp->radius/2.0f);		
+		vm_vec_copy_scale(&engine_pos, &objp->phys_info.orient.vec.fvec, -objp->radius/2.0f);		
 		
 		obj_snd_assign(sp->objnum, sip->engine_snd, &engine_pos, 1);
 	}
@@ -14676,7 +14676,7 @@ int ship_subsystem_in_sight(object* objp, ship_subsys* subsys, vec3d *eye_pos, v
 	mc_info_init(&mc);
 	mc.model_instance_num = Ships[objp->instance].model_instance_num;
 	mc.model_num = Ship_info[Ships[objp->instance].ship_info_index].model_num;			// Fill in the model to check
-	mc.orient = &objp->orient;										// The object's orientation
+	mc.orient = &objp->phys_info.orient;										// The object's orientation
 	mc.pos = &objp->pos;												// The object's position
 	mc.p0 = eye_pos;													// Point 1 of ray to check
 	mc.p1 = &terminus;												// Point 2 of ray to check
@@ -14810,7 +14810,7 @@ float ship_quadrant_shield_strength(object *hit_objp, vec3d *hitpos)
 
 	// convert hitpos to position in model coordinates
 	vm_vec_sub(&tmpv1, hitpos, &hit_objp->pos);
-	vm_vec_rotate(&tmpv2, &tmpv1, &hit_objp->orient);
+	vm_vec_rotate(&tmpv2, &tmpv1, &hit_objp->phys_info.orient);
 	quadrant_num = get_quadrant(&tmpv2, hit_objp);
 
 	if ( quadrant_num < 0 )
@@ -15261,7 +15261,7 @@ void ship_maybe_warn_player(ship *enemy_sp, float dist)
 		return;
 	}
 
-	fdot = vm_vec_dot(&Player_obj->orient.vec.fvec, &vec_to_target);
+	fdot = vm_vec_dot(&Player_obj->phys_info.orient.vec.fvec, &vec_to_target);
 
 	msg_type = -1;
 
@@ -16722,7 +16722,7 @@ void object_jettison_cargo(object *objp, object *cargo_objp, float jettison_spee
 	}
 
 	// whack the ship
-	physics_apply_whack(&impulse, &pos, &cargo_objp->phys_info, &cargo_objp->orient, cargo_objp->phys_info.mass);
+	physics_apply_whack(&impulse, &pos, &cargo_objp->phys_info, &cargo_objp->phys_info.orient, cargo_objp->phys_info.mass);
 }
 
 float ship_get_exp_damage(object* objp)
@@ -17005,7 +17005,7 @@ int check_world_pt_in_expanded_ship_bbox(vec3d *world_pt, object *objp, float de
 	vec3d temp, ship_pt;
 	polymodel *pm;
 	vm_vec_sub(&temp, world_pt, &objp->pos);
-	vm_vec_rotate(&ship_pt, &temp, &objp->orient);
+	vm_vec_rotate(&ship_pt, &temp, &objp->phys_info.orient);
 
 	pm = model_get(Ship_info[Ships[objp->instance].ship_info_index].model_num);
 
@@ -18414,13 +18414,13 @@ int get_nearest_bbox_point(object *ship_objp, vec3d *start, vec3d *box_pt)
 
 	// get start in ship rf
 	vm_vec_sub(&temp, start, &ship_objp->pos);
-	vm_vec_rotate(&rf_start, &temp, &ship_objp->orient);
+	vm_vec_rotate(&rf_start, &temp, &ship_objp->phys_info.orient);
 
 	// find box_pt
 	int inside = project_point_onto_bbox(&pm->mins, &pm->maxs, &rf_start, &temp);
 
 	// get box_pt in world rf
-	vm_vec_unrotate(box_pt, &temp, &ship_objp->orient);
+	vm_vec_unrotate(box_pt, &temp, &ship_objp->phys_info.orient);
 	vm_vec_add2(box_pt, &ship_objp->pos);
 
 	return inside;
@@ -18481,7 +18481,7 @@ void ship_render_batch_thrusters(object *obj)
 
 		//WMC - get us a steady value
 		vec3d des_vel;
-		vm_vec_rotate(&des_vel, &pi->desired_vel, &obj->orient);
+		vm_vec_rotate(&des_vel, &pi->desired_vel, &obj->phys_info.orient);
 
 		if(pi->desired_rotvel.xyz.x < 0 && (mtp->use_flags[Ship::Thruster_Flags::Pitch_up])) {
 			render_amount = fl_abs(pi->desired_rotvel.xyz.x) / pi->max_rotvel.xyz.x;
@@ -18552,12 +18552,12 @@ void ship_render_batch_thrusters(object *obj)
 
 				vec3d start, tmpend, end;
 				//Start
-				vm_vec_unrotate(&start, &mtp->pos, &obj->orient);
+				vm_vec_unrotate(&start, &mtp->pos, &obj->phys_info.orient);
 				vm_vec_add2(&start, &obj->pos);
 
 				//End
 				vm_vec_scale_add(&tmpend, &mtp->pos, &mtp->norm, len * render_amount);
-				vm_vec_unrotate(&end, &tmpend, &obj->orient);
+				vm_vec_unrotate(&end, &tmpend, &obj->phys_info.orient);
 				vm_vec_add2(&end, &obj->pos);
 
 				int bmap_frame = mtp->tex_id;
@@ -18582,7 +18582,7 @@ void ship_render_batch_thrusters(object *obj)
 			if ( mtp->stop_snd >= 0 ) {
 				//Get world pos
 				vec3d start;
-				vm_vec_unrotate(&start, &mtp->pos, &obj->orient);
+				vm_vec_unrotate(&start, &mtp->pos, &obj->phys_info.orient);
 				vm_vec_add2(&start, &obj->pos);
 
 				snd_play_3d( &Snds[mtp->stop_snd], &mtp->pos, &Eye_position, 0.0f, &obj->phys_info.vel );
@@ -18604,7 +18604,7 @@ void ship_render_weapon_models(model_render_params *ship_render_info, model_draw
 	int i,k;
 	ship_weapon *swp = &shipp->weapons;
 
-	scene->push_transform(&obj->pos, &obj->orient);
+	scene->push_transform(&obj->pos, &obj->phys_info.orient);
 
 	model_render_params render_info = *ship_render_info;
 
@@ -18892,7 +18892,7 @@ void ship_render(object* obj, model_draw_list* scene)
 			}
 		}
 
-		model_render_queue(&render_info, scene, sip->model_num, &obj->orient, &obj->pos);
+		model_render_queue(&render_info, scene, sip->model_num, &obj->phys_info.orient, &obj->pos);
 	}
 
 	if (shipp->shield_hits && !Rendering_to_shadow_map) {

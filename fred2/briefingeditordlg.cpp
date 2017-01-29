@@ -699,7 +699,7 @@ void briefing_editor_dlg::update_data(int update)
 		if (m_last_stage >= 0) {
 			for (i=0; i<save_briefing->stages[m_last_stage].num_icons; i++) {
 				// save positions of all icons, in case they have moved
-				save_briefing->stages[m_last_stage].icons[i].pos = Objects[icon_obj[i]].pos;
+				save_briefing->stages[m_last_stage].icons[i].pos = Objects[icon_obj[i]].phys_info.pos;
 				// release objects being used by last stage
 				obj_delete(icon_obj[i]);
 			}
@@ -921,14 +921,14 @@ void briefing_editor_dlg::update_positions()
 
 	for (i=0; i<Briefing->stages[m_cur_stage].num_icons; i++) {
 		v1 = Briefing->stages[m_cur_stage].icons[i].pos;
-		v2 = Objects[icon_obj[i]].pos;
+		v2 = Objects[icon_obj[i]].phys_info.pos;
 		if ((v1.xyz.x != v2.xyz.x) || (v1.xyz.y != v2.xyz.y) || (v1.xyz.z != v2.xyz.z)) {
-			Briefing->stages[m_cur_stage].icons[i].pos = Objects[icon_obj[i]].pos;
+			Briefing->stages[m_cur_stage].icons[i].pos = Objects[icon_obj[i]].phys_info.pos;
 			if (!m_change_local)  // propagate changes through rest of stages..
 				for (s=m_cur_stage+1; s<Briefing->num_stages; s++) {
 					z = find_icon(Briefing->stages[m_cur_stage].icons[i].id, s);
 					if (z >= 0)
-						Briefing->stages[s].icons[z].pos = Objects[icon_obj[i]].pos;
+						Briefing->stages[s].icons[z].pos = Objects[icon_obj[i]].phys_info.pos;
 				}
 		}
 	}
@@ -957,18 +957,18 @@ void briefing_editor_dlg::OnMakeIcon()
 	ptr = GET_FIRST(&obj_used_list);
 	while (ptr != END_OF_LIST(&obj_used_list)) {
 		if (ptr->flags[Object::Object_Flags::Marked]) {
-			if (ptr->pos.xyz.x < min.xyz.x)
-				min.xyz.x = ptr->pos.xyz.x;
-			if (ptr->pos.xyz.x > max.xyz.x)
-				max.xyz.x = ptr->pos.xyz.x;
-			if (ptr->pos.xyz.y < min.xyz.y)
-				min.xyz.y = ptr->pos.xyz.y;
-			if (ptr->pos.xyz.y > max.xyz.y)
-				max.xyz.y = ptr->pos.xyz.y;
-			if (ptr->pos.xyz.z < min.xyz.z)
-				min.xyz.z = ptr->pos.xyz.z;
-			if (ptr->pos.xyz.z > max.xyz.z)
-				max.xyz.z = ptr->pos.xyz.z;
+			if (ptr->phys_info.pos.xyz.x < min.xyz.x)
+				min.xyz.x = ptr->phys_info.pos.xyz.x;
+			if (ptr->phys_info.pos.xyz.x > max.xyz.x)
+				max.xyz.x = ptr->phys_info.pos.xyz.x;
+			if (ptr->phys_info.pos.xyz.y < min.xyz.y)
+				min.xyz.y = ptr->phys_info.pos.xyz.y;
+			if (ptr->phys_info.pos.xyz.y > max.xyz.y)
+				max.xyz.y = ptr->phys_info.pos.xyz.y;
+			if (ptr->phys_info.pos.xyz.z < min.xyz.z)
+				min.xyz.z = ptr->phys_info.pos.xyz.z;
+			if (ptr->phys_info.pos.xyz.z > max.xyz.z)
+				max.xyz.z = ptr->phys_info.pos.xyz.z;
 			
 			switch (ptr->type) {
 				case OBJ_SHIP:

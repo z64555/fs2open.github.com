@@ -844,7 +844,7 @@ ADE_FUNC(drawTargetingBrackets, l_Graphics, "object Object, [boolean draw=true, 
 	switch ( targetp->type ) {
 		case OBJ_SHIP:
 			modelnum = Ship_info[Ships[targetp->instance].ship_info_index].model_num;
-			bound_rc = model_find_2d_bound_min( modelnum, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
+			bound_rc = model_find_2d_bound_min( modelnum, &targetp->phys_info.orient, &targetp->phys_info.pos,&x1,&y1,&x2,&y2 );
 			if ( bound_rc != 0 ) {
 				if ( entered_frame )
 					g3_end_frame( );
@@ -853,7 +853,7 @@ ADE_FUNC(drawTargetingBrackets, l_Graphics, "object Object, [boolean draw=true, 
 			break;
 		case OBJ_DEBRIS:
 			modelnum = Debris[targetp->instance].model_num;
-			bound_rc = submodel_find_2d_bound_min( modelnum, Debris[targetp->instance].submodel_num, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
+			bound_rc = submodel_find_2d_bound_min( modelnum, Debris[targetp->instance].submodel_num, &targetp->phys_info.orient, &targetp->phys_info.pos,&x1,&y1,&x2,&y2 );
 			if ( bound_rc != 0 ) {
 				if ( entered_frame )
 					g3_end_frame( );
@@ -863,12 +863,12 @@ ADE_FUNC(drawTargetingBrackets, l_Graphics, "object Object, [boolean draw=true, 
 		case OBJ_WEAPON:
 			Assert(Weapon_info[Weapons[targetp->instance].weapon_info_index].subtype == WP_MISSILE);
 			modelnum = Weapon_info[Weapons[targetp->instance].weapon_info_index].model_num;
-			bound_rc = model_find_2d_bound_min( modelnum, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
+			bound_rc = model_find_2d_bound_min( modelnum, &targetp->phys_info.orient, &targetp->phys_info.pos,&x1,&y1,&x2,&y2 );
 			break;
 		case OBJ_ASTEROID:
 			pof = Asteroids[targetp->instance].asteroid_subtype;
 			modelnum = Asteroid_info[Asteroids[targetp->instance].asteroid_type].model_num[pof];
-			bound_rc = model_find_2d_bound_min( modelnum, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
+			bound_rc = model_find_2d_bound_min( modelnum, &targetp->phys_info.orient, &targetp->phys_info.pos,&x1,&y1,&x2,&y2 );
 			break;
 		case OBJ_JUMP_NODE:
 			for (jnp = Jump_nodes.begin(); jnp != Jump_nodes.end(); ++jnp) {
@@ -877,7 +877,7 @@ ADE_FUNC(drawTargetingBrackets, l_Graphics, "object Object, [boolean draw=true, 
 			}
 
 			modelnum = jnp->GetModelNumber();
-			bound_rc = model_find_2d_bound_min( modelnum, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
+			bound_rc = model_find_2d_bound_min( modelnum, &targetp->phys_info.orient, &targetp->phys_info.pos,&x1,&y1,&x2,&y2 );
 			break;
 		default: //Someone passed an invalid pointer.
 			if ( entered_frame )
@@ -975,7 +975,7 @@ ADE_FUNC(drawOffscreenIndicator, l_Graphics, "object Object, [boolean draw=true,
 		g3_start_frame(0);
 
 	vertex target_point;
-	g3_rotate_vertex(&target_point, &targetp->pos);
+	g3_rotate_vertex(&target_point, &targetp->phys_info.pos);
 	g3_project_vertex(&target_point);
 
 	if (!in_frame)
@@ -985,7 +985,7 @@ ADE_FUNC(drawOffscreenIndicator, l_Graphics, "object Object, [boolean draw=true,
 		return ADE_RETURN_NIL;
 
 	hud_target_clear_display_list();
-	hud_target_add_display_list(targetp, &target_point, &targetp->pos, 5, NULL, NULL, TARGET_DISPLAY_DIST);
+	hud_target_add_display_list(targetp, &target_point, &targetp->phys_info.pos, 5, NULL, NULL, TARGET_DISPLAY_DIST);
 
 	size_t j, num_gauges;
 	num_gauges = default_hud_gauges.size();
@@ -1006,7 +1006,7 @@ ADE_FUNC(drawOffscreenIndicator, l_Graphics, "object Object, [boolean draw=true,
 			int dir;
 			float tri_separation;
 
-			offscreengauge->calculatePosition(&target_point, &targetp->pos, &outpoint, &dir, &tri_separation);
+			offscreengauge->calculatePosition(&target_point, &targetp->phys_info.pos, &outpoint, &dir, &tri_separation);
 
 			if (draw) {
 				float distance = hud_find_target_distance(targetp, Player_obj);

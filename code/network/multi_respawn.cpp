@@ -282,7 +282,7 @@ void multi_respawn_build_points()
 		if(Objects[moveup->objnum].flags[Object::Object_Flags::Player_ship] || Objects[moveup->objnum].flags[Object::Object_Flags::Could_be_player]){
 			r = &Multi_respawn_points[Multi_respawn_point_count++];
 			
-			r->pos = Objects[moveup->objnum].pos;
+			r->pos = Objects[moveup->objnum].phys_info.pos;
 			r->team = Ships[Objects[moveup->objnum].instance].team;			
 		}
 		moveup = GET_NEXT(moveup);
@@ -456,7 +456,7 @@ void multi_respawn_player(net_player *pl, char cur_primary_bank, char cur_second
 
 	// maybe bash ship position
 	if(pos != NULL){
-		objp->pos = *pos;
+		objp->phys_info.pos = *pos;
 	}
 
 	// unset his respawning flag
@@ -597,7 +597,7 @@ void multi_respawn_broadcast(net_player *np)
 	Assert(Net_player->flags & NETINFO_FLAG_AM_MASTER);
 
 	signature = Objects[np->m_player->objnum].net_signature;
-	pos = Objects[np->m_player->objnum].pos;
+	pos = Objects[np->m_player->objnum].phys_info.pos;
 
 	// build the header and add the opcode
 	BUILD_HEADER(RESPAWN_NOTICE);
@@ -801,37 +801,37 @@ void multi_respawn_place(object *new_obj, int team)
 
 		// hmm, ugly. Pick a point 2000 meters to the y direction
 		if(pm == NULL){			
-			vm_vec_scale_add(&new_obj->pos, &pri_obj->pos, &pri_obj->orient.vec.rvec, 2000.0f);
+			vm_vec_scale_add(&new_obj->phys_info.pos, &pri_obj->phys_info.pos, &pri_obj->phys_info.orient.vec.rvec, 2000.0f);
 		} else {
 			// pick a random direction
 			int d = (int)frand_range(0.0f, 5.9f);
 			switch(d){
 			case 0:
-				vm_vec_scale_add(&new_obj->pos, &pri_obj->pos, &pri_obj->orient.vec.rvec, (pm->maxs.xyz.x - pm->mins.xyz.x)); 
+				vm_vec_scale_add(&new_obj->phys_info.pos, &pri_obj->phys_info.pos, &pri_obj->phys_info.orient.vec.rvec, (pm->maxs.xyz.x - pm->mins.xyz.x)); 
 				break;
 
 			case 1:
-				vm_vec_scale_add(&new_obj->pos, &pri_obj->pos, &pri_obj->orient.vec.rvec, -(pm->maxs.xyz.x - pm->mins.xyz.x)); 
+				vm_vec_scale_add(&new_obj->phys_info.pos, &pri_obj->phys_info.pos, &pri_obj->phys_info.orient.vec.rvec, -(pm->maxs.xyz.x - pm->mins.xyz.x)); 
 				break;
 
 			case 2:
-				vm_vec_scale_add(&new_obj->pos, &pri_obj->pos, &pri_obj->orient.vec.uvec, (pm->maxs.xyz.y - pm->mins.xyz.y)); 
+				vm_vec_scale_add(&new_obj->phys_info.pos, &pri_obj->phys_info.pos, &pri_obj->phys_info.orient.vec.uvec, (pm->maxs.xyz.y - pm->mins.xyz.y)); 
 				break;
 
 			case 3:
-				vm_vec_scale_add(&new_obj->pos, &pri_obj->pos, &pri_obj->orient.vec.uvec, -(pm->maxs.xyz.y - pm->mins.xyz.y)); 
+				vm_vec_scale_add(&new_obj->phys_info.pos, &pri_obj->phys_info.pos, &pri_obj->phys_info.orient.vec.uvec, -(pm->maxs.xyz.y - pm->mins.xyz.y)); 
 				break;
 
 			case 4:
-				vm_vec_scale_add(&new_obj->pos, &pri_obj->pos, &pri_obj->orient.vec.fvec, (pm->maxs.xyz.z - pm->mins.xyz.z)); 
+				vm_vec_scale_add(&new_obj->phys_info.pos, &pri_obj->phys_info.pos, &pri_obj->phys_info.orient.vec.fvec, (pm->maxs.xyz.z - pm->mins.xyz.z)); 
 				break;
 
 			case 5:
-				vm_vec_scale_add(&new_obj->pos, &pri_obj->pos, &pri_obj->orient.vec.fvec, -(pm->maxs.xyz.z - pm->mins.xyz.z)); 
+				vm_vec_scale_add(&new_obj->phys_info.pos, &pri_obj->phys_info.pos, &pri_obj->phys_info.orient.vec.fvec, -(pm->maxs.xyz.z - pm->mins.xyz.z)); 
 				break;
 
 			default:
-				vm_vec_scale_add(&new_obj->pos, &pri_obj->pos, &pri_obj->orient.vec.uvec, -(pm->maxs.xyz.y - pm->mins.xyz.y)); 
+				vm_vec_scale_add(&new_obj->phys_info.pos, &pri_obj->phys_info.pos, &pri_obj->phys_info.orient.vec.uvec, -(pm->maxs.xyz.y - pm->mins.xyz.y)); 
 				break;
 			}
 		}
@@ -861,7 +861,7 @@ void multi_respawn_place(object *new_obj, int team)
 		}
 
 		// set respawn info
-		new_obj->pos = Multi_respawn_points[Multi_next_respawn_point].pos;		
+		new_obj->phys_info.pos = Multi_respawn_points[Multi_next_respawn_point].pos;		
 	}
 
 	// now make sure we're not colliding with anyone
@@ -870,11 +870,11 @@ void multi_respawn_place(object *new_obj, int team)
 
 
 /*
-#define MOVE_AWAY() { vec3d away; vm_vec_sub(&away,&new_obj->pos,&hit_check->pos); \
+#define MOVE_AWAY() { vec3d away; vm_vec_sub(&away,&new_obj->phys_info.pos,&hit_check->phys_info.pos); \
 	                   vm_vec_normalize_quick(&away); vm_vec_scale(&away,hit_check->radius+hit_check->radius); \
-							 vm_vec_add2(&new_obj->pos,&away); }
+							 vm_vec_add2(&new_obj->phys_info.pos,&away); }
 
-#define WITHIN_RADIUS() { float dist; dist=vm_vec_dist(&new_obj->pos,&hit_check->pos); \
+#define WITHIN_RADIUS() { float dist; dist=vm_vec_dist(&new_obj->phys_info.pos,&hit_check->phys_info.pos); \
 	                       if(dist <= hit_check->radius) collided = 1; }
 */
 
@@ -882,10 +882,10 @@ void multi_respawn_place(object *new_obj, int team)
 	if (pm != NULL) { \
 		float scale = 2.0f; \
 		collided = 0; \
-		vec3d temp = new_obj->pos; \
+		vec3d temp = new_obj->phys_info.pos; \
 		vec3d gpos; \
-		vm_vec_sub2(&temp, &hit_check->pos); \
-		vm_vec_rotate(&gpos, &temp, &hit_check->orient); \
+		vm_vec_sub2(&temp, &hit_check->phys_info.pos); \
+		vm_vec_rotate(&gpos, &temp, &hit_check->phys_info.orient); \
 		if((gpos.xyz.x >= pm->mins.xyz.x * scale) && (gpos.xyz.y >= pm->mins.xyz.y * scale) && (gpos.xyz.z >= pm->mins.xyz.z * scale) && (gpos.xyz.x <= pm->maxs.xyz.x * scale) && (gpos.xyz.y <= pm->maxs.xyz.y * scale) && (gpos.xyz.z <= pm->maxs.xyz.z * scale)) { \
 			collided = 1; \
 		} \
@@ -896,19 +896,19 @@ void multi_respawn_place(object *new_obj, int team)
 	if (pm != NULL) { \
 		switch((int)frand_range(0.0f, 3.9f)){ \
 		case 0: \
-			new_obj->pos.xyz.x += 200.0f; \
+			new_obj->phys_info.pos.xyz.x += 200.0f; \
 			break; \
 		case 1: \
-			new_obj->pos.xyz.x -= 200.0f; \
+			new_obj->phys_info.pos.xyz.x -= 200.0f; \
 			break; \
 		case 2: \
-			new_obj->pos.xyz.y += 200.0f; \
+			new_obj->phys_info.pos.xyz.y += 200.0f; \
 			break; \
 		case 3: \
-			new_obj->pos.xyz.y -= 200.0f; \
+			new_obj->phys_info.pos.xyz.y -= 200.0f; \
 			break; \
 		default : \
-			new_obj->pos.xyz.z -= 200.0f; \
+			new_obj->phys_info.pos.xyz.z -= 200.0f; \
 			break; \
 		} \
 	} \
@@ -941,8 +941,8 @@ void prevent_spawning_collision(object *new_obj)
 			s_check = &Ships[hit_check->instance];
 							
 			// just to make sure we don't get any strange magnitude errors
-			if (vm_vec_same(&hit_check->pos, &new_obj->pos))
-				new_obj->pos.xyz.x += 1.0f;
+			if (vm_vec_same(&hit_check->phys_info.pos, &new_obj->phys_info.pos))
+				new_obj->phys_info.pos.xyz.x += 1.0f;
 							
 			polymodel *pm = model_get(Ship_info[s_check->ship_info_index].model_num);
 			WITHIN_BBOX();				

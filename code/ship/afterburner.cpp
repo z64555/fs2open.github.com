@@ -146,7 +146,7 @@ void afterburners_start(object *objp)
 		snd_play( &Snds[ship_get_sound(objp, SND_ABURN_ENGAGE)], 0.0f, 1.0f, SND_PRIORITY_MUST_PLAY );
 		joy_ff_afterburn_on();
 	} else {
-		snd_play_3d( &Snds[ship_get_sound(objp, SND_ABURN_ENGAGE)], &objp->pos, &View_position, objp->radius );
+		snd_play_3d( &Snds[ship_get_sound(objp, SND_ABURN_ENGAGE)], &objp->phys_info.pos, &View_position, objp->radius );
 	}
 
 	Script_system.SetHookObjects(1, "Ship", objp);

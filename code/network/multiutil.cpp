@@ -705,8 +705,8 @@ void multi_assign_player_ship( int net_player_num, object *objp,int ship_class )
 	// game server and this client need to initialize this information so object updating
 	// works properly.
 	if ( MULTIPLAYER_MASTER || (Net_player == &Net_players[net_player_num]) ) {
-		Net_players[net_player_num].s_info.eye_pos = objp->pos;
-		Net_players[net_player_num].s_info.eye_orient = objp->orient;
+		Net_players[net_player_num].s_info.eye_pos = objp->phys_info.pos;
+		Net_players[net_player_num].s_info.eye_orient = objp->phys_info.orient;
 	}
 
 	// zero update info	

@@ -452,7 +452,7 @@ ADE_FUNC(applyWhack, l_Physics, "vector Impulse, [ vector Position]", "Applies a
 
 	objh = pih->objh;
 
-	physics_apply_whack(impulse, offset, pih->pi, &objh.objp->orient, pih->pi->mass);
+	physics_apply_whack(impulse, offset, pih->pi, &objh.objp->phys_info.orient, pih->pi->mass);
 
 	return ADE_RETURN_TRUE;
 

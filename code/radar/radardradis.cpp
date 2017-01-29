@@ -343,7 +343,7 @@ void HudGaugeRadarDradis::drawOutlinesHtl()
 	if ((xy_plane == -1) || (xz_yz_plane == -1))
 		return;
 	
-	g3_start_instance_matrix(&vmd_zero_vector, /*&Player_obj->orient*/&vmd_identity_matrix, true);
+	g3_start_instance_matrix(&vmd_zero_vector, /*&Player_obj->phys_info.orient*/&vmd_identity_matrix, true);
 		
 		// Tilt the base disc component of DRADIS-style radar 30 degrees down
 		vm_angle_2_matrix(&base_tilt, PI/6, 0);
@@ -385,7 +385,7 @@ void HudGaugeRadarDradis::drawSweeps()
 	vm_vec_copy_scale(&sweep_normal_x, &sweep_a, 1.0f);
 	vm_vec_copy_scale(&sweep_normal_y, &sweep_b, 1.0f);
 	
-	g3_start_instance_matrix(&vmd_zero_vector, /*&Player_obj->orient*/&vmd_identity_matrix, true);
+	g3_start_instance_matrix(&vmd_zero_vector, /*&Player_obj->phys_info.orient*/&vmd_identity_matrix, true);
 //		gr_set_bitmap(sweep_plane, GR_ALPHABLEND_FILTER, GR_BITBLT_MODE_NORMAL, 1.0f);
 		
 // 		g3_draw_polygon(&vmd_zero_vector, &sweep_a, scale, scale, TMAP_FLAG_TEXTURED | TMAP_HTL_3D_UNLIT);
@@ -450,7 +450,7 @@ void HudGaugeRadarDradis::drawBlipsSorted(int distort)
 	
 	for(int is_bright = 0; is_bright < 2; is_bright++) {
 		sub_y_clip = true;
-		g3_start_instance_matrix(&vmd_zero_vector, /*&Player_obj->orient*/&base_tilt, true);
+		g3_start_instance_matrix(&vmd_zero_vector, /*&Player_obj->phys_info.orient*/&base_tilt, true);
 			drawBlips(BLIP_TYPE_BOMB, is_bright, distort);
 			drawBlips(BLIP_TYPE_JUMP_NODE, is_bright, distort);
 			drawBlips(BLIP_TYPE_NORMAL_SHIP, is_bright, distort);
@@ -462,7 +462,7 @@ void HudGaugeRadarDradis::drawBlipsSorted(int distort)
 		drawOutlinesHtl();
 
 		sub_y_clip = false;
-		g3_start_instance_matrix(&vmd_zero_vector, /*&Player_obj->orient*/&base_tilt, true);
+		g3_start_instance_matrix(&vmd_zero_vector, /*&Player_obj->phys_info.orient*/&base_tilt, true);
 			drawBlips(BLIP_TYPE_BOMB, is_bright, distort);
 			drawBlips(BLIP_TYPE_JUMP_NODE, is_bright, distort);
 			drawBlips(BLIP_TYPE_NORMAL_SHIP, is_bright, distort);

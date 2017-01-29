@@ -100,6 +100,6 @@ void observer_delete(object *obj)
 void observer_get_eye(vec3d *eye_pos, matrix *eye_orient, object *obj)
 {
 	// copy in the observer position and orientation
-	memcpy(eye_pos,&obj->pos,sizeof(vec3d));
-	memcpy(eye_orient,&obj->orient,sizeof(matrix));
+	memcpy(eye_pos, &obj->phys_info.pos, sizeof(vec3d));
+	memcpy(eye_orient, &obj->phys_info.orient, sizeof(matrix));
 }

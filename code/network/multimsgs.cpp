@@ -2656,7 +2656,7 @@ void send_ship_create_packet( object *objp, int is_support )
 	ADD_USHORT(objp->net_signature);
 	ADD_INT( is_support );
 	if ( is_support ){
-		ADD_VECTOR( objp->pos );
+		ADD_VECTOR(objp->phys_info.pos);
 	}
 
 	// broadcast the packet	
@@ -3240,7 +3240,7 @@ void send_turret_fired_packet( int ship_objnum, int subsys_index, int weapon_obj
 
 	// build the fire turret packet.  
 	BUILD_HEADER(FIRE_TURRET_WEAPON);	
-	packet_size += multi_pack_unpack_position(1, data + packet_size, &objp->orient.vec.fvec);
+	packet_size += multi_pack_unpack_position(1, data + packet_size, &objp->phys_info.orient.vec.fvec);
 	ADD_DATA( has_sig );
 	ADD_USHORT( pnet_signature );	
 	if(has_sig){		
@@ -3953,9 +3953,9 @@ void send_observer_update_packet()
 	
 	BUILD_HEADER(OBSERVER_UPDATE);
 
-	ret = multi_pack_unpack_position( 1, data + packet_size, &Player_obj->pos );
+	ret = multi_pack_unpack_position(1, data + packet_size, &Player_obj->phys_info.pos);
 	packet_size += ret;
-	ret = multi_pack_unpack_orient( 1, data + packet_size, &Player_obj->orient );
+	ret = multi_pack_unpack_orient( 1, data + packet_size, &Player_obj->phys_info.orient );
 	packet_size += ret;
 
 	// add targeting infomation
@@ -4005,8 +4005,8 @@ void process_observer_update_packet(ubyte *data, header *hinfo)
 		Net_players[obs_num].s_info.target_objnum = (target_obj == NULL) ? -1 : OBJ_INDEX(target_obj);
 	}
 
-	Objects[Net_players[obs_num].m_player->objnum].pos = g_vec;
-	Objects[Net_players[obs_num].m_player->objnum].orient = g_mat;
+	Objects[Net_players[obs_num].m_player->objnum].phys_info.pos = g_vec;
+	Objects[Net_players[obs_num].m_player->objnum].phys_info.orient = g_mat;
 	Net_players[obs_num].s_info.eye_pos = g_vec;
 	Net_players[obs_num].s_info.eye_orient = g_mat;
 }
@@ -4481,8 +4481,8 @@ void send_subsystem_destroyed_packet( ship *shipp, int index, vec3d world_hitpos
 
 	objp = &Objects[shipp->objnum];
 
-	vm_vec_sub(&tmp, &world_hitpos, &objp->pos );
-	vm_vec_rotate( &local_hitpos, &tmp, &objp->orient );
+	vm_vec_sub(&tmp, &world_hitpos, &objp->phys_info.pos);
+	vm_vec_rotate( &local_hitpos, &tmp, &objp->phys_info.orient );
 
 	BUILD_HEADER(SUBSYSTEM_DESTROYED);
 	ADD_USHORT( Objects[shipp->objnum].net_signature );
@@ -4529,8 +4529,8 @@ void process_subsystem_destroyed_packet( ubyte *data, header *hinfo )
 			return;
 		}
 
-		vm_vec_unrotate( &world_hit_pos, &local_hit_pos, &objp->orient );
-		vm_vec_add2( &world_hit_pos, &objp->pos );
+		vm_vec_unrotate(&world_hit_pos, &local_hit_pos, &objp->phys_info.orient);
+		vm_vec_add2(&world_hit_pos, &objp->phys_info.pos);
 
 		do_subobj_destroyed_stuff( shipp, subsysp, &world_hit_pos );
 		if ( objp == Player_obj ) {
@@ -5295,8 +5295,8 @@ void send_debris_update_packet(object *objp,int code)
 	// add any extra relevant data
 	switch(code){
 	case DEBRIS_UPDATE_UPDATE:
-		ADD_VECTOR(objp->pos);						// add position
-		ADD_ORIENT(objp->orient);				// add orientation
+		ADD_VECTOR(objp->phys_info.pos);						// add position
+		ADD_ORIENT(objp->phys_info.orient);				// add orientation
 		ADD_VECTOR(objp->phys_info.vel);		// add velocity
 		ADD_VECTOR(objp->phys_info.rotvel);	// add rotational velocity
 		break;
@@ -5324,8 +5324,8 @@ void process_debris_update_packet(ubyte *data, header *hinfo)
 	switch((int)code){
 	// update the object
 	case DEBRIS_UPDATE_UPDATE:
-		GET_VECTOR(objp->pos);
-		GET_ORIENT(objp->orient);
+		GET_VECTOR(objp->phys_info.pos);
+		GET_ORIENT(objp->phys_info.orient);
 		GET_VECTOR(objp->phys_info.vel);
 		GET_VECTOR(objp->phys_info.rotvel);
 		break;
@@ -5339,7 +5339,7 @@ void process_debris_update_packet(ubyte *data, header *hinfo)
 	// blow it up
 	case DEBRIS_UPDATE_NUKE:
 		if(objp != &bogus_object)
-			debris_hit(objp,NULL,&objp->pos,1000000.0f);
+			debris_hit(objp, NULL, &objp->phys_info.pos, 1000000.0f);
 		break;
 	}
 
@@ -6304,12 +6304,12 @@ void send_shield_explosion_packet( int objnum, int tri_num, vec3d hit_pos )
 			eye_orient = Net_players[i].s_info.eye_orient;
 
 			// check for same vectors
-			vm_vec_sub(&diff, &Objects[objnum].pos, &eye_pos);
+			vm_vec_sub(&diff, &Objects[objnum].phys_info.pos, &eye_pos);
 			if ( vm_vec_mag_quick(&diff) < 0.01 ){
 				continue;
 			}
 
-			vm_vec_normalized_dir(&eye_to_obj_vec, &Objects[objnum].pos, &eye_pos);
+			vm_vec_normalized_dir(&eye_to_obj_vec, &Objects[objnum].phys_info.pos, &eye_pos);
 			dot = vm_vec_dot(&eye_orient.vec.fvec, &eye_to_obj_vec);
 
 			if ( dot < OBJ_VISIBILITY_DOT ){
@@ -6681,7 +6681,7 @@ void send_asteroid_throw( object *objp )
 	packet_type = ASTEROID_THROW;
 	ADD_DATA( packet_type );
 	ADD_USHORT( objp->net_signature );
-	ADD_VECTOR( objp->pos );
+	ADD_VECTOR(objp->phys_info.pos);
 	ADD_VECTOR( objp->phys_info.vel );
 	
 	multi_io_send_to_all(data, packet_size);
@@ -6764,7 +6764,7 @@ void process_asteroid_info( ubyte *data, header *hinfo )
 			nprintf(("Network", "Couldn't throw asteroid because couldn't find it\n"));
 			break;
 		}
-		objp->pos = pos;
+		objp->phys_info.pos = pos;
 		objp->phys_info.vel = vel;
 		objp->phys_info.desired_vel = vel;
 		break;
@@ -8058,7 +8058,7 @@ void send_flak_fired_packet(int ship_objnum, int subsys_index, int weapon_objnum
 
 	// build the fire turret packet.  
 	BUILD_HEADER(FLAK_FIRED);	
-	packet_size += multi_pack_unpack_position(1, data + packet_size, &objp->orient.vec.fvec);	
+	packet_size += multi_pack_unpack_position(1, data + packet_size, &objp->phys_info.orient.vec.fvec);	
 	ADD_USHORT( pnet_signature );		
 	ADD_DATA( cindex );
 	val = (short)ssp->submodel_info_1.angs.h;
@@ -8223,7 +8223,7 @@ void process_player_pain_packet(ubyte *data, header *hinfo)
 	}
 	
 	//Assume the weapon is armed -WMC
-	weapon_hit_do_sound(Player_obj, wip, &Player_obj->pos, true);
+	weapon_hit_do_sound(Player_obj, wip, &Player_obj->phys_info.pos, true);
 
 	// we need to do 3 things here. player pain (game flash), weapon hit sound, ship_apply_whack()
 	ship_hit_pain((float)udamage, quadrant_num);

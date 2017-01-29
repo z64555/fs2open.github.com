@@ -32,7 +32,7 @@ bool shadows_obj_in_frustum(object *objp, matrix *light_orient, vec3d *min, vec3
 {
 	vec3d pos, pos_rot;
 
-	vm_vec_sub(&pos, &objp->pos, &Eye_position);
+	vm_vec_sub(&pos, &objp->phys_info.pos, &Eye_position);
 	vm_vec_rotate(&pos_rot, &pos, light_orient);
 
 	if ( (pos_rot.xyz.x - objp->radius) > max->xyz.x 
@@ -413,7 +413,7 @@ void shadows_render_all(float fov, matrix *eye_orient, vec3d *eye_pos)
 		return;
 	}
 
-	//shadows_debug_show_frustum(&Player_obj->orient, &Player_obj->pos, fov, gr_screen.clip_aspect, Min_draw_distance, 3000.0f);
+	//shadows_debug_show_frustum(&Player_obj->phys_info.orient, &Player_obj->pos, fov, gr_screen.clip_aspect, Min_draw_distance, 3000.0f);
 
 	gr_end_proj_matrix();
 	gr_end_view_matrix();
@@ -454,7 +454,7 @@ void shadows_render_all(float fov, matrix *eye_orient, vec3d *eye_pos)
 				render_info.set_flags(MR_IS_ASTEROID | MR_NO_TEXTURING | MR_NO_LIGHTING);
 				
 				model_clear_instance( Asteroid_info[Asteroids[objp->instance].asteroid_type].model_num[Asteroids[objp->instance].asteroid_subtype]);
-				model_render_queue(&render_info, &scene, Asteroid_info[Asteroids[objp->instance].asteroid_type].model_num[Asteroids[objp->instance].asteroid_subtype], &objp->orient, &objp->pos);
+				model_render_queue(&render_info, &scene, Asteroid_info[Asteroids[objp->instance].asteroid_type].model_num[Asteroids[objp->instance].asteroid_subtype], &objp->phys_info.orient, &objp->phys_info.pos);
 			}
 			break;
 
@@ -473,7 +473,7 @@ void shadows_render_all(float fov, matrix *eye_orient, vec3d *eye_pos)
 
 				render_info.set_flags(MR_NO_TEXTURING | MR_NO_LIGHTING);
 
-				submodel_render_queue(&render_info, &scene, db->model_num, db->submodel_num, &objp->orient, &objp->pos);
+				submodel_render_queue(&render_info, &scene, db->model_num, db->submodel_num, &objp->phys_info.orient, &objp->phys_info.pos);
 			}
 			break; 
 		}

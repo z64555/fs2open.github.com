@@ -181,7 +181,7 @@ float awacs_get_level(object *target, ship *viewer, int use_awacs)
 	int viewer_has_primitive_sensors = (viewer->flags[Ship::Ship_Flags::Primitive_sensors]);
 
 	// calc distance from viewer to target
-	vm_vec_sub(&dist_vec, &target->pos, &Objects[viewer->objnum].pos);
+	vm_vec_sub(&dist_vec, &target->phys_info.pos, &Objects[viewer->objnum].phys_info.pos);
 	int distance = (int) vm_vec_mag_quick(&dist_vec);
 
 // redone by Goober5000
@@ -264,7 +264,7 @@ float awacs_get_level(object *target, ship *viewer, int use_awacs)
 			else
 			{
 				// get distance from Subsys to target
-				vm_vec_sub(&dist_vec, &subsys_pos, &target->pos);
+				vm_vec_sub(&dist_vec, &subsys_pos, &target->phys_info.pos);
 				test = vm_vec_mag_quick(&dist_vec);
 
 				if (test > Awacs[idx].subsys->awacs_radius)
@@ -319,9 +319,9 @@ float awacs_get_level(object *target, ship *viewer, int use_awacs)
 		// special case for huge ship - check inside expanded bounding boxes
 		if (check_huge_ship)
 		{
-			if (check_world_pt_in_expanded_ship_bbox(&Objects[viewer->objnum].pos, target, scan_nebula_range))
+			if (check_world_pt_in_expanded_ship_bbox(&Objects[viewer->objnum].phys_info.pos, target, scan_nebula_range))
 			{
-				if (check_world_pt_in_expanded_ship_bbox(&Objects[viewer->objnum].pos, target, 0.5f * scan_nebula_range))
+				if (check_world_pt_in_expanded_ship_bbox(&Objects[viewer->objnum].phys_info.pos, target, 0.5f * scan_nebula_range))
 					return FULLY_TARGETABLE;
 
 				return MARGINALLY_TARGETABLE;
@@ -330,7 +330,7 @@ float awacs_get_level(object *target, ship *viewer, int use_awacs)
 		// otherwise check straight up nebula numbers
 		else
 		{
-			vm_vec_sub(&dist_vec, &target->pos, &Objects[viewer->objnum].pos);
+			vm_vec_sub(&dist_vec, &target->phys_info.pos, &Objects[viewer->objnum].phys_info.pos);
 			test = vm_vec_mag_quick(&dist_vec);
 
 			if (test < (0.5f * scan_nebula_range))
@@ -450,7 +450,7 @@ int ship_is_visible_by_team(object *target, ship *viewer)
 		return 0;
 
 	// not visible if out of range
-	if ((Hud_max_targeting_range > 0) && (vm_vec_dist_quick(&target->pos, &Objects[viewer->objnum].pos) > Hud_max_targeting_range))
+	if ((Hud_max_targeting_range > 0) && (vm_vec_dist_quick(&target->phys_info.pos, &Objects[viewer->objnum].phys_info.pos) > Hud_max_targeting_range))
 		return 0;
 
 	// now evaluate this the old way

@@ -787,7 +787,7 @@ SerializeFloat(fp, mode, objp->radius);
 //	SerializeInt(fp, mode, objp->wing);
 SerializePhysicsInfo(fp, mode, &objp->phys_info);
 SerializeVector(fp, mode, &objp->pos);
-SerializeMatrix(fp, mode, &objp->orient);
+SerializeMatrix(fp, mode, &objp->phys_info.orient);
 }
 
 void SerializeAI(XFILE *fp, int mode, ai_info *aip)

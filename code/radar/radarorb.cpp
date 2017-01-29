@@ -342,7 +342,7 @@ void HudGaugeRadarOrb::drawOutlines()
 	vertex proj_orb_lines_yz[NUM_ORB_RING_SLICES];
 
 	g3_start_instance_matrix(&vmd_zero_vector, &view_perturb, false);
-	g3_start_instance_matrix(&vmd_zero_vector, &Player_obj->orient, false);
+	g3_start_instance_matrix(&vmd_zero_vector, &Player_obj->phys_info.orient, false);
 
 	g3_rotate_vertex(&center, &vmd_zero_vector);
 	g3_rotate_vertex(&proj_orb_lines_xy[0], &orb_ring_xy[0]);
@@ -390,7 +390,7 @@ int HudGaugeRadarOrb::calcAlpha(vec3d* pt)
     vec3d new_pt;
     vec3d fvec = { { { 0.0f, 0.0f, 1.0f } } };
 
-    vm_vec_unrotate(&new_pt, pt, &Player_obj->orient);
+    vm_vec_unrotate(&new_pt, pt, &Player_obj->phys_info.orient);
     vm_vec_normalize(&new_pt);
 
     float dot = vm_vec_dot(&fvec, &new_pt);
@@ -405,7 +405,7 @@ void HudGaugeRadarOrb::drawOutlinesHtl()
 	int i, last = NUM_ORB_RING_SLICES - 1;
 
 	g3_start_instance_matrix(&vmd_zero_vector, &view_perturb, true);
-	g3_start_instance_matrix(&vmd_zero_vector, &Player_obj->orient, true);
+	g3_start_instance_matrix(&vmd_zero_vector, &Player_obj->phys_info.orient, true);
 
 	gr_set_color(255, 255, 255);
 	g3_render_sphere(&vmd_zero_vector, .05f);

@@ -538,7 +538,7 @@ void HudGaugeTargetBox::renderTargetShip(object *target_objp)
 	int flags=0;
 	if ( Detail.targetview_model )	{
 		// take the forward orientation to be the vector from the player to the current target
-		vm_vec_sub(&orient_vec, &target_objp->pos, &Player_obj->pos);
+		vm_vec_sub(&orient_vec, &target_objp->phys_info.pos, &Player_obj->phys_info.pos);
 		vm_vec_normalize(&orient_vec);
 
 		factor = -target_sip->closeup_pos.xyz.z;
@@ -548,7 +548,7 @@ void HudGaugeTargetBox::renderTargetShip(object *target_objp)
 			vec3d tempv;
 			ship_get_eye(&tempv, &camera_orient, Player_obj, false, false);
 		} else {
-			camera_orient = Player_obj->orient;
+			camera_orient = Player_obj->phys_info.orient;
 		}
 
 		up_vector = camera_orient.vec.uvec;
@@ -628,11 +628,11 @@ void HudGaugeTargetBox::renderTargetShip(object *target_objp)
 
 		// maybe render a special hud-target-only model
 		if(target_sip->model_num_hud >= 0){
-			model_render_immediate( &render_info, target_sip->model_num_hud, &target_objp->orient, &obj_pos);
+			model_render_immediate( &render_info, target_sip->model_num_hud, &target_objp->phys_info.orient, &obj_pos);
 		} else {
 			render_info.set_replacement_textures(target_shipp->ship_replacement_textures);
 
-			model_render_immediate( &render_info, target_sip->model_num, &target_objp->orient, &obj_pos);
+			model_render_immediate( &render_info, target_sip->model_num, &target_objp->phys_info.orient, &obj_pos);
 		}
 
 		Glowpoint_override = false;
@@ -648,10 +648,10 @@ void HudGaugeTargetBox::renderTargetShip(object *target_objp)
 			vec3d save_pos;
 
 			gr_set_screen_scale(base_w, base_h);
-			save_pos = target_objp->pos;
-			target_objp->pos = obj_pos;
+			save_pos = target_objp->phys_info.pos;
+			target_objp->phys_info.pos = obj_pos;
 			subsys_in_view = hud_targetbox_subsystem_in_view(target_objp, &sx, &sy);
-			target_objp->pos = save_pos;
+			target_objp->phys_info.pos = save_pos;
 
 			if ( subsys_in_view != -1 ) {
 
@@ -698,7 +698,7 @@ void HudGaugeTargetBox::renderTargetDebris(object *target_objp)
 
 	if ( Detail.targetview_model )	{
 		// take the forward orientation to be the vector from the player to the current target
-		vm_vec_sub(&orient_vec, &target_objp->pos, &Player_obj->pos);
+		vm_vec_sub(&orient_vec, &target_objp->phys_info.pos, &Player_obj->phys_info.pos);
 		vm_vec_normalize(&orient_vec);
 
 		factor = 2*target_objp->radius;
@@ -708,7 +708,7 @@ void HudGaugeTargetBox::renderTargetDebris(object *target_objp)
 			vec3d tempv;
 			ship_get_eye(&tempv, &camera_orient, Player_obj, false, false);
 		} else {
-			camera_orient = Player_obj->orient;
+			camera_orient = Player_obj->phys_info.orient;
 		}
 
 		up_vector = camera_orient.vec.uvec;
@@ -760,7 +760,7 @@ void HudGaugeTargetBox::renderTargetDebris(object *target_objp)
 		render_info.set_flags(flags | MR_NO_FOGGING);
 
 		// This calls the colour that doesn't get reset
-		submodel_render_immediate( &render_info, debrisp->model_num, debrisp->submodel_num, &target_objp->orient, &obj_pos);
+		submodel_render_immediate( &render_info, debrisp->model_num, debrisp->submodel_num, &target_objp->phys_info.orient, &obj_pos);
 
 		if ( Monitor_mask >= 0 ) {
 			gr_stencil_set(GR_STENCIL_NONE);
@@ -843,25 +843,25 @@ void HudGaugeTargetBox::renderTargetWeapon(object *target_objp)
 		}
 
 		// take the forward orientation to be the vector from the player to the current target
-		vm_vec_sub(&orient_vec, &viewed_obj->pos, &viewer_obj->pos);
+		vm_vec_sub(&orient_vec, &viewed_obj->phys_info.pos, &viewer_obj->phys_info.pos);
 		vm_vec_normalize(&orient_vec);
 
 		if (missile_view == TRUE) {
-			vm_vec_sub(&projection_vec, &wp->homing_pos, &viewer_obj->pos);
+			vm_vec_sub(&projection_vec, &wp->homing_pos, &viewer_obj->phys_info.pos);
 			vm_vec_normalize(&projection_vec);
 		}
 
 		if ( missile_view == FALSE )
 			factor = 2*target_objp->radius;
 		else
-			factor = vm_vec_dist_quick(&viewer_obj->pos, &viewed_obj->pos);
+			factor = vm_vec_dist_quick(&viewer_obj->phys_info.pos, &viewed_obj->phys_info.pos);
 
 		// use the viewer's up vector, and construct the viewers orientation matrix
 		if (viewer_obj == Player_obj && Player_obj->type == OBJ_SHIP) {
 			vec3d tempv;
 			ship_get_eye(&tempv, &camera_orient, Player_obj, false, false);
 		} else {
-			camera_orient = viewer_obj->orient;
+			camera_orient = viewer_obj->phys_info.orient;
 		}
 
 		up_vector = camera_orient.vec.uvec;
@@ -876,7 +876,7 @@ void HudGaugeTargetBox::renderTargetWeapon(object *target_objp)
 		if (missile_view == FALSE) {
 			vm_vec_copy_scale(&obj_pos,&orient_vec,factor);
 		} else {
-			vm_vec_sub(&obj_pos, &viewed_obj->pos, &viewer_obj->pos);
+			vm_vec_sub(&obj_pos, &viewed_obj->phys_info.pos, &viewer_obj->phys_info.pos);
 		}
 
 		renderTargetSetup(&camera_eye, &camera_orient, View_zoom/3);
@@ -974,19 +974,19 @@ void HudGaugeTargetBox::renderTargetWeapon(object *target_objp)
 			render_info.set_flags(flags | MR_AUTOCENTER | MR_IS_MISSILE | MR_NO_FOGGING);
 			render_info.set_replacement_textures(replacement_textures);
 
-			model_render_immediate( &render_info, viewed_model_num, &viewed_obj->orient, &obj_pos );
+			model_render_immediate( &render_info, viewed_model_num, &viewed_obj->phys_info.orient, &obj_pos );
 		} else {
 			// maybe render a special hud-target-only model
 			// autocentering is bad in this one
 			if(homing_sip->model_num_hud >= 0){
 				render_info.set_flags(flags | MR_NO_FOGGING);
 
-				model_render_immediate( &render_info, homing_sip->model_num_hud, &viewed_obj->orient, &obj_pos);
+				model_render_immediate( &render_info, homing_sip->model_num_hud, &viewed_obj->phys_info.orient, &obj_pos);
 			} else {
 				render_info.set_flags(flags | MR_NO_FOGGING);
 				render_info.set_replacement_textures(homing_shipp->ship_replacement_textures);
 
-				model_render_immediate( &render_info, homing_sip->model_num, &viewed_obj->orient, &obj_pos );
+				model_render_immediate( &render_info, homing_sip->model_num, &viewed_obj->phys_info.orient, &obj_pos );
 			}
 		}
 
@@ -1029,7 +1029,7 @@ void HudGaugeTargetBox::renderTargetWeapon(object *target_objp)
 			speed -= vm_vec_projection_parallel(&component_vec, &wp->homing_object->phys_info.vel, &unit_vec);
 		}
 
-		dist = vm_vec_dist(&target_objp->pos, &wp->homing_pos);
+		dist = vm_vec_dist(&target_objp->phys_info.pos, &wp->homing_pos);
 		
 		if ( speed > 0 ) {
 			sprintf(outstr, NOX("impact: %.1f sec"), dist/speed);
@@ -1063,7 +1063,7 @@ void HudGaugeTargetBox::renderTargetAsteroid(object *target_objp)
 
 	if ( Detail.targetview_model )	{
 		// take the forward orientation to be the vector from the player to the current target
-		vm_vec_sub(&orient_vec, &target_objp->pos, &Player_obj->pos);
+		vm_vec_sub(&orient_vec, &target_objp->phys_info.pos, &Player_obj->phys_info.pos);
 		vm_vec_normalize(&orient_vec);
 
 		factor = 2*target_objp->radius;
@@ -1073,7 +1073,7 @@ void HudGaugeTargetBox::renderTargetAsteroid(object *target_objp)
 			vec3d tempv;
 			ship_get_eye(&tempv, &camera_orient, Player_obj, false, false);
 		} else {
-			camera_orient = Player_obj->orient;
+			camera_orient = Player_obj->phys_info.orient;
 		}
 
 		up_vector = camera_orient.vec.uvec;
@@ -1130,7 +1130,7 @@ void HudGaugeTargetBox::renderTargetAsteroid(object *target_objp)
 
 		render_info.set_flags(flags | MR_NO_FOGGING);
 
-		model_render_immediate( &render_info, Asteroid_info[asteroidp->asteroid_type].model_num[pof], &target_objp->orient, &obj_pos );
+		model_render_immediate( &render_info, Asteroid_info[asteroidp->asteroid_type].model_num[pof], &target_objp->phys_info.orient, &obj_pos );
 
 		if ( Monitor_mask >= 0 ) {
 			gr_stencil_set(GR_STENCIL_NONE);
@@ -1190,7 +1190,7 @@ void HudGaugeTargetBox::renderTargetJumpNode(object *target_objp)
 
 		if ( Detail.targetview_model )	{
 			// take the forward orientation to be the vector from the player to the current target
-			vm_vec_sub(&orient_vec, &target_objp->pos, &Player_obj->pos);
+			vm_vec_sub(&orient_vec, &target_objp->phys_info.pos, &Player_obj->phys_info.pos);
 			vm_vec_normalize(&orient_vec);
 
 			factor = target_objp->radius*4.0f;
@@ -1200,7 +1200,7 @@ void HudGaugeTargetBox::renderTargetJumpNode(object *target_objp)
 				vec3d tempv;
 				ship_get_eye(&tempv, &camera_orient, Player_obj, false, false);
 			} else {
-				camera_orient = Player_obj->orient;
+				camera_orient = Player_obj->phys_info.orient;
 			}
 
 			up_vector = camera_orient.vec.uvec;
@@ -1233,7 +1233,7 @@ void HudGaugeTargetBox::renderTargetJumpNode(object *target_objp)
 		end_string_at_first_hash_symbol(outstr);
 		renderString(position[0] + Name_offsets[0], position[1] + Name_offsets[1], EG_TBOX_NAME, outstr);	
 
-		dist = vm_vec_dist_quick(&target_objp->pos, &Player_obj->pos);
+		dist = vm_vec_dist_quick(&target_objp->phys_info.pos, &Player_obj->phys_info.pos);
 		if ( Hud_unit_multiplier > 0.0f ) {	// use a different displayed distance scale
 			dist = dist * Hud_unit_multiplier;
 		}
@@ -1814,7 +1814,7 @@ int hud_targetbox_subsystem_in_view(object *target_objp, int *sx, int *sy)
 			if (pm->flags & PM_FLAG_AUTOCEN) {
 				vec3d temp, delta;
 				vm_vec_copy_scale(&temp, &pm->autocenter, -1.0f);
-				vm_vec_unrotate(&delta, &temp, &target_objp->orient);
+				vm_vec_unrotate(&delta, &temp, &target_objp->phys_info.orient);
 				vm_vec_add2(&subobj_pos, &delta);
 			}
 		}
@@ -1962,7 +1962,7 @@ void HudGaugeTargetBox::showTargetData(float frametime)
 	renderString(position[0] + Dist_offsets[0]+hx, position[1] + Dist_offsets[1]+hy, EG_TBOX_DIST, outstr);	
 
 #if 0
-	current_target_speed = vm_vec_dist(&target_objp->pos, &target_objp->last_pos) / frametime;
+	current_target_speed = vm_vec_dist(&target_objp->phys_info.pos, &target_objp->last_pos) / frametime;
 #endif
 	// 7/28/99 DKA: Do not use vec_mag_quick -- the error is too big
 	current_target_speed = vm_vec_mag(&target_objp->phys_info.vel);
@@ -2046,10 +2046,10 @@ void HudGaugeTargetBox::showTargetData(float frametime)
 				gr_printf_no_resize(sx, sy, "Targ: %s", target_str);
 				sy += dy;
 
-				dist = vm_vec_dist_quick(&Objects[Player_ai->target_objnum].pos, &Objects[aip->target_objnum].pos);
-				vm_vec_normalized_dir(&v2t,&Objects[aip->target_objnum].pos, &Objects[Player_ai->target_objnum].pos);
+				dist = vm_vec_dist_quick(&Objects[Player_ai->target_objnum].phys_info.pos, &Objects[aip->target_objnum].phys_info.pos);
+				vm_vec_normalized_dir(&v2t, &Objects[aip->target_objnum].phys_info.pos, &Objects[Player_ai->target_objnum].phys_info.pos);
 
-				dot = vm_vec_dot(&v2t, &Objects[Player_ai->target_objnum].orient.vec.fvec);
+				dot = vm_vec_dot(&v2t, &Objects[Player_ai->target_objnum].phys_info.orient.vec.fvec);
 
 				// data can be found in target monitor
 				gr_printf_no_resize(sx, sy, "Targ dot: %3.2f", dot);
@@ -2091,10 +2091,10 @@ void HudGaugeTargetBox::showTargetData(float frametime)
 
 						if (eaip->target_objnum == Player_obj-Objects) {
 							found = 1;
-							dist = vm_vec_dist_quick(&Enemy_attacker->pos, &Player_obj->pos);
-							vm_vec_normalized_dir(&v2t,&Objects[eaip->target_objnum].pos, &Enemy_attacker->pos);
+							dist = vm_vec_dist_quick(&Enemy_attacker->phys_info.pos, &Player_obj->phys_info.pos);
+							vm_vec_normalized_dir(&v2t, &Objects[eaip->target_objnum].phys_info.pos, &Enemy_attacker->phys_info.pos);
 
-							dot = vm_vec_dot(&v2t, &Enemy_attacker->orient.vec.fvec);
+							dot = vm_vec_dot(&v2t, &Enemy_attacker->phys_info.orient.vec.fvec);
 
 							gr_printf_no_resize(sx, sy, "#%i: %s", Enemy_attacker-Objects, Ships[Enemy_attacker->instance].ship_name);
 							sy += dy;

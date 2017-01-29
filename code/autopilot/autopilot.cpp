@@ -118,7 +118,7 @@ vec3d *NavPoint::GetPosition()
 	}
 	else
 	{
-		return &Objects[((ship*) target_obj)->objnum].pos;
+		return &Objects[((ship*) target_obj)->objnum].phys_info.pos;
 	}
 }
 
@@ -181,7 +181,7 @@ bool CanAutopilot(vec3d targetPos, bool send_msg)
 				&& !(Ship_info[Ships[other_objp->instance].ship_info_index].flags[Ship::Info_Flags::Cargo])) // ignore cargo
 			{
 				// Cannot autopilot if enemy within AutopilotMinEnemyDistance meters
-				if (vm_vec_dist_quick(&targetPos, &other_objp->pos) < AutopilotMinEnemyDistance) {
+				if (vm_vec_dist_quick(&targetPos, &other_objp->phys_info.pos) < AutopilotMinEnemyDistance) {
 					if (send_msg)
 						send_autopilot_msgID(NP_MSG_FAIL_HOSTILES);
 					return false;
@@ -198,7 +198,7 @@ bool CanAutopilot(vec3d targetPos, bool send_msg)
 			if (Asteroids[n].flags & AF_USED)
 			{
 				// Cannot autopilot if asteroid within AutopilotMinAsteroidDistance meters
-				if (vm_vec_dist_quick(&targetPos, &Objects[Asteroids[n].objnum].pos) < AutopilotMinAsteroidDistance) {
+				if (vm_vec_dist_quick(&targetPos, &Objects[Asteroids[n].objnum].phys_info.pos) < AutopilotMinAsteroidDistance) {
 					if (send_msg)
 						send_autopilot_msgID(NP_MSG_FAIL_HAZARD);
 					return false;
@@ -320,15 +320,15 @@ bool StartAutopilot()
 	autopilot_wings.clear();
 
 	// vars for usage w/ cinematic
-	vec3d pos, norm1, perp, tpos, rpos = Player_obj->pos, zero;
+	vec3d pos, norm1, perp, tpos, rpos = Player_obj->phys_info.pos, zero;
 	memset(&zero, 0, sizeof(vec3d));
 
 
 	// instantly turn player toward tpos
 	if (The_mission.flags[Mission::Mission_Flags::Use_ap_cinematics])
 	{
-		vm_vec_sub(&norm1, Navs[CurrentNav].GetPosition(), &Player_obj->pos);
-		vm_vector_2_matrix(&Player_obj->orient, &norm1, NULL, NULL);
+		vm_vec_sub(&norm1, Navs[CurrentNav].GetPosition(), &Player_obj->phys_info.pos);
+		vm_vector_2_matrix(&Player_obj->phys_info.orient, &norm1, NULL, NULL);
 	}
 
 	for (i = 0; i < MAX_SHIPS; i++)
@@ -403,22 +403,22 @@ bool StartAutopilot()
 
 
 			// check for bigger radius for usage later
-			/*if (!vm_vec_cmp(&rpos, &Player_obj->pos)) 
+			/*if (!vm_vec_cmp(&rpos, &Player_obj->phys_info.pos)) 
 				// want to make sure rpos isn't player pos - we can worry about it being largest object's later
 			{
-				rpos = Objects[Ships[i].objnum].pos;
+				rpos = Objects[Ships[i].objnum].phys_info.pos;
 			}*/
 
 			if (Objects[Ships[i].objnum].radius > radius)
 			{
-				rpos = Objects[Ships[i].objnum].pos;
+				rpos = Objects[Ships[i].objnum].phys_info.pos;
 				radius = Objects[Ships[i].objnum].radius;
 			}
 
 			if (The_mission.flags[Mission::Mission_Flags::Use_ap_cinematics])
 			{// instantly turn the ship to match the direction player is looking
-				//vm_vec_sub(&norm1, Navs[CurrentNav].GetPosition(), &Player_obj->pos);
-				vm_vector_2_matrix(&Objects[Ships[i].objnum].orient, &norm1, NULL, NULL);
+				//vm_vec_sub(&norm1, Navs[CurrentNav].GetPosition(), &Player_obj->phys_info.pos);
+				vm_vector_2_matrix(&Objects[Ships[i].objnum].phys_info.orient, &norm1, NULL, NULL);
 			}
 
 			// snap wings into formation
@@ -443,29 +443,29 @@ bool StartAutopilot()
 					switch (wcount % 2)
 					{
 						case 1: // back-left
-							vm_vec_add(&perp, &zero, &Autopilot_flight_leader->orient.vec.rvec);
-							//vm_vec_sub(&perp, &perp, &Player_obj->orient.vec.fvec);
+							vm_vec_add(&perp, &zero, &Autopilot_flight_leader->phys_info.orient.vec.rvec);
+							//vm_vec_sub(&perp, &perp, &Player_obj->phys_info.orient.vec.fvec);
 							vm_vec_normalize(&perp);
 							vm_vec_scale(&perp, -166.0f*j); // 166m is supposedly the optimal range according to tolwyn
-							vm_vec_add(&goal_point, &Autopilot_flight_leader->pos, &perp);
+							vm_vec_add(&goal_point, &Autopilot_flight_leader->phys_info.pos, &perp);
 							break;
 
 						default: //back-right
 						case 0:
-							vm_vec_add(&perp, &zero, &Autopilot_flight_leader->orient.vec.rvec);
-							//vm_vec_sub(&perp, &perp, &Player_obj->orient.vec.fvec);
+							vm_vec_add(&perp, &zero, &Autopilot_flight_leader->phys_info.orient.vec.rvec);
+							//vm_vec_sub(&perp, &perp, &Player_obj->phys_info.orient.vec.fvec);
 							vm_vec_normalize(&perp);
 							vm_vec_scale(&perp, 166.0f*j);
-							vm_vec_add(&goal_point, &Autopilot_flight_leader->pos, &perp);
+							vm_vec_add(&goal_point, &Autopilot_flight_leader->phys_info.pos, &perp);
 							break;
 					}
 					autopilot_wings[wingnum] = wcount;
 					wcount++;
 				}
-				Objects[Ships[i].objnum].pos = goal_point;			
-				if (vm_vec_dist_quick(&Autopilot_flight_leader->pos, &Objects[Ships[i].objnum].pos) > distance)
+				Objects[Ships[i].objnum].phys_info.pos = goal_point;			
+				if (vm_vec_dist_quick(&Autopilot_flight_leader->phys_info.pos, &Objects[Ships[i].objnum].phys_info.pos) > distance)
 				{
-					distance = vm_vec_dist_quick(&Autopilot_flight_leader->pos, &Objects[Ships[i].objnum].pos);
+					distance = vm_vec_dist_quick(&Autopilot_flight_leader->phys_info.pos, &Objects[Ships[i].objnum].phys_info.pos);
 				}
 			}
 			// lock primary and secondary weapons
@@ -567,9 +567,9 @@ bool StartAutopilot()
 			vec3d right, front, up, offset;
 			for (SCP_vector<int>::iterator idx = capIndexes.begin(); idx != capIndexes.end(); ++idx)
 			{
-				vm_vec_add(&right, &Autopilot_flight_leader->orient.vec.rvec, &zero);
-				vm_vec_add(&front, &Autopilot_flight_leader->orient.vec.fvec, &zero);
-				vm_vec_add(&up, &Autopilot_flight_leader->orient.vec.uvec, &zero);
+				vm_vec_add(&right, &Autopilot_flight_leader->phys_info.orient.vec.rvec, &zero);
+				vm_vec_add(&front, &Autopilot_flight_leader->phys_info.orient.vec.fvec, &zero);
+				vm_vec_add(&up, &Autopilot_flight_leader->phys_info.orient.vec.uvec, &zero);
 				vm_vec_add(&offset, &zero, &zero);
                 if (Ship_info[Ships[*idx].ship_info_index].flags[Ship::Info_Flags::Capital] || Ship_info[Ships[*idx].ship_info_index].flags[Ship::Info_Flags::Supercap])
 				{
@@ -637,7 +637,7 @@ bool StartAutopilot()
 					vm_vec_scale(&up, (1+((float)floor((float)capship_placed[1]/3))));
 
 					// move ourselves up and out of the way of the smaller ships
-					vm_vec_add(&perp, &Autopilot_flight_leader->orient.vec.uvec, &zero);
+					vm_vec_add(&perp, &Autopilot_flight_leader->phys_info.orient.vec.uvec, &zero);
 					vm_vec_scale(&perp, capship_spreads[2]);
 					vm_vec_add(&up, &up, &perp);
 
@@ -692,7 +692,7 @@ bool StartAutopilot()
 					vm_vec_scale(&front, 2*(1+((float)floor((float)capship_placed[2]/3))));
 
 					// move "out" by 166*(wcount-1) so we don't bump into fighters
-					vm_vec_add(&perp, &Autopilot_flight_leader->orient.vec.rvec, &zero);
+					vm_vec_add(&perp, &Autopilot_flight_leader->phys_info.orient.vec.rvec, &zero);
 					vm_vec_scale(&perp, 166.0f*float(wcount-1));
 					if ( (capship_placed[2] % 2) == 0)
 						vm_vec_add(&right, &right, &perp);
@@ -714,11 +714,11 @@ bool StartAutopilot()
 				// global scale the position by 50%
 				//vm_vec_scale(&offset, 1.5);
 
-				vm_vec_add(&Objects[Ships[*idx].objnum].pos, &Autopilot_flight_leader->pos, &offset);
+				vm_vec_add(&Objects[Ships[*idx].objnum].phys_info.pos, &Autopilot_flight_leader->phys_info.pos, &offset);
 
-				if (vm_vec_dist_quick(&Autopilot_flight_leader->pos, &Objects[Ships[*idx].objnum].pos) > distance)
+				if (vm_vec_dist_quick(&Autopilot_flight_leader->phys_info.pos, &Objects[Ships[*idx].objnum].phys_info.pos) > distance)
 				{
-					distance = vm_vec_dist_quick(&Autopilot_flight_leader->pos, &Objects[Ships[*idx].objnum].pos);
+					distance = vm_vec_dist_quick(&Autopilot_flight_leader->phys_info.pos, &Objects[Ships[*idx].objnum].phys_info.pos);
 				}
 			}
 		}
@@ -735,11 +735,11 @@ bool StartAutopilot()
 
 		tpos = *Navs[CurrentNav].GetPosition();
 		// determine distance toward nav at which camera will be
-		vm_vec_sub(&pos, &tpos, &Autopilot_flight_leader->pos);
+		vm_vec_sub(&pos, &tpos, &Autopilot_flight_leader->phys_info.pos);
 		vm_vec_normalize(&pos); // pos is now a unit vector in the direction we will be moving the camera
 		//norm1 = pos;
 		vm_vec_scale(&pos, 5*speed_cap*tc_factor); // pos is now scaled by 5 times the speed (5 seconds ahead)
-		vm_vec_add(&pos, &pos, &Autopilot_flight_leader->pos); // pos is now 5*speed cap in front of player ship
+		vm_vec_add(&pos, &pos, &Autopilot_flight_leader->phys_info.pos); // pos is now 5*speed cap in front of player ship
 
 		switch (myrand()%24) 
 		// 8 different ways of getting perp points
@@ -750,67 +750,67 @@ bool StartAutopilot()
 			case 9:
 			case 16:
 				if (capship_placed[0] == 0)
-					vm_vec_sub(&perp, &zero, &Autopilot_flight_leader->orient.vec.uvec);
+					vm_vec_sub(&perp, &zero, &Autopilot_flight_leader->phys_info.orient.vec.uvec);
 				else
 				{	// become up-left
-					vm_vec_add(&perp, &zero, &Autopilot_flight_leader->orient.vec.uvec);
-					vm_vec_sub(&perp, &perp, &Autopilot_flight_leader->orient.vec.rvec);
+					vm_vec_add(&perp, &zero, &Autopilot_flight_leader->phys_info.orient.vec.uvec);
+					vm_vec_sub(&perp, &perp, &Autopilot_flight_leader->phys_info.orient.vec.rvec);
 				}
 				break;
 
 			case 2: // up
 			case 10:
 			case 23:
-				vm_vec_add(&perp, &perp, &Autopilot_flight_leader->orient.vec.uvec);
+				vm_vec_add(&perp, &perp, &Autopilot_flight_leader->phys_info.orient.vec.uvec);
 				if (capshipPresent) // become up-right
-					vm_vec_add(&perp, &perp, &Autopilot_flight_leader->orient.vec.rvec);
+					vm_vec_add(&perp, &perp, &Autopilot_flight_leader->phys_info.orient.vec.rvec);
 				break;
 
 			case 3: // left
 			case 11:
 			case 22:
-				vm_vec_sub(&perp, &zero, &Autopilot_flight_leader->orient.vec.rvec);
+				vm_vec_sub(&perp, &zero, &Autopilot_flight_leader->phys_info.orient.vec.rvec);
 				break;
 
 			case 4: // up-left
 			case 12:
 			case 21:
-				vm_vec_sub(&perp, &zero, &Autopilot_flight_leader->orient.vec.rvec);
-				vm_vec_add(&perp, &perp, &Autopilot_flight_leader->orient.vec.uvec);
+				vm_vec_sub(&perp, &zero, &Autopilot_flight_leader->phys_info.orient.vec.rvec);
+				vm_vec_add(&perp, &perp, &Autopilot_flight_leader->phys_info.orient.vec.uvec);
 				break;
 
 			case 5: // up-right
 			case 13:
 			case 20:
-				vm_vec_add(&perp, &zero, &Autopilot_flight_leader->orient.vec.rvec);
-				vm_vec_add(&perp, &perp, &Autopilot_flight_leader->orient.vec.uvec);
+				vm_vec_add(&perp, &zero, &Autopilot_flight_leader->phys_info.orient.vec.rvec);
+				vm_vec_add(&perp, &perp, &Autopilot_flight_leader->phys_info.orient.vec.uvec);
 				break;
 
 			case 6: // down-left
 			case 14:
 			case 19:
-				vm_vec_sub(&perp, &zero, &Autopilot_flight_leader->orient.vec.rvec);
+				vm_vec_sub(&perp, &zero, &Autopilot_flight_leader->phys_info.orient.vec.rvec);
 				if (capship_placed[0] < 2)
-					vm_vec_sub(&perp, &perp, &Autopilot_flight_leader->orient.vec.uvec);
+					vm_vec_sub(&perp, &perp, &Autopilot_flight_leader->phys_info.orient.vec.uvec);
 				else
-					vm_vec_add(&perp, &perp, &Autopilot_flight_leader->orient.vec.uvec);
+					vm_vec_add(&perp, &perp, &Autopilot_flight_leader->phys_info.orient.vec.uvec);
 				break;
 
 			case 7: // down-right
 			case 15:
 			case 18:
-				vm_vec_add(&perp, &zero, &Autopilot_flight_leader->orient.vec.rvec);
+				vm_vec_add(&perp, &zero, &Autopilot_flight_leader->phys_info.orient.vec.rvec);
 				if (capship_placed[0] < 1)
-					vm_vec_sub(&perp, &perp, &Autopilot_flight_leader->orient.vec.uvec);
+					vm_vec_sub(&perp, &perp, &Autopilot_flight_leader->phys_info.orient.vec.uvec);
 				else
-					vm_vec_add(&perp, &perp, &Autopilot_flight_leader->orient.vec.uvec);
+					vm_vec_add(&perp, &perp, &Autopilot_flight_leader->phys_info.orient.vec.uvec);
 				break;
 
 			default:
 			case 0: // right
 			case 8:
 			case 17:
-				perp = Autopilot_flight_leader->orient.vec.rvec;
+				perp = Autopilot_flight_leader->phys_info.orient.vec.rvec;
 				break;
 
 		}
@@ -830,7 +830,7 @@ bool StartAutopilot()
 			vm_vec_normalize(&perp);
 
 			// place it behind
-			//vm_vec_copy_scale(&norm1, &Player_obj->orient.vec.fvec, -2*(Player_obj->radius+radius*(1.0f+(float(j)/100.0f))));
+			//vm_vec_copy_scale(&norm1, &Player_obj->phys_info.orient.vec.fvec, -2*(Player_obj->radius+radius*(1.0f+(float(j)/100.0f))));
 			//vm_vec_add(&cameraTarget, &cameraTarget, &norm1);
 
 			vm_vec_copy_scale(&cameraTarget,&perp, radius/5.0f);
@@ -1003,11 +1003,11 @@ void nav_warp(bool prewarp=false)
 {
 	/* ok... find our end distance - norm1 is still a unit vector in the
 	direction from the flight leader to the navpoint */
-	vec3d targetPos, tpos=Autopilot_flight_leader->pos, pos, velocity;
+	vec3d targetPos, tpos=Autopilot_flight_leader->phys_info.pos, pos, velocity;
 
 	/* calculate a vector that we can use to make a path from the flight
 	leader's location to the nav point */
-	vm_vec_sub(&pos, Navs[CurrentNav].GetPosition(), &Autopilot_flight_leader->pos);
+	vm_vec_sub(&pos, Navs[CurrentNav].GetPosition(), &Autopilot_flight_leader->phys_info.pos);
 	vm_vec_normalize(&pos);
 	velocity = pos;	// make a copy for later when we do setup veleocity vector
 	vm_vec_scale(&pos, 250.0f); // we move by increments of 250
@@ -1019,7 +1019,7 @@ void nav_warp(bool prewarp=false)
 	{
 		vm_vec_add(&tpos, &tpos, &pos);
 	}
-	vm_vec_sub(&targetPos, &tpos, &Autopilot_flight_leader->pos);
+	vm_vec_sub(&targetPos, &tpos, &Autopilot_flight_leader->phys_info.pos);
 	/* targetPos is actually a vector that describes the exact 3D movement that
 	the flgith leader needs to execute to reach the location that the auto 
 	pilot is to shut off */
@@ -1047,7 +1047,7 @@ void nav_warp(bool prewarp=false)
 			&& (Ships[i].flags[Ship::Ship_Flags::Navpoint_carry] 
 				|| (Ships[i].wingnum != -1 && Wings[Ships[i].wingnum].flags[Ship::Wing_Flags::Nav_carry])))
 		{
-				vm_vec_add(&Objects[Ships[i].objnum].pos, &Objects[Ships[i].objnum].pos, &targetPos);
+				vm_vec_add(&Objects[Ships[i].objnum].phys_info.pos, &Objects[Ships[i].objnum].phys_info.pos, &targetPos);
 				Objects[Ships[i].objnum].phys_info.vel = velocity;
 		}
 	}
@@ -1080,7 +1080,7 @@ void NavSystem_Do()
 					// update our cinematic and possibly perform warp
 					//if (!CameraMoving)
 					if(cam != NULL)
-						cam->set_rotation_facing(&Player_obj->pos);
+						cam->set_rotation_facing(&Player_obj->phys_info.pos);
 
 					if (timestamp() >= MoveCamera && !CameraMoving && vm_vec_mag(&cameraTarget) > 0.0f)
 					{
@@ -1109,7 +1109,7 @@ void NavSystem_Do()
 					if(cam != NULL)
 					{
 						cam->set_position(&cameraPos);
-						cam->set_rotation_facing(&Autopilot_flight_leader->pos);
+						cam->set_rotation_facing(&Autopilot_flight_leader->phys_info.pos);
 					}
 
 					CinematicStarted = true;
@@ -1200,7 +1200,7 @@ void NavSystem_Do()
 		{
 			object *other_objp = &Objects[Ships[i].objnum];
 
-			if (vm_vec_dist_quick(&Player_obj->pos, &other_objp->pos) < (NavLinkDistance + other_objp->radius))
+			if (vm_vec_dist_quick(&Player_obj->phys_info.pos, &other_objp->phys_info.pos) < (NavLinkDistance + other_objp->radius))
 			{
                 Ships[i].flags.remove(Ship::Ship_Flags::Navpoint_needslink);
                 Ships[i].flags.set(Ship::Ship_Flags::Navpoint_carry);
@@ -1605,7 +1605,7 @@ unsigned int DistanceTo(int nav)
 	if (nav >= MAX_NAVPOINTS || nav < 0)
 		return 0xFFFFFFFF;
 
-	return (uint)vm_vec_dist_quick(&Player_obj->pos, Navs[nav].GetPosition());
+	return (uint)vm_vec_dist_quick(&Player_obj->phys_info.pos, Navs[nav].GetPosition());
 }
 
 //+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+

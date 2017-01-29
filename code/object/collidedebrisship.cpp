@@ -47,7 +47,7 @@ int collide_debris_ship( obj_pair * pair )
 	if ( (pdebris->parent == OBJ_INDEX(pship)) && (Ships[pship->instance].flags[Ship::Ship_Flags::Dying]) )
 		return 0;
 
-	dist = vm_vec_dist( &pdebris->pos, &pship->pos );
+	dist = vm_vec_dist(&pdebris->phys_info.pos, &pship->phys_info.pos);
 	if ( dist < pdebris->radius + pship->radius )	{
 		int hit;
 		vec3d	hitpos;
@@ -200,7 +200,7 @@ int collide_asteroid_ship( obj_pair * pair )
 	Assert( pasteroid->type == OBJ_ASTEROID );
 	Assert( pship->type == OBJ_SHIP );
 
-	dist = vm_vec_dist( &pasteroid->pos, &pship->pos );
+	dist = vm_vec_dist(&pasteroid->phys_info.pos, &pship->phys_info.pos);
 
 	if ( dist < pasteroid->radius + pship->radius )	{
 		int hit;

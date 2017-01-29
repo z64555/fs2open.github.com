@@ -203,8 +203,8 @@ void ct_update_contrails(ship *shipp)
 		// if this is a valid contrail
 			if(shipp->trail_ptr[idx] != NULL){	
 				// get the point for the contrail
-				vm_vec_unrotate(&v1, &sip->ct_info[idx].pt, &objp->orient);
-				vm_vec_add2(&v1, &objp->pos);
+				vm_vec_unrotate(&v1, &sip->ct_info[idx].pt, &objp->phys_info.orient);
+				vm_vec_add2(&v1, &objp->phys_info.pos);
 
 				// if the spew stamp has elapsed
 				if(trail_stamp_elapsed(shipp->trail_ptr[idx])){	
@@ -250,8 +250,8 @@ void ct_create_contrails(ship *shipp)
 		if(shipp->trail_ptr[idx] != NULL)
 		{
 			// add the point		
-			vm_vec_unrotate(&v1, &sip->ct_info[idx].pt, &objp->orient);
-			vm_vec_add2(&v1, &objp->pos);
+			vm_vec_unrotate(&v1, &sip->ct_info[idx].pt, &objp->phys_info.orient);
+			vm_vec_add2(&v1, &objp->phys_info.pos);
 			trail_add_segment(shipp->trail_ptr[idx], &v1);
 			trail_add_segment(shipp->trail_ptr[idx], &v1);
 		}
@@ -350,8 +350,8 @@ void ct_create_ABtrails(ship *shipp)
 			if(shipp->ABtrail_ptr[idx] != NULL)
 			{
 				// get the point for the contrail
-				vm_vec_unrotate(&v1, &shipp->ab_info[idx].pt, &objp->orient);
-				vm_vec_add2(&v1, &objp->pos);
+				vm_vec_unrotate(&v1, &shipp->ab_info[idx].pt, &objp->phys_info.orient);
+				vm_vec_add2(&v1, &objp->phys_info.pos);
 				// if the spew stamp has elapsed
 				if(trail_stamp_elapsed(shipp->ABtrail_ptr[idx])){	
 					trail_add_segment(shipp->ABtrail_ptr[idx], &v1);
@@ -392,8 +392,8 @@ void ct_update_ABtrails(ship *shipp)
 		if(objp->phys_info.flags & PF_AFTERBURNER_ON){//ABtrails
 			if(shipp->ABtrail_ptr[idx] != NULL){	
 				// get the point for the contrail
-				vm_vec_unrotate(&v1, &shipp->ab_info[idx].pt, &objp->orient);
-				vm_vec_add2(&v1, &objp->pos);
+				vm_vec_unrotate(&v1, &shipp->ab_info[idx].pt, &objp->phys_info.orient);
+				vm_vec_add2(&v1, &objp->phys_info.pos);
 
 				// if the spew stamp has elapsed
 				if(trail_stamp_elapsed(shipp->ABtrail_ptr[idx])){	

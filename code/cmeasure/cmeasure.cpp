@@ -30,7 +30,7 @@ void cmeasure_set_ship_launch_vel(object *objp, object *parent_objp, int arand)
 	vec3d vel, rand_vec;
 
 	//Get cmeasure rear velocity in world
-	vm_vec_scale_add(&vel, &parent_objp->phys_info.vel, &parent_objp->orient.vec.fvec, -25.0f);
+	vm_vec_scale_add(&vel, &parent_objp->phys_info.vel, &parent_objp->phys_info.orient.vec.fvec, -25.0f);
 
 	//Get random velocity vector
 	static_randvec(arand+1, &rand_vec);
@@ -50,7 +50,7 @@ void cmeasure_set_ship_launch_vel(object *objp, object *parent_objp, int arand)
 	objp->phys_info.side_slip_time_const = 10000.0f;
 
 	objp->phys_info.max_vel.xyz.z = -25.0f;
-	vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.vec.fvec, objp->phys_info.max_vel.xyz.z );
+	vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->phys_info.orient.vec.fvec, objp->phys_info.max_vel.xyz.z);
 }
 
 void cmeasure_select_next(ship *shipp)

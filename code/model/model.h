@@ -1125,7 +1125,7 @@ inline void mc_info_init(mc_info *mc)
 	mc_info mc;
 
 	mc.model_num = ???;			// Fill in the model to check
-	mc.orient = &obj->orient;	// The object's orient
+	mc.orient = &obj->phys_info.orient;	// The object's orient
 	mc.pos = &obj->pos;			// The object's position
 	mc.p0 = &p0;					// Point 1 of ray to check
 	mc.p1 = &p1;					// Point 2 of ray to check

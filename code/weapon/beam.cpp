@@ -726,7 +726,7 @@ void beam_unpause_sounds()
 
 void beam_get_global_turret_gun_info(object *objp, ship_subsys *ssp, vec3d *gpos, vec3d *gvec, int use_angles, vec3d *targetp, bool fighter_beam){
 		ship_get_global_turret_gun_info(objp, ssp, gpos, gvec, use_angles, targetp);
-	if(fighter_beam)*gvec = objp->orient.vec.fvec;
+	if(fighter_beam)*gvec = objp->phys_info.orient.vec.fvec;
 }
 
 // -----------------------------===========================------------------------------
@@ -809,9 +809,9 @@ void beam_type_c_move(beam *b)
 
 	// type c beams only last one frame so we never have to "move" them.			
 	temp = b->targeting_laser_offset;
-	vm_vec_unrotate(&b->last_start, &temp, &b->objp->orient);
+	vm_vec_unrotate(&b->last_start, &temp, &b->objp->phys_info.orient);
 	vm_vec_add2(&b->last_start, &b->objp->pos);	
-	vm_vec_scale_add(&b->last_shot, &b->last_start, &b->objp->orient.vec.fvec, b->range);
+	vm_vec_scale_add(&b->last_shot, &b->last_start, &b->objp->phys_info.orient.vec.fvec, b->range);
 
 	shipp = &Ships[b->objp->instance];
 
@@ -2152,7 +2152,7 @@ void beam_aim(beam *b)
 	case BEAM_TYPE_A:
 		// if we're targeting a subsystem - shoot directly at it
 		if(b->target_subsys != nullptr){
-			vm_vec_unrotate(&b->last_shot, &b->target_subsys->system_info->pnt, &b->target->orient);
+			vm_vec_unrotate(&b->last_shot, &b->target_subsys->system_info->pnt, &b->target->phys_info.orient);
 			vm_vec_add2(&b->last_shot, &b->target->pos);
 
 			if ((b->subsys != nullptr) && (b->subsys->system_info->flags[Model::Subsystem_Flags::Share_fire_direction])) {
@@ -2170,7 +2170,7 @@ void beam_aim(beam *b)
 		if((b->target != nullptr) && (b->target->type == OBJ_SHIP) && (Ship_info[Ships[b->target->instance].ship_info_index].is_big_or_huge())){
 			if ((b->subsys != nullptr) && (b->subsys->system_info->flags[Model::Subsystem_Flags::Share_fire_direction])) {
 				vec3d pnt;
-				vm_vec_unrotate(&pnt, &b->binfo.dir_a, &b->target->orient);
+				vm_vec_unrotate(&pnt, &b->binfo.dir_a, &b->target->phys_info.orient);
 				vm_vec_add2(&pnt, &b->target->pos);
 
 				float dist = vm_vec_dist(&pnt, &b->last_start);
@@ -2178,7 +2178,7 @@ void beam_aim(beam *b)
 				p2 = temp;
 			} else {
 				// rotate into world coords
-				vm_vec_unrotate(&temp, &b->binfo.dir_a, &b->target->orient);
+				vm_vec_unrotate(&temp, &b->binfo.dir_a, &b->target->phys_info.orient);
 				vm_vec_add2(&temp, &b->target->pos);
 
 				// get the shot point
@@ -2225,9 +2225,9 @@ void beam_aim(beam *b)
 	case BEAM_TYPE_C:
 		// start point
 		temp = b->targeting_laser_offset;
-		vm_vec_unrotate(&b->last_start, &temp, &b->objp->orient);
+		vm_vec_unrotate(&b->last_start, &temp, &b->objp->phys_info.orient);
 		vm_vec_add2(&b->last_start, &b->objp->pos);
-		vm_vec_scale_add(&b->last_shot, &b->last_start, &b->objp->orient.vec.fvec, b->range);
+		vm_vec_scale_add(&b->last_shot, &b->last_start, &b->objp->phys_info.orient.vec.fvec, b->range);
 		break;
 
 	case BEAM_TYPE_D:
@@ -2287,9 +2287,9 @@ void beam_get_octant_points(int modelnum, object *objp, int oct_index, int oct_a
 	Assert(!vm_vec_same(&t1, &t2));
 
 	// get them in world coords
-	vm_vec_unrotate(&temp, &t1, &objp->orient);
+	vm_vec_unrotate(&temp, &t1, &objp->phys_info.orient);
 	vm_vec_add(v1, &temp, &objp->pos);
-	vm_vec_unrotate(&temp, &t2, &objp->orient);
+	vm_vec_unrotate(&temp, &t2, &objp->phys_info.orient);
 	vm_vec_add(v2, &temp, &objp->pos);
 }
 
@@ -2418,7 +2418,7 @@ int beam_collide_ship(obj_pair *pair)
 	mc.model_instance_num = shipp->model_instance_num;
 	mc.model_num = model_num;
 	mc.submodel_num = -1;
-	mc.orient = &ship_objp->orient;
+	mc.orient = &ship_objp->phys_info.orient;
 	mc.pos = &ship_objp->pos;
 	mc.p0 = &b->last_start;
 	mc.p1 = &b->last_shot;
@@ -2608,7 +2608,7 @@ int beam_collide_asteroid(obj_pair *pair)
 	test_collide.model_instance_num = -1;
 	test_collide.model_num = model_num;
 	test_collide.submodel_num = -1;
-	test_collide.orient = &pair->b->orient;
+	test_collide.orient = &pair->b->phys_info.orient;
 	test_collide.pos = &pair->b->pos;
 	test_collide.p0 = &b->last_start;
 	test_collide.p1 = &b->last_shot;	
@@ -2698,7 +2698,7 @@ int beam_collide_missile(obj_pair *pair)
 	test_collide.model_instance_num = -1;
 	test_collide.model_num = model_num;
 	test_collide.submodel_num = -1;
-	test_collide.orient = &pair->b->orient;
+	test_collide.orient = &pair->b->phys_info.orient;
 	test_collide.pos = &pair->b->pos;
 	test_collide.p0 = &b->last_start;
 	test_collide.p1 = &b->last_shot;
@@ -2791,7 +2791,7 @@ int beam_collide_debris(obj_pair *pair)
 	test_collide.model_instance_num = -1;
 	test_collide.model_num = model_num;
 	test_collide.submodel_num = -1;
-	test_collide.orient = &pair->b->orient;
+	test_collide.orient = &pair->b->phys_info.orient;
 	test_collide.pos = &pair->b->pos;
 	test_collide.p0 = &b->last_start;
 	test_collide.p1 = &b->last_shot;
@@ -3384,10 +3384,10 @@ int beam_ok_to_fire(beam *b)
 			vec3d turret_normal;
 
 			if (b->flags & BF_IS_FIGHTER_BEAM) {
-				turret_normal = b->objp->orient.vec.fvec;
+				turret_normal = b->objp->phys_info.orient.vec.fvec;
                 b->subsys->system_info->flags.remove(Model::Subsystem_Flags::Turret_alt_math);
 			} else {
-				vm_vec_unrotate(&turret_normal, &b->subsys->system_info->turret_norm, &b->objp->orient);
+				vm_vec_unrotate(&turret_normal, &b->subsys->system_info->turret_norm, &b->objp->phys_info.orient);
 			}
 
 			if (!(turret_fov_test(b->subsys, &turret_normal, &aim_dir))) {

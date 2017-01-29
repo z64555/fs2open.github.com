@@ -167,7 +167,7 @@ float dock_calc_max_cross_sectional_radius_perpendicular_to_axis(object *objp, a
 	// to calculate the cross-sectional radius, we need a line that will be perpendicular to the cross-section
 
 	// the first endpoint is simply the position of the object
-	world_line_start = &objp->pos;
+	world_line_start = &objp->phys_info.pos;
 
 	// the second endpoint extends in the axis direction
 	vm_vec_zero(&local_line_end);
@@ -191,8 +191,8 @@ float dock_calc_max_cross_sectional_radius_perpendicular_to_axis(object *objp, a
 	}
 
 	// rotate and move the endpoint to go through the axis of the actual object
-	vm_vec_rotate(&world_line_end, &local_line_end, &objp->orient);
-	vm_vec_add2(&world_line_end, &objp->pos);
+	vm_vec_rotate(&world_line_end, &local_line_end, &objp->phys_info.orient);
+	vm_vec_add2(&world_line_end, &objp->phys_info.pos);
 
 	// now we have a unit vector starting at the object's position and pointing along the chosen axis
 	// (although the length doesn't matter, as it's calculated as an endless line)
@@ -217,7 +217,7 @@ float dock_calc_max_semilatus_rectum_parallel_to_axis(object *objp, axis_type ax
 	// to calculate the semilatus rectum, we need a directrix that will be parallel to the axis
 
 	// the first endpoint is simply the position of the object
-	world_line_start = &objp->pos;
+	world_line_start = &objp->phys_info.pos;
 
 	// the second endpoint extends in the axis direction
 	vm_vec_zero(&local_line_end);
@@ -241,8 +241,8 @@ float dock_calc_max_semilatus_rectum_parallel_to_axis(object *objp, axis_type ax
 	}
 
 	// rotate and move the endpoint to go through the axis of the actual object
-	vm_vec_rotate(&world_line_end, &local_line_end, &objp->orient);
-	vm_vec_add2(&world_line_end, &objp->pos);
+	vm_vec_rotate(&world_line_end, &local_line_end, &objp->phys_info.orient);
+	vm_vec_add2(&world_line_end, &objp->phys_info.pos);
 
 	// now we have a unit vector starting at the object's position and pointing along the chosen axis
 	// (although the length doesn't matter, as it's calculated as an endless line)
@@ -458,14 +458,14 @@ void dock_check_find_docked_object_helper(object *objp, dock_function_info *info
 void dock_calc_docked_center_helper(object *objp, dock_function_info *infop)
 {
 	// add object position and increment count
-	vm_vec_add2(infop->maintained_variables.vecp_value, &objp->pos);
+	vm_vec_add2(infop->maintained_variables.vecp_value, &objp->phys_info.pos);
 	infop->maintained_variables.int_value++;
 }
 
 void dock_calc_docked_center_of_mass_helper(object *objp, dock_function_info *infop)
 {
 	// add weighted object position and add mass
-	vm_vec_scale_add2(infop->maintained_variables.vecp_value, &objp->pos, objp->phys_info.mass);
+	vm_vec_scale_add2(infop->maintained_variables.vecp_value, &objp->phys_info.pos, objp->phys_info.mass);
 	infop->maintained_variables.float_value += objp->phys_info.mass;
 }
 
@@ -512,8 +512,8 @@ void dock_calc_max_cross_sectional_radius_squared_perpendicular_to_line_helper(o
 	for (i = 0; i < 6; i++)
 	{
 		// calculate position of point
-		vm_vec_rotate(&world_point, &local_point[i], &objp->orient);
-		vm_vec_add2(&world_point, &objp->pos);
+		vm_vec_rotate(&world_point, &local_point[i], &objp->phys_info.orient);
+		vm_vec_add2(&world_point, &objp->phys_info.pos);
 
 		// calculate square of distance to line
 		vm_vec_dist_squared_to_line(&world_point, line_start, line_end, &nearest, &dist_squared);
@@ -561,8 +561,8 @@ void dock_calc_max_semilatus_rectum_squared_parallel_to_directrix_helper(object 
 	for (i = 0; i < 6; i++)
 	{
 		// calculate position of point
-		vm_vec_rotate(&world_point, &local_point[i], &objp->orient);
-		vm_vec_add2(&world_point, &objp->pos);
+		vm_vec_rotate(&world_point, &local_point[i], &objp->phys_info.orient);
+		vm_vec_add2(&world_point, &objp->phys_info.pos);
 
 		// find the nearest point along the line
 		vm_vec_dist_squared_to_line(&world_point, line_start, line_end, &nearest, &temp);

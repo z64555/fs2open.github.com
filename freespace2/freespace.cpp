@@ -2216,7 +2216,7 @@ void game_show_framerate()
 		int sx, sy;
 		sx = gr_screen.center_offset_x + 320;
 		sy = gr_screen.center_offset_y + 100;
-		gr_printf_no_resize(sx, sy, NOX("Player Pos: (%d,%d,%d)"), fl2i(Player_obj->pos.xyz.x), fl2i(Player_obj->pos.xyz.y), fl2i(Player_obj->pos.xyz.z));
+		gr_printf_no_resize(sx, sy, NOX("Player Pos: (%d,%d,%d)"), fl2i(Player_obj->phys_info.pos.xyz.x), fl2i(Player_obj->phys_info.pos.xyz.y), fl2i(Player_obj->phys_info.pos.xyz.z));
 	}
 
 	MONITOR_INC(NumPolys, modelstats_num_polys);
@@ -2686,7 +2686,7 @@ void game_tst_mark(object *objp, ship *shipp)
 		return;
 	}
 
-	tst_pos = objp->pos;
+	tst_pos = objp->phys_info.pos;
 	if(sip->is_big_or_huge()){
 		tst_big = 1;
 	}
@@ -3319,21 +3319,21 @@ camid game_render_frame_setup()
 			if ( view_from_player ) {
 				//	View target from player ship.
 				Viewer_obj = NULL;
-				eye_pos = Player_obj->pos;
-				vm_vec_normalized_dir(&tmp_dir, &Objects[Player_ai->target_objnum].pos, &eye_pos);
+				eye_pos = Player_obj->phys_info.pos;
+				vm_vec_normalized_dir(&tmp_dir, &Objects[Player_ai->target_objnum].phys_info.pos, &eye_pos);
 				vm_vector_2_matrix(&eye_orient, &tmp_dir, NULL, NULL);
 				//rtn_cid = ship_get_followtarget_eye( Player_obj );
 			}
 		} else {
-			dist = vm_vec_normalized_dir(&vec_to_deader, &Player_obj->pos, &Dead_camera_pos);
+			dist = vm_vec_normalized_dir(&vec_to_deader, &Player_obj->phys_info.pos, &Dead_camera_pos);
 			
 			if (dist < MIN_DIST_TO_DEAD_CAMERA)
 				dist += flFrametime * 16.0f;
 
 			vm_vec_scale(&vec_to_deader, -dist);
-			vm_vec_add(&Dead_camera_pos, &Player_obj->pos, &vec_to_deader);
+			vm_vec_add(&Dead_camera_pos, &Player_obj->phys_info.pos, &vec_to_deader);
 			
-			view_pos = Player_obj->pos;
+			view_pos = Player_obj->phys_info.pos;
 
 			if (!(Game_mode & GM_DEAD_BLEW_UP)) {
 				Viewer_mode &= ~(VM_EXTERNAL | VM_CHASE);
@@ -3341,18 +3341,18 @@ camid game_render_frame_setup()
 				Dead_player_last_vel = Player_obj->phys_info.vel;
 				//nprintf(("AI", "Player death roll vel = %7.3f %7.3f %7.3f\n", Player_obj->phys_info.vel.x, Player_obj->phys_info.vel.y, Player_obj->phys_info.vel.z));
 			} else if (Player_ai->target_objnum != -1) {
-				view_pos = Objects[Player_ai->target_objnum].pos;
+				view_pos = Objects[Player_ai->target_objnum].phys_info.pos;
 			} else {
 				//	Make camera follow explosion, but gradually slow down.
-				vm_vec_scale_add2(&Player_obj->pos, &Dead_player_last_vel, flFrametime);
-				view_pos = Player_obj->pos;
+				vm_vec_scale_add2(&Player_obj->phys_info.pos, &Dead_player_last_vel, flFrametime);
+				view_pos = Player_obj->phys_info.pos;
 				vm_vec_scale(&Dead_player_last_vel, 0.99f);
 				vm_vec_scale_add2(&Dead_camera_pos, &Original_vec_to_deader, MIN(25.0f, vm_vec_mag_quick(&Dead_player_last_vel)) * flFrametime);
 			}
 
 			eye_pos = Dead_camera_pos;
 
-			vm_vec_normalized_dir(&tmp_dir, &Player_obj->pos, &eye_pos);
+			vm_vec_normalized_dir(&tmp_dir, &Player_obj->phys_info.pos, &eye_pos);
 
 			vm_vector_2_matrix(&eye_orient, &tmp_dir, NULL, NULL);
 			Viewer_obj = NULL;
@@ -3397,13 +3397,13 @@ camid game_render_frame_setup()
 				matrix	tm, tm2;
 
 				vm_angles_2_matrix(&tm2, &Viewer_external_info.angles);
-				vm_matrix_x_matrix(&tm, &Viewer_obj->orient, &tm2);
+				vm_matrix_x_matrix(&tm, &Viewer_obj->phys_info.orient, &tm2);
 
-				vm_vec_scale_add(&eye_pos, &Viewer_obj->pos, &tm.vec.fvec, 2.0f * Viewer_obj->radius + Viewer_external_info.distance);
+				vm_vec_scale_add(&eye_pos, &Viewer_obj->phys_info.pos, &tm.vec.fvec, 2.0f * Viewer_obj->radius + Viewer_external_info.distance);
 
-				vm_vec_sub(&tmp_dir, &Viewer_obj->pos, &eye_pos);
+				vm_vec_sub(&tmp_dir, &Viewer_obj->phys_info.pos, &eye_pos);
 				vm_vec_normalize(&tmp_dir);
-				vm_vector_2_matrix(&eye_orient, &tmp_dir, &Viewer_obj->orient.vec.uvec, NULL);
+				vm_vector_2_matrix(&eye_orient, &tmp_dir, &Viewer_obj->phys_info.orient.vec.uvec, NULL);
 				Viewer_obj = NULL;
 
 				//	Modify the orientation based on head orientation.
@@ -3428,10 +3428,10 @@ camid game_render_frame_setup()
 				if (Viewer_obj==Player_obj)
 				{
 					//get a point 1000m forward of ship
-					vm_vec_copy_scale(&aim_pt,&Viewer_obj->orient.vec.fvec,1000.0f);
-					vm_vec_add2(&aim_pt,&Viewer_obj->pos);
+					vm_vec_copy_scale(&aim_pt,&Viewer_obj->phys_info.orient.vec.fvec,1000.0f);
+					vm_vec_add2(&aim_pt,&Viewer_obj->phys_info.pos);
 
-					vm_vec_scale_add(&eye_pos, &Viewer_obj->pos, &move_dir, -0.02f * Viewer_obj->radius);
+					vm_vec_scale_add(&eye_pos, &Viewer_obj->phys_info.pos, &move_dir, -0.02f * Viewer_obj->radius);
 					vm_vec_scale_add2(&eye_pos, &eyemat.vec.fvec, -2.125f * Viewer_obj->radius - Viewer_chase_info.distance);
 					vm_vec_scale_add2(&eye_pos, &eyemat.vec.uvec, 0.625f * Viewer_obj->radius + 0.35f * Viewer_chase_info.distance);
 					vm_vec_sub(&tmp_dir, &aim_pt, &eye_pos);
@@ -3439,15 +3439,15 @@ camid game_render_frame_setup()
 				}
 				else
 				{
-					vm_vec_scale_add(&eye_pos, &Viewer_obj->pos, &move_dir, -0.02f * Viewer_obj->radius);
+					vm_vec_scale_add(&eye_pos, &Viewer_obj->phys_info.pos, &move_dir, -0.02f * Viewer_obj->radius);
 					vm_vec_scale_add2(&eye_pos, &eyemat.vec.fvec, -2.5f * Viewer_obj->radius - Viewer_chase_info.distance);
 					vm_vec_scale_add2(&eye_pos, &eyemat.vec.uvec, 0.75f * Viewer_obj->radius + 0.35f * Viewer_chase_info.distance);
-					vm_vec_sub(&tmp_dir, &Viewer_obj->pos, &eye_pos);
+					vm_vec_sub(&tmp_dir, &Viewer_obj->phys_info.pos, &eye_pos);
 					vm_vec_normalize(&tmp_dir);
 				}
 					
 				// JAS: I added the following code because if you slew up using
-				// Descent-style physics, tmp_dir and Viewer_obj->orient.vec.uvec are
+				// Descent-style physics, tmp_dir and Viewer_obj->phys_info.orient.vec.uvec are
 				// equal, which causes a zero-length vector in the vm_vector_2_matrix
 				// call because the up and the forward vector are the same.   I fixed
 				// it by adding in a fraction of the right vector all the time to the
@@ -3465,11 +3465,11 @@ camid game_render_frame_setup()
 
 					ship * shipp = &Ships[Player_obj->instance];
 
-					vec3d warp_pos = Player_obj->pos;
+					vec3d warp_pos = Player_obj->phys_info.pos;
 					shipp->warpout_effect->getWarpPosition(&warp_pos);
 					vm_vec_sub(&tmp_dir, &warp_pos, &eye_pos);
 					vm_vec_normalize(&tmp_dir);
-					vm_vector_2_matrix(&eye_orient, &tmp_dir, &Player_obj->orient.vec.uvec, NULL);
+					vm_vector_2_matrix(&eye_orient, &tmp_dir, &Player_obj->phys_info.orient.vec.uvec, NULL);
 					Viewer_obj = NULL;
 			} else if (Viewer_mode & VM_TOPDOWN) {
 					angles rot_angles = { PI_2, 0.0f, 0.0f };
@@ -3477,16 +3477,16 @@ camid game_render_frame_setup()
 					if(Viewer_obj->type == OBJ_SHIP) {
 						ship_info *sip = &Ship_info[Ships[Viewer_obj->instance].ship_info_index];
 						if(sip->topdown_offset_def) {
-							eye_pos.xyz.x = Viewer_obj->pos.xyz.x + sip->topdown_offset.xyz.x;
-							eye_pos.xyz.y = Viewer_obj->pos.xyz.y + sip->topdown_offset.xyz.y;
-							eye_pos.xyz.z = Viewer_obj->pos.xyz.z + sip->topdown_offset.xyz.z;
+							eye_pos.xyz.x = Viewer_obj->phys_info.pos.xyz.x + sip->topdown_offset.xyz.x;
+							eye_pos.xyz.y = Viewer_obj->phys_info.pos.xyz.y + sip->topdown_offset.xyz.y;
+							eye_pos.xyz.z = Viewer_obj->phys_info.pos.xyz.z + sip->topdown_offset.xyz.z;
 							position_override = true;
 						}
 					}
 					if(!position_override) {
-						eye_pos.xyz.x = Viewer_obj->pos.xyz.x;
-						eye_pos.xyz.y = Viewer_obj->pos.xyz.y + Viewer_obj->radius * 25.0f;
-						eye_pos.xyz.z = Viewer_obj->pos.xyz.z;
+						eye_pos.xyz.x = Viewer_obj->phys_info.pos.xyz.x;
+						eye_pos.xyz.y = Viewer_obj->phys_info.pos.xyz.y + Viewer_obj->radius * 25.0f;
+						eye_pos.xyz.z = Viewer_obj->phys_info.pos.xyz.z;
 					}
 					vm_angles_2_matrix(&eye_orient, &rot_angles);
 					Viewer_obj = NULL;
@@ -3729,9 +3729,9 @@ void john_debug_stuff(vec3d *eye_pos, matrix *eye_orient)
 
 				ship_model_start(tobj);
 
-				model_find_world_point(eye_pos, &turret->turret_firing_point[0], turret->model_num, turret->turret_gun_sobj, &tobj->orient, &tobj->pos );
-				model_find_world_dir(&fvec, &turret->turret_matrix.vec.fvec, turret->model_num, turret->turret_gun_sobj, &tobj->orient, NULL );
-				model_find_world_dir(&uvec, &turret->turret_matrix.vec.uvec, turret->model_num, turret->turret_gun_sobj, &tobj->orient, NULL );
+				model_find_world_point(eye_pos, &turret->turret_firing_point[0], turret->model_num, turret->turret_gun_sobj, &tobj->phys_info.orient, &tobj->phys_info.pos );
+				model_find_world_dir(&fvec, &turret->turret_matrix.vec.fvec, turret->model_num, turret->turret_gun_sobj, &tobj->phys_info.orient, NULL );
+				model_find_world_dir(&uvec, &turret->turret_matrix.vec.uvec, turret->model_num, turret->turret_gun_sobj, &tobj->phys_info.orient, NULL );
 				
 				vm_vector_2_matrix( eye_orient, &fvec, &uvec, NULL );
 
@@ -7130,7 +7130,7 @@ void game_do_training_checks()
 			do {
 				waypoint *wpt = find_waypoint_at_index(wplp, i);
 				Assert(wpt != NULL);
-				d = vm_vec_dist(wpt->get_pos(), &Player_obj->pos);
+				d = vm_vec_dist(wpt->get_pos(), &Player_obj->phys_info.pos);
 				if (d <= Training_context_distance) {
 					Training_context_at_waypoint = i;
 					if (Training_context_goal_waypoint == i) {

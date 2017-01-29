@@ -87,7 +87,7 @@ void fireball_play_warphole_open_sound(int ship_class, fireball *fb)
 		}
 	}
 
-	snd_play_3d(&Snds[sound_index], &fireball_objp->pos, &Eye_position, fireball_objp->radius, NULL, 0, 1.0f, SND_PRIORITY_DOUBLE_INSTANCE, NULL, range_multiplier); // play warp sound effect
+	snd_play_3d(&Snds[sound_index], &fireball_objp->phys_info.pos, &Eye_position, fireball_objp->radius, NULL, 0, 1.0f, SND_PRIORITY_DOUBLE_INSTANCE, NULL, range_multiplier); // play warp sound effect
 }
 
 /**
@@ -111,7 +111,7 @@ void fireball_play_warphole_close_sound(fireball *fb)
 		return;
 	}
 
-	snd_play_3d(&Snds[sound_index], &fireball_objp->pos, &Eye_position, fireball_objp->radius); // play warp sound effect
+	snd_play_3d(&Snds[sound_index], &fireball_objp->phys_info.pos, &Eye_position, fireball_objp->radius); // play warp sound effect
 }
 
 /**
@@ -434,7 +434,7 @@ void fireball_set_framenum(int num)
 	if ( fb->fireball_render_type == FIREBALL_WARP_EFFECT )	{
 		framenum = bm_get_anim_frame(fl->bitmap_id, fb->time_elapsed, 0.0f, true);
 
-		if ( fb->orient )	{
+		if ( fb->orient ) {
 			// warp out effect plays backwards
 			framenum = fl->num_frames-framenum-1;
 			fb->current_bitmap = fl->bitmap_id + framenum;
@@ -765,7 +765,7 @@ int fireball_create( vec3d * pos, int fireball_type, int render_type, int parent
 		if ( parent_obj < 0 )	{
 			orient = vmd_identity_matrix;
 		} else {
-			orient = Objects[parent_obj].orient;
+			orient = Objects[parent_obj].phys_info.orient;
 		}
 	}
 	
@@ -804,8 +804,8 @@ int fireball_create( vec3d * pos, int fireball_type, int render_type, int parent
 			if (reverse)	{
 				fb->orient = 1;
 				// if warp out, then reverse the orientation
-				vm_vec_scale( &obj->orient.vec.fvec, -1.0f );	// Reverse the forward vector
-				vm_vec_scale( &obj->orient.vec.rvec, -1.0f );	// Reverse the right vector
+				vm_vec_scale(&obj->phys_info.orient.vec.fvec, -1.0f);	// Reverse the forward vector
+				vm_vec_scale(&obj->phys_info.orient.vec.rvec, -1.0f);	// Reverse the right vector
 			} else {
 				fb->orient = 0;
 			}
@@ -979,7 +979,7 @@ void fireball_render(object* obj, model_draw_list *scene)
 	if ( Fireballs[num].current_bitmap < 0 )
 		return;
 	
-	g3_transfer_vertex(&p, &obj->pos);
+	g3_transfer_vertex(&p, &obj->phys_info.pos);
 
 	switch ( fb->fireball_render_type )	{
 
@@ -1010,7 +1010,7 @@ void fireball_render(object* obj, model_draw_list *scene)
 				rad = (float)pow((fb->total_time - t)/WARPHOLE_GROW_TIME,0.4f)*obj->radius;
 			}
 
-			warpin_queue_render(scene, obj, &obj->orient, &obj->pos, Fireballs[num].current_bitmap, rad, percent_life, obj->radius, (Fireballs[num].flags & FBF_WARP_3D) );
+			warpin_queue_render(scene, obj, &obj->phys_info.orient, &obj->phys_info.pos, Fireballs[num].current_bitmap, rad, percent_life, obj->radius, (Fireballs[num].flags & FBF_WARP_3D));
 		}
 		break;
 

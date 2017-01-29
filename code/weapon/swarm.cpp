@@ -231,9 +231,9 @@ void swarm_update_direction(object *objp, float frametime)
 				}
 			}
 
-			vm_vec_scale_add(&swarmp->original_target, &objp->pos, &objp->orient.vec.fvec, SWARM_CONE_LENGTH);
-			swarmp->circle_rvec = objp->orient.vec.rvec;
-			swarmp->circle_uvec = objp->orient.vec.uvec;
+			vm_vec_scale_add(&swarmp->original_target, &objp->phys_info.pos, &objp->phys_info.orient.vec.fvec, SWARM_CONE_LENGTH);
+			swarmp->circle_rvec = objp->phys_info.orient.vec.rvec;
+			swarmp->circle_uvec = objp->phys_info.orient.vec.uvec;
 
 			swarmp->change_count = 1;
 			swarmp->change_time = fl2i(SWARM_CHANGE_DIR_TIME + SWARM_TIME_VARIANCE*(frand() - 0.5f) * 2);
@@ -258,8 +258,8 @@ void swarm_update_direction(object *objp, float frametime)
 			// Calculate a rvec and uvec that will determine the displacement from the
 			// intended target.  Use crossprod to generate a right vector, from the missile
 			// up vector and the vector connecting missile to the homing object.
-			swarmp->circle_uvec = objp->orient.vec.uvec;
-			swarmp->circle_rvec = objp->orient.vec.rvec;
+			swarmp->circle_uvec = objp->phys_info.orient.vec.uvec;
+			swarmp->circle_rvec = objp->phys_info.orient.vec.rvec;
 
 			missile_speed = pi->speed;
 			missile_dist = missile_speed * swarmp->change_time/1000.0f;
@@ -270,7 +270,7 @@ void swarm_update_direction(object *objp, float frametime)
 			Assert(!fl_is_nan(swarmp->angle_offset) );
 		}
 
-		vm_vec_sub(&obj_to_target, &swarmp->original_target, &objp->pos);
+		vm_vec_sub(&obj_to_target, &swarmp->original_target, &objp->phys_info.pos);
 		target_dist = vm_vec_mag_quick(&obj_to_target);
 		swarmp->last_dist = target_dist;
 
@@ -363,7 +363,7 @@ void swarm_update_direction(object *objp, float frametime)
 
 	ai_turn_towards_vector(&swarmp->new_target, objp, frametime, wip->turn_time, NULL, NULL, 0.0f, 0);
 	vel = vm_vec_mag(&objp->phys_info.desired_vel);
-	vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.vec.fvec, vel);
+	vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->phys_info.orient.vec.fvec, vel);
 }
 
 // ------------------------------------------------------------------

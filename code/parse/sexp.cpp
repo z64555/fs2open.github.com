@@ -5632,14 +5632,14 @@ int sexp_special_warp_dist( int n)
 	}
 
 	// check if within 45 degree half-angle cone of facing 
-	float dot = fl_abs(vm_vec_dot(&warp_objp->orient.vec.fvec, &ship_objp->orient.vec.fvec));
+	float dot = fl_abs(vm_vec_dot(&warp_objp->phys_info.orient.vec.fvec, &ship_objp->phys_info.orient.vec.fvec));
 	if (dot < 0.707f) {
 		return SEXP_NAN;
 	}
 
 	// get distance
 	vec3d hit_pt;
-	float dist = fvi_ray_plane(&hit_pt, &warp_objp->pos, &warp_objp->orient.vec.fvec, &ship_objp->pos, &ship_objp->orient.vec.fvec, 0.0f);
+	float dist = fvi_ray_plane(&hit_pt, &warp_objp->phys_info.pos, &warp_objp->phys_info.orient.vec.fvec, &ship_objp->phys_info.pos, &ship_objp->phys_info.orient.vec.fvec, 0.0f);
 	polymodel *pm = model_get(Ship_info[Ships[shipnum].ship_info_index].model_num);
 	dist += pm->mins.xyz.z;
 
@@ -6307,7 +6307,7 @@ int sexp_distance3(object *objp1, object *objp2)
 	}
 	else
 	{
-		return (int) vm_vec_dist_quick(&objp1->pos, &objp2->pos);
+		return (int) vm_vec_dist_quick(&objp1->phys_info.pos, &objp2->phys_info.pos);
 	}
 }
 
@@ -6533,7 +6533,7 @@ int sexp_distance_subsystem(int n)
 			{
 				if (Ships[Objects[so->objnum].instance].team == oswpt.team)
 				{
-					dist = (int) vm_vec_dist_quick(&Objects[so->objnum].pos, &subsys_pos);
+					dist = (int) vm_vec_dist_quick(&Objects[so->objnum].phys_info.pos, &subsys_pos);
 
 					if (!inited || (dist < dist_min))
 					{
@@ -6554,7 +6554,7 @@ int sexp_distance_subsystem(int n)
 		case OSWPT_TYPE_SHIP:
 		case OSWPT_TYPE_WAYPOINT:
 		{
-			return (int) vm_vec_dist_quick(&oswpt.objp->pos, &subsys_pos);
+			return (int) vm_vec_dist_quick(&oswpt.objp->phys_info.pos, &subsys_pos);
 		}
 
 		// check wings
@@ -6562,7 +6562,7 @@ int sexp_distance_subsystem(int n)
 		{
 			for (int i = 0; i < oswpt.wingp->current_count; i++)
 			{
-				dist = (int) vm_vec_dist_quick(&Objects[Ships[oswpt.wingp->ship_index[i]].objnum].pos, &subsys_pos);
+				dist = (int) vm_vec_dist_quick(&Objects[Ships[oswpt.wingp->ship_index[i]].objnum].phys_info.pos, &subsys_pos);
 
 				if (!inited || (dist < dist_min))
 				{
@@ -6618,7 +6618,7 @@ int sexp_num_within_box(int n)
 		idx = ship_name_lookup(ship_wing);
 		if(idx > -1)
 		{
-			if(sexp_helper_is_within_box(box_vals, &Objects[Ships[idx].objnum].pos))
+			if (sexp_helper_is_within_box(box_vals, &Objects[Ships[idx].objnum].phys_info.pos))
 				retval++;
 		}
 		else
@@ -6629,7 +6629,7 @@ int sexp_num_within_box(int n)
 				bool wing_check = true;
 				for(i = 0; i < Wings[idx].current_count; i++)
 				{
-					if(!sexp_helper_is_within_box(box_vals, &Objects[Ships[Wings[idx].ship_index[i]].objnum].pos))
+					if (!sexp_helper_is_within_box(box_vals, &Objects[Ships[Wings[idx].ship_index[i]].objnum].phys_info.pos))
 					{
 						wing_check = false;
 						break;
@@ -6655,13 +6655,13 @@ void sexp_set_object_speed(object *objp, int speed, int axis, int subjective)
 		vec3d subjective_vel;
 
 		// translate objective into subjective velocity
-		vm_vec_rotate(&subjective_vel, &objp->phys_info.vel, &objp->orient);
+		vm_vec_rotate(&subjective_vel, &objp->phys_info.vel, &objp->phys_info.orient);
 
 		// set it
 		subjective_vel.a1d[axis] = i2fl(speed);
 
 		// translate it back to objective
-		vm_vec_unrotate(&objp->phys_info.vel, &subjective_vel, &objp->orient);
+		vm_vec_unrotate(&objp->phys_info.vel, &subjective_vel, &objp->phys_info.orient);
 	}
 	else
 	{
@@ -6732,9 +6732,9 @@ int sexp_get_object_speed(object *objp, int axis, int subjective)
 	{
 		// return the speed based on the orentation of the object
 		vec3d subjective_vel;
-		vm_vec_rotate(&subjective_vel, &objp->phys_info.vel, &objp->orient);
+		vm_vec_rotate(&subjective_vel, &objp->phys_info.vel, &objp->phys_info.orient);
 		speed = fl2i(subjective_vel.a1d[axis]);
-		vm_vec_unrotate(&objp->phys_info.vel, &subjective_vel, &objp->orient);
+		vm_vec_unrotate(&objp->phys_info.vel, &subjective_vel, &objp->phys_info.orient);
 	}
 	else
 	{
@@ -6868,7 +6868,7 @@ int sexp_get_object_coordinate(int n, int axis)
 		case OSWPT_TYPE_SHIP:
 		case OSWPT_TYPE_WING:
 		case OSWPT_TYPE_WAYPOINT:
-			pos = &oswpt.objp->pos;
+			pos = &oswpt.objp->phys_info.pos;
 			break;
 
 		default:
@@ -6887,7 +6887,7 @@ int sexp_get_object_coordinate(int n, int axis)
 		}
 	}
 
-	return sexp_calculate_coordinate(pos, &oswpt.objp->orient, relative_location, axis);
+	return sexp_calculate_coordinate(pos, &oswpt.objp->phys_info.orient, relative_location, axis);
 }
 
 // Goober5000
@@ -6905,7 +6905,7 @@ int sexp_get_object_angle(int n, int axis)
 
 		case OSWPT_TYPE_SHIP:
 		case OSWPT_TYPE_WING:
-			return sexp_calculate_angle(&oswpt.objp->orient, axis);
+			return sexp_calculate_angle(&oswpt.objp->phys_info.orient, axis);
 
 		default:
 			return SEXP_NAN;
@@ -6956,7 +6956,7 @@ void sexp_set_object_position(int n)
 
 	if ( (oswpt.objp == Player_obj) 
 		&& (The_mission.flags[Mission::Mission_Flags::Fullneb]) 
-		&& (vm_vec_dist(&oswpt.objp->pos, &target_vec) >= Nd->cube_inner) )
+		&& (vm_vec_dist(&oswpt.objp->phys_info.pos, &target_vec) >= Nd->cube_inner) )
 	{
 		neb2_eye_changed();
 	}
@@ -6965,14 +6965,14 @@ void sexp_set_object_position(int n)
 	{
 		case OSWPT_TYPE_SHIP:
 		{
-			oswpt.objp->pos = target_vec;
+			oswpt.objp->phys_info.pos = target_vec;
 			set_object_for_clients(oswpt.objp);
 			return;
 		}
 
 		case OSWPT_TYPE_WAYPOINT:
 		{
-			oswpt.objp->pos = target_vec;
+			oswpt.objp->phys_info.pos = target_vec;
 			oswpt.waypointp->set_pos(&target_vec);
             Current_sexp_network_packet.start_callback();
             Current_sexp_network_packet.send_ushort(oswpt.objp->net_signature);
@@ -6986,8 +6986,8 @@ void sexp_set_object_position(int n)
 		case OSWPT_TYPE_WING:
 		{
 			// move the wing leader first
-			orig_leader_vec = oswpt.objp->pos;
-			oswpt.objp->pos = target_vec;
+			orig_leader_vec = oswpt.objp->phys_info.pos;
+			oswpt.objp->phys_info.pos = target_vec;
 			set_object_for_clients(oswpt.objp);
 
 			// move everything in the wing
@@ -6997,8 +6997,8 @@ void sexp_set_object_position(int n)
 
 				if (objp != oswpt.objp)
 				{
-					vm_vec_sub2(&objp->pos, &orig_leader_vec);
-					vm_vec_add2(&objp->pos, &target_vec);
+					vm_vec_sub2(&objp->phys_info.pos, &orig_leader_vec);
+					vm_vec_add2(&objp->phys_info.pos, &target_vec);
 					set_object_for_clients(objp);
 				}
 			}
@@ -7020,7 +7020,7 @@ void multi_sexp_set_object_position()
     Current_sexp_network_packet.get_float(wp_vec.xyz.z);
 	objp = multi_get_network_object(obj_sig);
 	if (objp->type == OBJ_WAYPOINT) {
-		objp->pos = wp_vec;
+		objp->phys_info.pos = wp_vec;
 		waypoint *wpt = find_waypoint_with_objnum(OBJ_INDEX(objp));
 		wpt->set_pos(&wp_vec);
 	}
@@ -7060,7 +7060,7 @@ void sexp_set_object_orientation(int n)
 	{
 		case OSWPT_TYPE_SHIP:
 		{
-			oswpt.objp->orient = target_orient;
+			oswpt.objp->phys_info.orient = target_orient;
 			set_object_for_clients(oswpt.objp);
 			return;
 		}
@@ -7071,7 +7071,7 @@ void sexp_set_object_orientation(int n)
 			for (int i = 0; i < oswpt.wingp->current_count; i++)
 			{
 				object *objp = &Objects[Ships[oswpt.wingp->ship_index[i]].objnum];
-				objp->orient = target_orient;
+				objp->phys_info.orient = target_orient;
 				set_object_for_clients(objp);
 			}
 
@@ -7110,7 +7110,7 @@ void sexp_set_object_orient_sub(object *objp, vec3d *location, int turn_time, in
 
 	// calculate orientation matrix ----------------
 
-	vm_vec_sub(&v_orient, location, &objp->pos);
+	vm_vec_sub(&v_orient, location, &objp->phys_info.pos);
 
 	if (IS_VEC_NULL_SQ_SAFE(&v_orient))
 	{
@@ -7122,7 +7122,7 @@ void sexp_set_object_orient_sub(object *objp, vec3d *location, int turn_time, in
 
 
 	// set orientation -----------------------------
-	objp->orient = m_orient;
+	objp->phys_info.orient = m_orient;
 	// Tell the player (assuming it's a client) that they've moved.
 	set_object_for_clients(objp);
 }
@@ -7176,7 +7176,7 @@ void sexp_set_object_facing(int n, bool facing_object)
 		if (oswpt2.objp == NULL)
 			return;
 
-		location = &oswpt2.objp->pos;
+		location = &oswpt2.objp->phys_info.pos;
 	}
 	else
 	{
@@ -10873,7 +10873,7 @@ void sexp_explosion_effect(int n)
 					}
 				}
 
-				if ( ship_explode_area_calc_damage( &origin, &objp->pos, (float)inner_radius, (float)outer_radius, (float)max_damage, (float)max_blast, &t_damage, &t_blast ) == -1 )
+				if ( ship_explode_area_calc_damage( &origin, &objp->phys_info.pos, (float)inner_radius, (float)outer_radius, (float)max_damage, (float)max_blast, &t_damage, &t_blast ) == -1 )
 				{
 					continue;
 				}
@@ -10883,7 +10883,7 @@ void sexp_explosion_effect(int n)
 					case OBJ_SHIP:
 						ship_apply_global_damage( objp, NULL, &origin, t_damage );
 						vec3d force, vec_ship_to_impact;
-						vm_vec_sub( &vec_ship_to_impact, &objp->pos, &origin );
+						vm_vec_sub( &vec_ship_to_impact, &objp->phys_info.pos, &origin );
 						if (!IS_VEC_NULL_SQ_SAFE( &vec_ship_to_impact )) {
 							vm_vec_copy_normalize( &force, &vec_ship_to_impact );
 							vm_vec_scale( &force, (float)max_blast );
@@ -15204,10 +15204,10 @@ int sexp_facing(int node)
 	}
 	double angle = atof(CTEXT(CDR(node)));
 
-	v1 = Player_obj->orient.vec.fvec;
+	v1 = Player_obj->phys_info.orient.vec.fvec;
 	vm_vec_normalize(&v1);
 
-	vm_vec_sub(&v2, &Objects[target_shipp->objnum].pos, &Player_obj->pos);
+	vm_vec_sub(&v2, &Objects[target_shipp->objnum].phys_info.pos, &Player_obj->phys_info.pos);
 	vm_vec_normalize(&v2);
 
 	a1 = vm_vec_dot(&v1, &v2);
@@ -15264,10 +15264,10 @@ int sexp_is_facing(int node)
 		return SEXP_FALSE;
 	}
 
-	v1 = origin_objp->orient.vec.fvec;	
+	v1 = origin_objp->phys_info.orient.vec.fvec;	
 	vm_vec_normalize(&v1);
 
-	vm_vec_sub(&v2, &target_objp->pos, &origin_objp->pos);
+	vm_vec_sub(&v2, &target_objp->phys_info.pos, &origin_objp->phys_info.pos);
 	vm_vec_normalize(&v2);
 
 	a1 = vm_vec_dot(&v1, &v2);
@@ -15291,7 +15291,7 @@ int sexp_facing2(int node)
 	}
 
 	// get player fvec
-	v1 = Player_obj->orient.vec.fvec;
+	v1 = Player_obj->phys_info.orient.vec.fvec;
 	vm_vec_normalize(&v1);
 
 	// get waypoint name
@@ -15304,7 +15304,7 @@ int sexp_facing2(int node)
 		return SEXP_CANT_EVAL;
 	}
 
-	vm_vec_sub(&v2, wp_list->get_waypoints().front().get_pos(), &Player_obj->pos);
+	vm_vec_sub(&v2, wp_list->get_waypoints().front().get_pos(), &Player_obj->phys_info.pos);
 	vm_vec_normalize(&v2);
 	a1 = vm_vec_dot(&v1, &v2);
 	a2 = cosf(fl_radians(atof(CTEXT(CDR(node)))));
@@ -20977,7 +20977,7 @@ void actually_set_camera_facing_object(char *object_name, float rot_time, float 
 			camera *cam = sexp_get_set_camera();
 			if(cam == NULL)
 				return;
-			cam->set_rotation_facing(&oswpt.objp->pos, rot_time, rot_acc_time, rot_dec_time);
+			cam->set_rotation_facing(&oswpt.objp->phys_info.pos, rot_time, rot_acc_time, rot_dec_time);
 			return;
 		}
 	}
@@ -22191,8 +22191,8 @@ bool test_point_within_box(vec3d *test_point, vec3d *box_corner_1, vec3d *box_co
 	// If reference_ship is specified, rotate test_point into its reference frame
 	if (reference_ship_obj != NULL) 
 	{
-		vm_vec_sub(&tempv, test_point, &reference_ship_obj->pos);
-		vm_vec_rotate(&test_point_buf, &tempv, &reference_ship_obj->orient);
+		vm_vec_sub(&tempv, test_point, &reference_ship_obj->phys_info.pos);
+		vm_vec_rotate(&test_point_buf, &tempv, &reference_ship_obj->phys_info.orient);
 
 		test_point = &test_point_buf;
 	}
@@ -22254,13 +22254,13 @@ int sexp_is_in_box(int n)
 
 		case OSWPT_TYPE_WING:
 			for (i = 0; i < oswpt.wingp->current_count; i++)
-				if (!test_point_within_box(&Objects[Ships[oswpt.wingp->ship_index[i]].objnum].pos, &box_corner_1, &box_corner_2, reference_ship_obj))
+				if (!test_point_within_box(&Objects[Ships[oswpt.wingp->ship_index[i]].objnum].phys_info.pos, &box_corner_1, &box_corner_2, reference_ship_obj))
 		return SEXP_FALSE;
 			return SEXP_TRUE;
 
 		case OSWPT_TYPE_SHIP:
 		case OSWPT_TYPE_WAYPOINT:
-			return test_point_within_box(&oswpt.objp->pos, &box_corner_1, &box_corner_2, reference_ship_obj);
+			return test_point_within_box(&oswpt.objp->phys_info.pos, &box_corner_1, &box_corner_2, reference_ship_obj);
 
 		default:
 		return SEXP_FALSE;
@@ -22476,9 +22476,9 @@ void sexp_call_ssm_strike(int node) {
 		if (ship_num >= 0) {
 			int obj_num = Ships[ship_num].objnum;
 			object *target_ship = &Objects[obj_num];
-			vec3d start = target_ship->pos;
+			vec3d start = target_ship->phys_info.pos;
 
-			vm_vec_scale_add(&start, &start, &target_ship->orient.vec.fvec, -1);
+			vm_vec_scale_add(&start, &start, &target_ship->phys_info.orient.vec.fvec, -1);
 
 			ssm_create(target_ship, &start, ssm_index, NULL, calling_team);
 		}

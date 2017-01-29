@@ -104,14 +104,14 @@ ADE_VIRTVAR(Position, l_Object, "vector", "Object world position (World vector)"
 		return ade_set_error(L, "o", l_Vector.Set(vmd_zero_vector));
 
 	if(ADE_SETTING_VAR && v3 != NULL) {
-		objh->objp->pos = *v3;
+		objh->objp->phys_info.pos = *v3;
 		if (objh->objp->type == OBJ_WAYPOINT) {
 			waypoint *wpt = find_waypoint_with_objnum(OBJ_INDEX(objh->objp));
 			wpt->set_pos(v3);
 		}
 	}
 
-	return ade_set_args(L, "o", l_Vector.Set(objh->objp->pos));
+	return ade_set_args(L, "o", l_Vector.Set(objh->objp->phys_info.pos));
 }
 
 ADE_VIRTVAR(LastPosition, l_Object, "vector", "Object world position as of last frame (World vector)", "vector", "World position, or null vector if handle is invalid")
@@ -125,10 +125,10 @@ ADE_VIRTVAR(LastPosition, l_Object, "vector", "Object world position as of last 
 		return ade_set_error(L, "o", l_Vector.Set(vmd_zero_vector));
 
 	if(ADE_SETTING_VAR && v3 != NULL) {
-		objh->objp->last_pos = *v3;
+		objh->objp->phys_info.last_pos = *v3;
 	}
 
-	return ade_set_args(L, "o", l_Vector.Set(objh->objp->last_pos));
+	return ade_set_args(L, "o", l_Vector.Set(objh->objp->phys_info.last_pos));
 }
 
 ADE_VIRTVAR(Orientation, l_Object, "orientation", "Object world orientation (World orientation)", "orientation", "Orientation, or null orientation if handle is invalid")
@@ -142,10 +142,10 @@ ADE_VIRTVAR(Orientation, l_Object, "orientation", "Object world orientation (Wor
 		return ade_set_error(L, "o", l_Matrix.Set(matrix_h(&vmd_identity_matrix)));
 
 	if(ADE_SETTING_VAR && mh != NULL) {
-		objh->objp->orient = *mh->GetMatrix();
+		objh->objp->phys_info.orient = *mh->GetMatrix();
 	}
 
-	return ade_set_args(L, "o", l_Matrix.Set(matrix_h(&objh->objp->orient)));
+	return ade_set_args(L, "o", l_Matrix.Set(matrix_h(&objh->objp->phys_info.orient)));
 }
 
 ADE_VIRTVAR(LastOrientation, l_Object, "orientation", "Object world orientation as of last frame (World orientation)", "orientation", "Orientation, or null orientation if handle is invalid")
@@ -159,10 +159,10 @@ ADE_VIRTVAR(LastOrientation, l_Object, "orientation", "Object world orientation 
 		return ade_set_error(L, "o", l_Matrix.Set(matrix_h(&vmd_identity_matrix)));
 
 	if(ADE_SETTING_VAR && mh != NULL) {
-		objh->objp->last_orient = *mh->GetMatrix();
+		objh->objp->phys_info.last_orient = *mh->GetMatrix();
 	}
 
-	return ade_set_args(L, "o", l_Matrix.Set(matrix_h(&objh->objp->last_orient)));
+	return ade_set_args(L, "o", l_Matrix.Set(matrix_h(&objh->objp->phys_info.last_orient)));
 }
 
 ADE_VIRTVAR(Physics, l_Object, "physics", "Physics data used to move ship between frames", "physics", "Physics data, or invalid physics handle if object handle is invalid")
@@ -288,7 +288,7 @@ ADE_FUNC(getfvec, l_Object, "[boolean normalize]", "Returns the objects' current
 		return ADE_RETURN_NIL;
 
 	obj = objh->objp;
-	vec3d v1 = obj->orient.vec.fvec;
+	vec3d v1 = obj->phys_info.orient.vec.fvec;
 	if (normalize)
 		vm_vec_normalize(&v1);
 
@@ -309,7 +309,7 @@ ADE_FUNC(getuvec, l_Object, "[boolean normalize]", "Returns the objects' current
 		return ADE_RETURN_NIL;
 
 	obj = objh->objp;
-	vec3d v1 = obj->orient.vec.uvec;
+	vec3d v1 = obj->phys_info.orient.vec.uvec;
 	if (normalize)
 		vm_vec_normalize(&v1);
 
@@ -330,7 +330,7 @@ ADE_FUNC(getrvec, l_Object, "[boolean normalize]", "Returns the objects' current
 		return ADE_RETURN_NIL;
 
 	obj = objh->objp;
-	vec3d v1 = obj->orient.vec.rvec;
+	vec3d v1 = obj->phys_info.orient.vec.rvec;
 	if (normalize)
 		vm_vec_normalize(&v1);
 
@@ -394,8 +394,8 @@ ADE_FUNC(checkRayCollision, l_Object, "vector Start Point, vector End Point, [bo
 	hull_check.model_num = model_num;
 	hull_check.model_instance_num = model_instance_num;
 	hull_check.submodel_num = submodel;
-	hull_check.orient = &obj->orient;
-	hull_check.pos = &obj->pos;
+	hull_check.orient = &obj->phys_info.orient;
+	hull_check.pos = &obj->phys_info.pos;
 	hull_check.p0 = v3a;
 	hull_check.p1 = v3b;
 	hull_check.flags = flags;

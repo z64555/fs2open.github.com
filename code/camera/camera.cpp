@@ -322,8 +322,8 @@ void camera::get_info(vec3d *position, matrix *orientation)
 
 			if(object_host_submodel < 0 || pm == NULL)
 			{
-				vm_vec_unrotate(&c_pos, &pt, &object_host.objp->orient);
-				vm_vec_add2(&c_pos, &object_host.objp->pos);
+				vm_vec_unrotate(&c_pos, &pt, &object_host.objp->phys_info.orient);
+				vm_vec_add2(&c_pos, &object_host.objp->phys_info.pos);
 			}
 			else
 			{
@@ -334,12 +334,12 @@ void camera::get_info(vec3d *position, matrix *orientation)
 
 					vec3d c_pos_in;
 					find_submodel_instance_point_normal(&c_pos_in, &host_normal, Ships[objp->instance].model_instance_num, eyep->parent, &eyep->pnt, &eyep->norm);
-					vm_vec_unrotate(&c_pos, &c_pos_in, &objp->orient);
-					vm_vec_add2(&c_pos, &objp->pos);
+					vm_vec_unrotate(&c_pos, &c_pos_in, &objp->phys_info.orient);
+					vm_vec_add2(&c_pos, &objp->phys_info.pos);
 				}
 				else
 				{
-					model_find_world_point( &c_pos, &pt, pm->id, object_host_submodel, &objp->orient, &objp->pos );
+					model_find_world_point( &c_pos, &pt, pm->id, object_host_submodel, &objp->phys_info.orient, &objp->phys_info.pos );
 				}
 			}
 		}
@@ -381,11 +381,11 @@ void camera::get_info(vec3d *position, matrix *orientation)
 				//Otherwise, find the submodel pos as it is rotated
 				if(object_target_submodel < 0 || pm == NULL)
 				{
-					target_pos = objp->pos;
+					target_pos = objp->phys_info.pos;
 				}
 				else
 				{
-					model_find_world_point( &target_pos, &vmd_zero_vector, pm->id, object_target_submodel, &objp->orient, &objp->pos );
+					model_find_world_point( &target_pos, &vmd_zero_vector, pm->id, object_target_submodel, &objp->phys_info.orient, &objp->phys_info.pos );
 				}
 
 				vec3d targetvec;
@@ -397,12 +397,12 @@ void camera::get_info(vec3d *position, matrix *orientation)
 			{
 				if(eyep)
 				{
-					vm_vector_2_matrix(&c_ori, &host_normal, vm_vec_same(&host_normal, &object_host.objp->orient.vec.uvec)?NULL:&object_host.objp->orient.vec.uvec, NULL);
+					vm_vector_2_matrix(&c_ori, &host_normal, vm_vec_same(&host_normal, &object_host.objp->phys_info.orient.vec.uvec)?NULL:&object_host.objp->phys_info.orient.vec.uvec, NULL);
 					target_set = true;
 				}
 				else
 				{
-					c_ori = object_host.objp->orient;
+					c_ori = object_host.objp->phys_info.orient;
 				}
 			}
 			else
@@ -440,18 +440,18 @@ warp_camera::warp_camera(object *objp)
 {
 	this->reset();
 
-	vec3d object_pos = objp->pos;
+	vec3d object_pos = objp->phys_info.pos;
 	matrix tmp;
 	ship_get_eye(&object_pos, &tmp, objp);
 
-	vm_vec_scale_add2( &object_pos, &Player_obj->orient.vec.rvec, 0.0f );
-	vm_vec_scale_add2( &object_pos, &Player_obj->orient.vec.uvec, 0.952f );
-	vm_vec_scale_add2( &object_pos, &Player_obj->orient.vec.fvec, -1.782f );
+	vm_vec_scale_add2( &object_pos, &Player_obj->phys_info.orient.vec.rvec, 0.0f );
+	vm_vec_scale_add2( &object_pos, &Player_obj->phys_info.orient.vec.uvec, 0.952f );
+	vm_vec_scale_add2( &object_pos, &Player_obj->phys_info.orient.vec.fvec, -1.782f );
 
 	vec3d tmp_vel = { { { 0.0f, 5.1919f, 14.7f } } };
 
 	this->set_position( &object_pos );
-	this->set_rotation( &objp->orient );
+	this->set_rotation( &objp->phys_info.orient );
 	this->set_velocity( &tmp_vel, true);
 }
 
@@ -1063,7 +1063,7 @@ void get_turret_cam_orient(camera *cam, matrix *ori)
 	object_h obj(cam->get_object_host());
 	if(!obj.IsValid())
 		return;
-	vm_vector_2_matrix(ori, &normal_cache, vm_vec_same(&normal_cache, &cam->get_object_host()->orient.vec.uvec)?NULL:&cam->get_object_host()->orient.vec.uvec, NULL);
+	vm_vector_2_matrix(ori, &normal_cache, vm_vec_same(&normal_cache, &cam->get_object_host()->phys_info.orient.vec.uvec)?NULL:&cam->get_object_host()->phys_info.orient.vec.uvec, NULL);
 }
 
 eye* get_submodel_eye(polymodel *pm, int submodel_num)

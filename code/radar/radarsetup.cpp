@@ -147,7 +147,7 @@ void radar_plot_object( object *objp )
 {
 	vec3d pos, tempv;
 	float awacs_level, dist, max_radar_dist;
-	vec3d world_pos = objp->pos;
+	vec3d world_pos = objp->phys_info.pos;
 	SCP_list<CJumpNode>::iterator jnp;
 
 	// don't process anything here.  Somehow, a jumpnode object caused this function
@@ -225,7 +225,7 @@ void radar_plot_object( object *objp )
 
 			// if corkscrew missile use last frame pos for pos
 			if ( (Weapon_info[Weapons[objp->instance].weapon_info_index].wi_flags[Weapon::Info_Flags::Corkscrew]) )
-				world_pos = objp->last_pos;
+				world_pos = objp->phys_info.last_pos;
 
 			break;
 		}
@@ -241,15 +241,15 @@ void radar_plot_object( object *objp )
 	if (Player_obj->type == OBJ_SHIP) 
 		ship_get_eye(&tempv, &eye_orient, Player_obj, false , false);
 	else
-		eye_orient = Player_obj->orient;
+		eye_orient = Player_obj->phys_info.orient;
 
 	// JAS -- new way of getting the rotated point that doesn't require this to be
 	// in a g3_start_frame/end_frame block.
-	vm_vec_sub(&tempv, &world_pos, &Player_obj->pos);
+	vm_vec_sub(&tempv, &world_pos, &Player_obj->phys_info.pos);
 	vm_vec_rotate(&pos, &tempv, &eye_orient);
 
 	// Apply range filter
-	dist = vm_vec_dist(&world_pos, &Player_obj->pos);
+	dist = vm_vec_dist(&world_pos, &Player_obj->phys_info.pos);
 	max_radar_dist = Radar_ranges[HUD_config.rp_dist];
 	if (dist > max_radar_dist) {
 		return;
@@ -506,7 +506,7 @@ RadarVisibility radar_is_visible( object *objp )
 
 	vec3d pos, tempv;
 	float awacs_level, dist, max_radar_dist;
-	vec3d world_pos = objp->pos;
+	vec3d world_pos = objp->phys_info.pos;
 	SCP_list<CJumpNode>::iterator jnp;
 
 	// get team-wide awacs level for the object if not ship
@@ -585,11 +585,11 @@ RadarVisibility radar_is_visible( object *objp )
 			return NOT_VISIBLE;
 	}
 	
-	vm_vec_sub(&tempv, &world_pos, &Player_obj->pos);
-	vm_vec_rotate(&pos, &tempv, &Player_obj->orient);
+	vm_vec_sub(&tempv, &world_pos, &Player_obj->phys_info.pos);
+	vm_vec_rotate(&pos, &tempv, &Player_obj->phys_info.orient);
 
 	// Apply range filter
-	dist = vm_vec_dist(&world_pos, &Player_obj->pos);
+	dist = vm_vec_dist(&world_pos, &Player_obj->phys_info.pos);
 	max_radar_dist = Radar_ranges[HUD_config.rp_dist];
 	if (dist > max_radar_dist) {
 		return NOT_VISIBLE;

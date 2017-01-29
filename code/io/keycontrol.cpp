@@ -769,8 +769,8 @@ void process_debug_keys(int k)
 					// remove guardian flag -- kazan
 					Ships[objp->instance].ship_guardian_threshold = 0;
 					
-					ship_apply_local_damage( objp, Player_obj, &objp->pos, 100000.0f, MISS_SHIELDS, CREATE_SPARKS);
-					ship_apply_local_damage( objp, Player_obj, &objp->pos, 1.0f, MISS_SHIELDS, CREATE_SPARKS);
+					ship_apply_local_damage( objp, Player_obj, &objp->phys_info.pos, 100000.0f, MISS_SHIELDS, CREATE_SPARKS);
+					ship_apply_local_damage( objp, Player_obj, &objp->phys_info.pos, 1.0f, MISS_SHIELDS, CREATE_SPARKS);
 					break;
 				case OBJ_WEAPON:
 					Weapons[objp->instance].lifeleft = 0.01f;
@@ -840,7 +840,7 @@ void process_debug_keys(int k)
 				object	*objp = &Objects[Player_ai->target_objnum];
 
 				if (objp->type == OBJ_SHIP) {
-					ship_apply_local_damage( objp, Player_obj, &objp->pos, Ships[objp->instance].ship_max_hull_strength * 0.1f + 10.0f, MISS_SHIELDS, CREATE_SPARKS);
+					ship_apply_local_damage( objp, Player_obj, &objp->phys_info.pos, Ships[objp->instance].ship_max_hull_strength * 0.1f + 10.0f, MISS_SHIELDS, CREATE_SPARKS);
 				}
 			}
 			break;
@@ -877,7 +877,7 @@ void process_debug_keys(int k)
 				vec3d	pos, randvec;
 
 				vm_vec_rand_vec_quick(&randvec);
-				vm_vec_scale_add(&pos, &Player_obj->pos, &randvec, Player_obj->radius);
+				vm_vec_scale_add(&pos, &Player_obj->phys_info.pos, &randvec, Player_obj->radius);
 			ship_apply_local_damage(Player_obj, Player_obj, &pos, 25.0f, MISS_SHIELDS, CREATE_SPARKS);
 			hud_get_target_strength(Player_obj, &shield, &integrity);
 			HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "You knocked yourself down to %7.3f percent hull.\n", 9), 100.0f * integrity);
@@ -1004,10 +1004,10 @@ void process_debug_keys(int k)
 				break;
 			}			
 			vec3d vel;
-			vm_vec_copy_scale(&vel, &Player_obj->orient.vec.fvec, 50.0f);
+			vm_vec_copy_scale(&vel, &Player_obj->phys_info.orient.vec.fvec, 50.0f);
 			objp->phys_info.vel = vel;
 			objp->phys_info.desired_vel = vel;
-			objp->pos = Player_obj->pos;
+			objp->phys_info.pos = Player_obj->phys_info.pos;
 			HUD_sourced_printf(HUD_SOURCE_HIDDEN, XSTR( "Asteroid launched", 1595));
 			break;
 		}
@@ -1557,8 +1557,8 @@ void game_process_cheats(int k)
 
 		HUD_printf(NOX("Walk the plank"));
 
-		vec3d pos = Player_obj->pos;
-		matrix orient = Player_obj->orient;
+		vec3d pos = Player_obj->phys_info.pos;
+		matrix orient = Player_obj->phys_info.orient;
 		pos.xyz.x += frand_range(-700.0f, 700.0f);
 		pos.xyz.y += frand_range(-700.0f, 700.0f);
 		pos.xyz.z += frand_range(-700.0f, 700.0f);

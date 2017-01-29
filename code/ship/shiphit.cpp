@@ -136,7 +136,7 @@ void do_subobj_destroyed_stuff( ship *ship_p, ship_subsys *subsys, vec3d* hitpos
 			}
 
 			vec3d temp_vec, center_to_subsys, rand_vec;
-			vm_vec_sub(&center_to_subsys, &g_subobj_pos, &objp->pos);
+			vm_vec_sub(&center_to_subsys, &g_subobj_pos, &objp->phys_info.pos);
 			for (i=0; i<num_fireballs; i++) {
 				if (i==0) {
 					// make first fireball at hitpos
@@ -486,7 +486,7 @@ float do_subobj_hit_stuff(object *ship_objp, object *other_obj, vec3d *hitpos, i
 			damage_left = shockwave_get_damage(other_obj->instance) / 4.0f;
 			damage_if_hull = damage_left;
 		}
-		hitpos2 = other_obj->pos;
+		hitpos2 = other_obj->phys_info.pos;
 	} else {
 		damage_left = damage;
 		damage_if_hull = damage;
@@ -506,7 +506,7 @@ float do_subobj_hit_stuff(object *ship_objp, object *other_obj, vec3d *hitpos, i
 
 
 #ifndef NDEBUG
-	float hitpos_dist = vm_vec_dist( hitpos, &ship_objp->pos );
+	float hitpos_dist = vm_vec_dist( hitpos, &ship_objp->phys_info.pos );
 	if ( hitpos_dist > ship_objp->radius * 2.0f )	{
 		mprintf(( "BOGUS HITPOS PASSED TO DO_SUBOBJ_HIT_STUFF (%.1f > %.1f)!\nInvestigate ship %s (%s), a hit was registered on this ship outside this ship's radius.\n", hitpos_dist, ship_objp->radius * 2.0f, ship_p->ship_name, Ship_info[ship_p->ship_info_index].name ));
 		// Get John ASAP!!!!  Someone passed a local coordinate instead of world for hitpos probably.
@@ -552,7 +552,7 @@ float do_subobj_hit_stuff(object *ship_objp, object *other_obj, vec3d *hitpos, i
 				// Special case:
 				// if the subsystem is a turret and the hit submodel is its barrel,
 				// get the distance between the hit and the turret barrel center
-				find_submodel_instance_world_point(&g_subobj_pos, ship_p->model_instance_num, submodel_num, &ship_objp->orient, &ship_objp->pos);
+				find_submodel_instance_world_point(&g_subobj_pos, ship_p->model_instance_num, submodel_num, &ship_objp->phys_info.orient, &ship_objp->phys_info.pos);
 				dist = vm_vec_dist_quick(&hitpos2, &g_subobj_pos);
 
 				// Damage attenuation range of barrel radius * 2 makes full damage
@@ -1119,11 +1119,11 @@ int choose_next_spark(object *ship_objp, vec3d *hitpos)
 	// get the world hitpos for all sparks
 	for (spark_num=0; spark_num<num_sparks; spark_num++) {
 		if (shipp->sparks[spark_num].submodel_num != -1) {
-			model_instance_find_world_point(&world_hitpos[spark_num], &shipp->sparks[spark_num].pos, shipp->model_instance_num, shipp->sparks[spark_num].submodel_num, &ship_objp->orient, &ship_objp->pos);
+			model_instance_find_world_point(&world_hitpos[spark_num], &shipp->sparks[spark_num].pos, shipp->model_instance_num, shipp->sparks[spark_num].submodel_num, &ship_objp->phys_info.orient, &ship_objp->phys_info.pos);
 		} else {
 			// rotate sparks correctly with current ship orient
-			vm_vec_unrotate(&world_hitpos[spark_num], &shipp->sparks[spark_num].pos, &ship_objp->orient);
-			vm_vec_add2(&world_hitpos[spark_num], &ship_objp->pos);
+			vm_vec_unrotate(&world_hitpos[spark_num], &shipp->sparks[spark_num].pos, &ship_objp->phys_info.orient);
+			vm_vec_add2(&world_hitpos[spark_num], &ship_objp->phys_info.pos);
 		}
 	}
 
@@ -1230,10 +1230,10 @@ void ship_hit_create_sparks(object *ship_objp, vec3d *hitpos, int submodel_num)
 	if (instancing) {
 		// get the hit position in the subobject RF
 		vec3d temp_zero, temp_x, temp_y, temp_z;
-		model_instance_find_world_point(&temp_zero, &vmd_zero_vector, shipp->model_instance_num, submodel_num, &ship_objp->orient, &ship_objp->pos);
-		model_instance_find_world_point(&temp_x, &vmd_x_vector, shipp->model_instance_num, submodel_num, &ship_objp->orient, &ship_objp->pos);
-		model_instance_find_world_point(&temp_y, &vmd_y_vector, shipp->model_instance_num, submodel_num, &ship_objp->orient, &ship_objp->pos);
-		model_instance_find_world_point(&temp_z, &vmd_z_vector, shipp->model_instance_num, submodel_num, &ship_objp->orient, &ship_objp->pos);
+		model_instance_find_world_point(&temp_zero, &vmd_zero_vector, shipp->model_instance_num, submodel_num, &ship_objp->phys_info.orient, &ship_objp->phys_info.pos);
+		model_instance_find_world_point(&temp_x, &vmd_x_vector, shipp->model_instance_num, submodel_num, &ship_objp->phys_info.orient, &ship_objp->phys_info.pos);
+		model_instance_find_world_point(&temp_y, &vmd_y_vector, shipp->model_instance_num, submodel_num, &ship_objp->phys_info.orient, &ship_objp->phys_info.pos);
+		model_instance_find_world_point(&temp_z, &vmd_z_vector, shipp->model_instance_num, submodel_num, &ship_objp->phys_info.orient, &ship_objp->phys_info.pos);
 
 		// find submodel x,y,z axes
 		vm_vec_sub2(&temp_x, &temp_zero);
@@ -1252,8 +1252,8 @@ void ship_hit_create_sparks(object *ship_objp, vec3d *hitpos, int submodel_num)
 		shipp->sparks[n].end_time = timestamp(-1);
 	} else {
 		// Rotate hitpos into ship_objp's frame of reference.
-		vm_vec_sub(&tempv, hitpos, &ship_objp->pos);
-		vm_vec_rotate(&shipp->sparks[n].pos, &tempv, &ship_objp->orient);
+		vm_vec_sub(&tempv, hitpos, &ship_objp->phys_info.pos);
+		vm_vec_rotate(&shipp->sparks[n].pos, &tempv, &ship_objp->phys_info.orient);
 		shipp->sparks[n].submodel_num = -1;
 		shipp->sparks[n].end_time = timestamp(-1);
 	}
@@ -1272,9 +1272,9 @@ void player_died_start(object *killer_objp)
 	nprintf(("Network", "starting my player death\n"));
 	gameseq_post_event(GS_EVENT_DEATH_DIED);	
 	
-/*	vm_vec_scale_add(&Dead_camera_pos, &Player_obj->pos, &Player_obj->orient.fvec, -10.0f);
-	vm_vec_scale_add2(&Dead_camera_pos, &Player_obj->orient.uvec, 3.0f);
-	vm_vec_scale_add2(&Dead_camera_pos, &Player_obj->orient.rvec, 5.0f);
+/*	vm_vec_scale_add(&Dead_camera_pos, &Player_obj->phys_info.pos, &Player_obj->phys_info.orient.fvec, -10.0f);
+	vm_vec_scale_add2(&Dead_camera_pos, &Player_obj->phys_info.orient.uvec, 3.0f);
+	vm_vec_scale_add2(&Dead_camera_pos, &Player_obj->phys_info.orient.rvec, 5.0f);
 */
 
 	//	Create a good vector for the camera to move along during death sequence.
@@ -1314,9 +1314,9 @@ void player_died_start(object *killer_objp)
 		other_objp = Player_obj;
 	}
 
-	vm_vec_add(&Original_vec_to_deader, &Player_obj->orient.vec.fvec, &Player_obj->orient.vec.rvec);
+	vm_vec_add(&Original_vec_to_deader, &Player_obj->phys_info.orient.vec.fvec, &Player_obj->phys_info.orient.vec.rvec);
 	vm_vec_scale(&Original_vec_to_deader, 2.0f);
-	vm_vec_add2(&Original_vec_to_deader, &Player_obj->orient.vec.uvec);
+	vm_vec_add2(&Original_vec_to_deader, &Player_obj->phys_info.orient.vec.uvec);
 	vm_vec_normalize(&Original_vec_to_deader);
 
 	vec3d	vec_from_killer;
@@ -1327,20 +1327,20 @@ void player_died_start(object *killer_objp)
 
 	if (Player_obj == other_objp) {
 		dist = 50.0f;
-		vec_from_killer = Player_obj->orient.vec.fvec;
+		vec_from_killer = Player_obj->phys_info.orient.vec.fvec;
 	} else {
-		dist = vm_vec_normalized_dir(&vec_from_killer, &Player_obj->pos, &other_objp->pos);
+		dist = vm_vec_normalized_dir(&vec_from_killer, &Player_obj->phys_info.pos, &other_objp->phys_info.pos);
 	}
 
 	if (dist > 100.0f)
 		dist = 100.0f;
-	vm_vec_scale_add(&Dead_camera_pos, &Player_obj->pos, &vec_from_killer, dist);
+	vm_vec_scale_add(&Dead_camera_pos, &Player_obj->phys_info.pos, &vec_from_killer, dist);
 
-	float	dot = vm_vec_dot(&Player_obj->orient.vec.rvec, &vec_from_killer);
+	float	dot = vm_vec_dot(&Player_obj->phys_info.orient.vec.rvec, &vec_from_killer);
 	if (fl_abs(dot) > 0.8f)
-		side_vec = &Player_obj->orient.vec.fvec;
+		side_vec = &Player_obj->phys_info.orient.vec.fvec;
 	else
-		side_vec = &Player_obj->orient.vec.rvec;
+		side_vec = &Player_obj->phys_info.orient.vec.rvec;
 	
 	vm_vec_scale_add2(&Dead_camera_pos, side_vec, 10.0f);
 
@@ -1464,7 +1464,7 @@ void ship_generic_kill_stuff( object *objp, float percent_killed )
 	ai_deathroll_start(objp);
 
 	// play death roll begin sound
-	sp->death_roll_snd = snd_play_3d( &Snds[SND_DEATH_ROLL], &objp->pos, &View_position, objp->radius );
+	sp->death_roll_snd = snd_play_3d( &Snds[SND_DEATH_ROLL], &objp->phys_info.pos, &View_position, objp->radius );
 	if (objp == Player_obj)
 		joy_ff_deathroll();
 
@@ -1536,7 +1536,7 @@ void ship_vaporize(ship *shipp)
 	ship_objp = &Objects[shipp->objnum];
 
 	// create debris shards
-	create_vaporize_debris(ship_objp, &ship_objp->pos);
+	create_vaporize_debris(ship_objp, &ship_objp->phys_info.pos);
 }
 
 //	*ship_objp was hit and we've determined he's been killed!  By *other_obj!
@@ -1743,7 +1743,7 @@ void ship_apply_whack(vec3d *force, vec3d *hit_pos, object *objp)
 	if (objp == Player_obj) {
 		nprintf(("Sandeep", "Playing stupid joystick effect\n"));
 		vec3d test;
-		vm_vec_unrotate(&test, force, &objp->orient);
+		vm_vec_unrotate(&test, force, &objp->phys_info.orient);
 
 		game_whack_apply( -test.xyz.x, -test.xyz.y );
 	}
@@ -1764,8 +1764,8 @@ void ship_apply_whack(vec3d *force, vec3d *hit_pos, object *objp)
 			vec3d world_hit_pos, world_center_pos;
 
 			// calc world hit pos of the hit ship
-			vm_vec_unrotate(&world_hit_pos, hit_pos, &objp->orient);
-			vm_vec_add2(&world_hit_pos, &objp->pos);
+			vm_vec_unrotate(&world_hit_pos, hit_pos, &objp->phys_info.orient);
+			vm_vec_add2(&world_hit_pos, &objp->phys_info.pos);
 
 			// calc overall world center of ships
 			dock_calc_docked_center(&world_center_pos, objp);
@@ -1775,11 +1775,11 @@ void ship_apply_whack(vec3d *force, vec3d *hit_pos, object *objp)
 		}
 
 		// whack it
-		physics_apply_whack(force, hit_pos, &objp->phys_info, &objp->orient, overall_mass);
+		physics_apply_whack(force, hit_pos, &objp->phys_info, &objp->phys_info.orient, overall_mass);
 	}
 	else
 	{
-		physics_apply_whack(force, hit_pos, &objp->phys_info, &objp->orient, objp->phys_info.mass);
+		physics_apply_whack(force, hit_pos, &objp->phys_info, &objp->phys_info.orient, objp->phys_info.mass);
 	}					
 }
 
@@ -1869,7 +1869,7 @@ int maybe_shockwave_damage_adjust(object *ship_objp, object *other_obj, float *d
 	// find closest subsystem distance to shockwave origin
 	for (subsys=GET_FIRST(&shipp->subsys_list); subsys != END_OF_LIST(&shipp->subsys_list); subsys = GET_NEXT(subsys) ) {
 		get_subsystem_world_pos(ship_objp, subsys, &g_subobj_pos);
-		dist = vm_vec_dist_quick(&g_subobj_pos, &other_obj->pos);
+		dist = vm_vec_dist_quick(&g_subobj_pos, &other_obj->phys_info.pos);
 
 		if (dist < nearest_dist) {
 			nearest_dist = dist;
@@ -2484,13 +2484,13 @@ void ship_apply_global_damage(object *ship_objp, object *other_obj, vec3d *force
 		vec3d local_hitpos;
 
 		// find world hitpos
-		vm_vec_sub( &tmp, force_center, &ship_objp->pos );
+		vm_vec_sub( &tmp, force_center, &ship_objp->phys_info.pos );
 		vm_vec_normalize_safe( &tmp );
-		vm_vec_scale_add( &world_hitpos, &ship_objp->pos, &tmp, ship_objp->radius );
+		vm_vec_scale_add( &world_hitpos, &ship_objp->phys_info.pos, &tmp, ship_objp->radius );
 
 		// Rotate world_hitpos into local coordinates (local_hitpos)
-		vm_vec_sub(&tmp, &world_hitpos, &ship_objp->pos );
-		vm_vec_rotate( &local_hitpos, &tmp, &ship_objp->orient );
+		vm_vec_sub(&tmp, &world_hitpos, &ship_objp->phys_info.pos );
+		vm_vec_rotate( &local_hitpos, &tmp, &ship_objp->phys_info.orient );
 
 		// shield_quad = quadrant facing the force_center
 		shield_quad = get_quadrant(&local_hitpos, ship_objp);
@@ -2501,7 +2501,7 @@ void ship_apply_global_damage(object *ship_objp, object *other_obj, vec3d *force
 		// Since an force_center wasn't specified, this is probably just a debug key
 		// to kill an object.   So pick a shield quadrant and a point on the
 		// radius of the object.   
-		vm_vec_scale_add( &world_hitpos, &ship_objp->pos, &ship_objp->orient.vec.fvec, ship_objp->radius );
+		vm_vec_scale_add( &world_hitpos, &ship_objp->phys_info.pos, &ship_objp->phys_info.orient.vec.fvec, ship_objp->radius );
 
 		for (int i=0; i<ship_objp->n_quadrants; i++){
 			ship_do_damage(ship_objp, other_obj, &world_hitpos, damage/ship_objp->n_quadrants, i, -1);
@@ -2529,9 +2529,9 @@ void ship_apply_wash_damage(object *ship_objp, object *other_obj, float damage)
 	// to kill an object.   So pick a shield quadrant and a point on the
 	// radius of the object
 	vm_vec_rand_vec_quick(&rand_vec);
-	vm_vec_scale_add(&direction_vec, &ship_objp->orient.vec.fvec, &rand_vec, 0.5f);
+	vm_vec_scale_add(&direction_vec, &ship_objp->phys_info.orient.vec.fvec, &rand_vec, 0.5f);
 	vm_vec_normalize_quick(&direction_vec);
-	vm_vec_scale_add( &world_hitpos, &ship_objp->pos, &direction_vec, ship_objp->radius );
+	vm_vec_scale_add( &world_hitpos, &ship_objp->phys_info.pos, &direction_vec, ship_objp->radius );
 
 	// Do damage to hull and not to shields
 	global_damage = true;

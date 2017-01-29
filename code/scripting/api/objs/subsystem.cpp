@@ -527,7 +527,7 @@ ADE_FUNC(isTargetInFOV, l_Subsystem, "object Target", "Determines if the object 
 	vec3d	tpos,tvec;
 	ship_get_global_turret_info(sso->objp, sso->ss->system_info, &tpos, &tvec);
 
-	int in_fov = object_in_turret_fov(newh->objp,sso->ss,&tvec,&tpos,vm_vec_dist(&newh->objp->pos,&tpos));
+	int in_fov = object_in_turret_fov(newh->objp,sso->ss,&tvec,&tpos,vm_vec_dist(&newh->objp->phys_info.pos,&tpos));
 
 	if (in_fov)
 		return ADE_RETURN_TRUE;
@@ -579,15 +579,15 @@ ADE_FUNC(rotateTurret, l_Subsystem, "vector Pos[, boolean reset=false", "Rotates
 	object *objp = sso->objp;
 
 	//Rotate turret position with ship
-	vm_vec_unrotate(&gpos, &tp->pnt, &sso->objp->orient);
+	vm_vec_unrotate(&gpos, &tp->pnt, &sso->objp->phys_info.orient);
 
 	//Add turret position to appropriate world space
-	vm_vec_add2(&gpos, &sso->objp->pos);
+	vm_vec_add2(&gpos, &sso->objp->phys_info.pos);
 
 	// Find direction of turret
-	model_instance_find_world_dir(&gvec, &tp->turret_norm, Ships[objp->instance].model_instance_num, tp->turret_gun_sobj, &objp->orient);
+	model_instance_find_world_dir(&gvec, &tp->turret_norm, Ships[objp->instance].model_instance_num, tp->turret_gun_sobj, &objp->phys_info.orient);
 
-	int ret_val = model_rotate_gun(Ship_info[(&Ships[sso->objp->instance])->ship_info_index].model_num, tp, &Objects[sso->objp->instance].orient, &sso->ss->submodel_info_1.angs, &sso->ss->submodel_info_2.angs, &Objects[sso->objp->instance].pos, &pos, (&Ships[sso->objp->instance])->objnum, reset);
+	int ret_val = model_rotate_gun(Ship_info[(&Ships[sso->objp->instance])->ship_info_index].model_num, tp, &Objects[sso->objp->instance].phys_info.orient, &sso->ss->submodel_info_1.angs, &sso->ss->submodel_info_2.angs, &Objects[sso->objp->instance].phys_info.pos, &pos, (&Ships[sso->objp->instance])->objnum, reset);
 
 	if (ret_val)
 		return ADE_RETURN_TRUE;
@@ -607,10 +607,10 @@ ADE_FUNC(getTurretHeading, l_Subsystem, NULL, "Returns the turrets forward vecto
 	vec3d gvec;
 	object *objp = sso->objp;
 
-	model_instance_find_world_dir(&gvec, &sso->ss->system_info->turret_norm, Ships[objp->instance].model_instance_num, sso->ss->system_info->turret_gun_sobj, &objp->orient);
+	model_instance_find_world_dir(&gvec, &sso->ss->system_info->turret_norm, Ships[objp->instance].model_instance_num, sso->ss->system_info->turret_gun_sobj, &objp->phys_info.orient);
 
 	vec3d out;
-	vm_vec_rotate(&out, &gvec, &sso->objp->orient);
+	vm_vec_rotate(&out, &gvec, &sso->objp->phys_info.orient);
 
 	return ade_set_args(L, "o", l_Vector.Set(out));
 }

@@ -178,12 +178,12 @@ bool multi_oo_sort_func(const short &index1, const short &index2)
 	obj2 = &Objects[Ships[index2].objnum];
 
 	// get the distance and dot product to the player obj for both
-	vm_vec_sub(&v1, &OO_player_obj->pos, &obj1->pos);
+	vm_vec_sub(&v1, &OO_player_obj->phys_info.pos, &obj1->phys_info.pos);
 	dist1 = vm_vec_copy_normalize(&vn1, &v1);
-	vm_vec_sub(&v2, &OO_player_obj->pos, &obj2->pos);
+	vm_vec_sub(&v2, &OO_player_obj->phys_info.pos, &obj2->phys_info.pos);
 	dist2 = vm_vec_copy_normalize(&vn2, &v2);
-	dot1 = vm_vec_dot(&OO_player_obj->orient.vec.fvec, &vn1);
-	dot2 = vm_vec_dot(&OO_player_obj->orient.vec.fvec, &vn2);
+	dot1 = vm_vec_dot(&OO_player_obj->phys_info.orient.vec.fvec, &vn1);
+	dot2 = vm_vec_dot(&OO_player_obj->phys_info.orient.vec.fvec, &vn2);
 
 	// objects in front take precedence
 	if((dot1 < 0.0f) && (dot2 >= 0.0f)){
@@ -407,13 +407,13 @@ int multi_oo_pack_data(net_player *pl, object *objp, ubyte oo_flags, ubyte *data
 		
 	// position, velocity
 	if ( oo_flags & OO_POS_NEW ) {		
-		ret = (ubyte)multi_pack_unpack_position( 1, data + packet_size + header_bytes, &objp->pos );
+		ret = (ubyte)multi_pack_unpack_position( 1, data + packet_size + header_bytes, &objp->phys_info.pos );
 		packet_size += ret;
 		
 		// global records
 		multi_rate_add(NET_PLAYER_NUM(pl), "pos", ret);		
 			
-		ret = (ubyte)multi_pack_unpack_vel( 1, data + packet_size + header_bytes, &objp->orient, &objp->pos, &objp->phys_info );
+		ret = (ubyte)multi_pack_unpack_vel( 1, data + packet_size + header_bytes, &objp->phys_info.orient, &objp->phys_info.pos, &objp->phys_info );
 		packet_size += ret;		
 			
 		// global records		
@@ -422,12 +422,12 @@ int multi_oo_pack_data(net_player *pl, object *objp, ubyte oo_flags, ubyte *data
 
 	// orientation	
 	if(oo_flags & OO_ORIENT_NEW){
-		ret = (ubyte)multi_pack_unpack_orient( 1, data + packet_size + header_bytes, &objp->orient );
+		ret = (ubyte)multi_pack_unpack_orient( 1, data + packet_size + header_bytes, &objp->phys_info.orient );
 		// Assert(ret == OO_ORIENT_RET_SIZE);
 		packet_size += ret;
 		multi_rate_add(NET_PLAYER_NUM(pl), "ori", ret);				
 
-		ret = (ubyte)multi_pack_unpack_rotvel( 1, data + packet_size + header_bytes, &objp->orient, &objp->pos, &objp->phys_info );
+		ret = (ubyte)multi_pack_unpack_rotvel( 1, data + packet_size + header_bytes, &objp->phys_info.orient, &objp->phys_info.pos, &objp->phys_info );
 		packet_size += ret;	
 
 		// global records		
@@ -761,9 +761,9 @@ int multi_oo_unpack_data(net_player *pl, ubyte *data)
 	}	
 
 	// new info
-	vec3d new_pos = pobjp->pos;
+	vec3d new_pos = pobjp->phys_info.pos;
 	physics_info new_phys_info = pobjp->phys_info;
-	matrix new_orient = pobjp->orient;
+	matrix new_orient = pobjp->phys_info.orient;
 	
 	// position
 	if ( oo_flags & OO_POS_NEW ) {						
@@ -787,12 +787,12 @@ int multi_oo_unpack_data(net_player *pl, ubyte *data)
 		// next expected arrival time
 		oo_arrive_time_next[shipp - Ships] = 0.0f;
 
-		// int r1 = multi_pack_unpack_position( 0, data + offset, &pobjp->pos );
+		// int r1 = multi_pack_unpack_position( 0, data + offset, &pobjp->phys_info.pos );
 		int r1 = multi_pack_unpack_position( 0, data + offset, &new_pos );
 		offset += r1;				
 
-		// int r3 = multi_pack_unpack_vel( 0, data + offset, &pobjp->orient, &pobjp->pos, &pobjp->phys_info );
-		int r3 = multi_pack_unpack_vel( 0, data + offset, &pobjp->orient, &new_pos, &new_phys_info );
+		// int r3 = multi_pack_unpack_vel( 0, data + offset, &pobjp->phys_info.orient, &pobjp->phys_info.pos, &pobjp->phys_info );
+		int r3 = multi_pack_unpack_vel( 0, data + offset, &pobjp->phys_info.orient, &new_pos, &new_phys_info );
 		offset += r3;
 		
 		// bash desired vel to be velocity
@@ -801,11 +801,11 @@ int multi_oo_unpack_data(net_player *pl, ubyte *data)
 
 	// orientation	
 	if ( oo_flags & OO_ORIENT_NEW ) {		
-		// int r2 = multi_pack_unpack_orient( 0, data + offset, &pobjp->orient );
+		// int r2 = multi_pack_unpack_orient( 0, data + offset, &pobjp->phys_info.orient );
 		int r2 = multi_pack_unpack_orient( 0, data + offset, &new_orient );
 		offset += r2;		
 
-		// int r5 = multi_pack_unpack_rotvel( 0, data + offset, &pobjp->orient, &pobjp->pos, &pobjp->phys_info );
+		// int r5 = multi_pack_unpack_rotvel( 0, data + offset, &pobjp->phys_info.orient, &pobjp->phys_info.pos, &pobjp->phys_info );
 		int r5 = multi_pack_unpack_rotvel( 0, data + offset, &new_orient, &new_pos, &new_phys_info );
 		offset += r5;
 
@@ -823,8 +823,8 @@ int multi_oo_unpack_data(net_player *pl, ubyte *data)
 		// if we're past the position update tolerance, bash.
 		// this should cause our 2 interpolation splines to be exactly the same. so we'll see a jump,
 		// but it should be nice and smooth immediately afterwards
-		if(vm_vec_dist(&new_pos, &pobjp->pos) > OO_POS_UPDATE_TOLERANCE){
-			pobjp->pos = new_pos;
+		if(vm_vec_dist(&new_pos, &pobjp->phys_info.pos) > OO_POS_UPDATE_TOLERANCE){
+			pobjp->phys_info.pos = new_pos;
 		}
 
 		// recalc any interpolation info		
@@ -834,7 +834,7 @@ int multi_oo_unpack_data(net_player *pl, ubyte *data)
 			oo_interp_points[shipp - Ships][0] = oo_interp_points[shipp - Ships][1];
 			oo_interp_points[shipp - Ships][1] = new_pos;			
 
-			multi_oo_calc_interp_splines(SHIP_INDEX(shipp), &pobjp->pos, &pobjp->orient, &pobjp->phys_info, &new_pos, &new_orient, &new_phys_info);
+			multi_oo_calc_interp_splines(SHIP_INDEX(shipp), &pobjp->phys_info.pos, &pobjp->phys_info.orient, &pobjp->phys_info, &new_pos, &new_orient, &new_phys_info);
 		}
 		
 		pobjp->phys_info.vel = new_phys_info.vel;		
@@ -843,7 +843,7 @@ int multi_oo_unpack_data(net_player *pl, ubyte *data)
 
 	// we'll just sim rotation straight. it works fine.
 	if(oo_flags & OO_ORIENT_NEW){
-		pobjp->orient = new_orient;
+		pobjp->phys_info.orient = new_orient;
 		pobjp->phys_info.rotvel = new_phys_info.rotvel;
 		// pobjp->phys_info.desired_rotvel = vmd_zero_vector;
 		pobjp->phys_info.desired_rotvel = new_phys_info.rotvel;
@@ -1001,8 +1001,8 @@ int multi_oo_unpack_data(net_player *pl, ubyte *data)
 	
 	// if we're the multiplayer server, set eye position and orient
 	if(MULTIPLAYER_MASTER && (pl != NULL) && (pobjp != NULL)){
-		pl->s_info.eye_pos = pobjp->pos;
-		pl->s_info.eye_orient = pobjp->orient;
+		pl->s_info.eye_pos = pobjp->phys_info.pos;
+		pl->s_info.eye_orient = pobjp->phys_info.orient;
 	} 		
 
 	// update the sequence #
@@ -1122,7 +1122,7 @@ int multi_oo_maybe_update(net_player *pl, object *obj, ubyte *data)
 	
 	// check dot products		
 	player_eye = pl->s_info.eye_orient.vec.fvec;
-	vm_vec_sub(&obj_dot, &obj->pos, &pl->s_info.eye_pos);
+	vm_vec_sub(&obj_dot, &obj->phys_info.pos, &pl->s_info.eye_pos);
 	in_cone = 0;
 	if (!(IS_VEC_NULL(&obj_dot))) {
 		vm_vec_normalize(&obj_dot);
@@ -1131,7 +1131,7 @@ int multi_oo_maybe_update(net_player *pl, object *obj, ubyte *data)
 	}
 							
 	// determine distance (near, medium, far)
-	vm_vec_sub(&obj_dot, &obj->pos, &pl->s_info.eye_pos);
+	vm_vec_sub(&obj_dot, &obj->phys_info.pos, &pl->s_info.eye_pos);
 	dist = vm_vec_mag(&obj_dot);		
 	if(dist < OO_NEAR_DIST){
 		range = OO_NEAR;
@@ -1194,8 +1194,8 @@ int multi_oo_maybe_update(net_player *pl, object *obj, ubyte *data)
 	}		
 
 	// get current position and orient checksums		
-	cur_pos_chksum = cf_add_chksum_short(cur_pos_chksum, (ubyte*)(&obj->pos), sizeof(vec3d));
-	cur_orient_chksum = cf_add_chksum_short(cur_orient_chksum, (ubyte*)(&obj->orient), sizeof(matrix));
+	cur_pos_chksum = cf_add_chksum_short(cur_pos_chksum, (ubyte*)(&obj->phys_info.pos), sizeof(vec3d));
+	cur_orient_chksum = cf_add_chksum_short(cur_orient_chksum, (ubyte*)(&obj->phys_info.orient), sizeof(matrix));
 
 	// if position or orientation haven't changed	
 	if((shipp->np_updates[player_index].pos_chksum != 0) && (shipp->np_updates[player_index].pos_chksum == cur_pos_chksum)){
@@ -1898,7 +1898,7 @@ void multi_oo_interp(object *objp)
 	
 	// we've overshot. hmm. just keep the sim running I guess	
 	if(t > 1.0f){
-		physics_sim(&objp->pos, &objp->orient, &objp->phys_info, flFrametime);
+		physics_sim(&objp->phys_info.pos, &objp->phys_info.orient, &objp->phys_info, flFrametime);
 		return;
 	}	
 
@@ -1909,13 +1909,13 @@ void multi_oo_interp(object *objp)
 	oo_interp_splines[objp->instance][1].bez_get_point(&p_good, u);		
 	vm_vec_scale(&p_good, t);
 	vm_vec_scale(&p_bad, 1.0f - t);
-	vm_vec_add(&objp->pos, &p_bad, &p_good);	
+	vm_vec_add(&objp->phys_info.pos, &p_bad, &p_good);	
 
 	// set new velocity
-	// vm_vec_sub(&objp->phys_info.vel, &objp->pos, &objp->last_pos);
+	// vm_vec_sub(&objp->phys_info.vel, &objp->phys_info.pos, &objp->last_pos);
 	
 	// run the sim for rotation	
-	physics_sim_rot(&objp->orient, &objp->phys_info, flFrametime);
+	physics_sim_rot(&objp->phys_info.orient, &objp->phys_info, flFrametime);
 
 	// blend velocity vectors together with an average weight
 	/*
@@ -1929,7 +1929,7 @@ void multi_oo_interp(object *objp)
 	vm_vec_avg(&objp->phys_info.vel, &v_bad, &v_good);
 	
 	// run the sim
-	physics_sim(&objp->pos, &objp->orient, &objp->phys_info, flFrametime);
+	physics_sim(&objp->phys_info.pos, &objp->phys_info.orient, &objp->phys_info, flFrametime);
 	*/
 
 	/*
@@ -1940,11 +1940,11 @@ void multi_oo_interp(object *objp)
 	// t -= 1.0f;
 	vm_vec_scale(&v_good, t);
 	vm_vec_scale(&v_bad, 1.0f - t);
-	vm_vec_avg(&objp->pos, &v_bad, &v_good);	
+	vm_vec_avg(&objp->phys_info.pos, &v_bad, &v_good);	
 	
 	// run the sim
-	// physics_sim(&objp->pos, &objp->orient, &objp->phys_info, flFrametime);
-	physics_sim_rot(&objp->orient, &objp->phys_info, flFrametime);
+	// physics_sim(&objp->phys_info.pos, &objp->phys_info.orient, &objp->phys_info, flFrametime);
+	physics_sim_rot(&objp->phys_info.orient, &objp->phys_info, flFrametime);
 	*/
 }
 

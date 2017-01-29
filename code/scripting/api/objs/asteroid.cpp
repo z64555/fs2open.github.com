@@ -53,7 +53,7 @@ ADE_FUNC(kill, l_Asteroid, "[ship killer=nil, wvector hitpos=nil]", "Kills the a
 		return ADE_RETURN_NIL;
 
 	if (!hitpos)
-		hitpos = &victim->objp->pos;
+		hitpos = &victim->objp->phys_info.pos;
 
 	if (killer)
 		asteroid_hit(victim->objp, killer->objp, hitpos, victim->objp->hull_strength + 1);

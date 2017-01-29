@@ -1445,7 +1445,7 @@ void hud_update_frame(float frametime)
 		get_subsystem_world_pos(targetp, Player_ai->targeted_subsys, &target_pos);
 
 		// get new distance of current target
-		Player_ai->current_target_distance = vm_vec_dist_quick(&target_pos,&Player_obj->pos);
+		Player_ai->current_target_distance = vm_vec_dist_quick(&target_pos,&Player_obj->phys_info.pos);
 
 		float shield_strength = Player_ai->targeted_subsys->current_hits/Player_ai->targeted_subsys->max_hits * 100.0f;
 		int screen_integrity = fl2i(shield_strength+0.5f);
@@ -1468,7 +1468,7 @@ void hud_update_frame(float frametime)
 			}
 		}
 	} else {
-		target_pos = targetp->pos;
+		target_pos = targetp->phys_info.pos;
 
 		Player_ai->current_target_distance = hud_find_target_distance(targetp,Player_obj);
 	}
@@ -1523,7 +1523,7 @@ void hud_update_frame(float frametime)
 		{
 			float	dist_to_target;
 
-			dist_to_target = vm_vec_dist_quick(&targetp->pos, &Player_obj->pos);
+			dist_to_target = vm_vec_dist_quick(&targetp->phys_info.pos, &Player_obj->phys_info.pos);
 			if (dist_to_target < BATTLE_START_MIN_TARGET_DIST) {
 
 				// If the target has an AI class of none, it is a Cargo, NavBuoy or other non-aggressive
@@ -2604,7 +2604,7 @@ int hud_get_dock_time( object *docker_objp )
 	vm_vec_sub(&rel_vel, &docker_objp->phys_info.vel, &dockee_objp->phys_info.vel);
 	rel_speed = vm_vec_mag_quick(&rel_vel);
 
-	dist = vm_vec_dist_quick(&dockee_objp->pos, &docker_objp->pos);
+	dist = vm_vec_dist_quick(&dockee_objp->phys_info.pos, &docker_objp->phys_info.pos);
 
 	docker_speed = docker_objp->phys_info.speed;
 
@@ -3594,7 +3594,7 @@ void HUD_get_nose_coordinates(int *x, int *y)
 	*x = 0;
 	*y = 0;
 	
-	vm_vec_scale_add(&p0, &Player_obj->pos, &Player_obj->orient.vec.fvec, 10000.0f);
+	vm_vec_scale_add(&p0, &Player_obj->phys_info.pos, &Player_obj->phys_info.orient.vec.fvec, 10000.0f);
 	g3_rotate_vertex(&v0, &p0);
 
 	if (v0.codes == 0) {
@@ -3903,10 +3903,10 @@ void HudGaugeFlightPath::render(float frametime)
 
 	obj = Player_obj;
 
-	vm_vec_scale_add( &v, &obj->phys_info.vel, &obj->orient.vec.fvec, 1.0f );
+	vm_vec_scale_add( &v, &obj->phys_info.vel, &obj->phys_info.orient.vec.fvec, 1.0f );
 	vm_vec_normalize( &v );
 			
-	vm_vec_scale_add( &p0, &obj->pos, &v, 1000000.0f );
+	vm_vec_scale_add( &p0, &obj->phys_info.pos, &v, 1000000.0f );
 
 	g3_rotate_vertex( &v0, &p0 );
 

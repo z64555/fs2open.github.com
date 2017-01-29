@@ -42,7 +42,7 @@ orient_editor::orient_editor(CWnd* pParent /*=NULL*/)
 	m_location_z = _T("0.0");
 	//}}AFX_DATA_INIT
 	Assert(query_valid_object());
-	pos = Objects[cur_object_index].pos;
+	pos = Objects[cur_object_index].phys_info.pos;
 	m_position_x.Format("%.1f", pos.xyz.x);
 	m_position_y.Format("%.1f", pos.xyz.y);
 	m_position_z.Format("%.1f", pos.xyz.z);
@@ -148,13 +148,13 @@ int orient_editor::query_modified()
 {
 	float dif;
 
-	dif = Objects[cur_object_index].pos.xyz.x - convert(m_position_x);
+	dif = Objects[cur_object_index].phys_info.pos.xyz.x - convert(m_position_x);
 	if ((dif > PREC) || (dif < -PREC))
 		return 1;
-	dif = Objects[cur_object_index].pos.xyz.y - convert(m_position_y);
+	dif = Objects[cur_object_index].phys_info.pos.xyz.y - convert(m_position_y);
 	if ((dif > PREC) || (dif < -PREC))
 		return 1;
-	dif = Objects[cur_object_index].pos.xyz.z - convert(m_position_z);
+	dif = Objects[cur_object_index].phys_info.pos.xyz.z - convert(m_position_z);
 	if ((dif > PREC) || (dif < -PREC))
 		return 1;
 
@@ -178,14 +178,14 @@ void orient_editor::OnOK()
 		(((CButton *) GetDlgItem(IDC_POINT_TO_LOCATION))->GetCheck() == 1))
 			set_modified();
 
-	vm_vec_sub(&delta, &pos, &Objects[cur_object_index].pos);
+	vm_vec_sub(&delta, &pos, &Objects[cur_object_index].phys_info.pos);
 	if (delta.xyz.x || delta.xyz.y || delta.xyz.z)
 		set_modified();
 
 	ptr = GET_FIRST(&obj_used_list);
 	while (ptr != END_OF_LIST(&obj_used_list)) {
 		if (ptr->flags[Object::Object_Flags::Marked]) {
-			vm_vec_add2(&ptr->pos, &delta);
+			vm_vec_add2(&ptr->phys_info.pos, &delta);
 			update_object(ptr);
 		}
 
@@ -215,11 +215,11 @@ void orient_editor::update_object(object *ptr)
 		loc.xyz.y = convert(m_location_y);
 		loc.xyz.z = convert(m_location_z);
 		if (((CButton *) GetDlgItem(IDC_POINT_TO_OBJECT))->GetCheck() == 1) {
-			v = Objects[index[m_object_index]].pos;
-			vm_vec_sub2(&v, &ptr->pos);
+			v = Objects[index[m_object_index]].phys_info.pos;
+			vm_vec_sub2(&v, &ptr->phys_info.pos);
 
 		} else if (((CButton *) GetDlgItem(IDC_POINT_TO_LOCATION))->GetCheck() == 1) {
-			vm_vec_sub(&v, &loc, &ptr->pos);
+			vm_vec_sub(&v, &loc, &ptr->phys_info.pos);
 
 		} else {
 			Assert(0);  // neither radio button is checked.
@@ -230,7 +230,7 @@ void orient_editor::update_object(object *ptr)
 		}
 
 		vm_vector_2_matrix(&m, &v, NULL, NULL);
-		ptr->orient = m;
+		ptr->phys_info.orient = m;
 	}
 }
 

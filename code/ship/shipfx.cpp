@@ -112,10 +112,10 @@ void shipfx_subsystem_maybe_create_live_debris(object *ship_objp, ship *ship_p, 
 		}
 
 		// get the rotvel
-		model_get_rotating_submodel_axis(&model_axis, &world_axis, shipp->model_instance_num, submodel_num, &ship_objp->orient);
+		model_get_rotating_submodel_axis(&model_axis, &world_axis, shipp->model_instance_num, submodel_num, &ship_objp->phys_info.orient);
 		vm_vec_copy_scale(&rotvel, &world_axis, sii->cur_turn_rate);
 
-		model_instance_find_world_point(&world_axis_pt, &sii->pt_on_axis, shipp->model_instance_num, submodel_num, &ship_objp->orient, &ship_objp->pos);
+		model_instance_find_world_point(&world_axis_pt, &sii->pt_on_axis, shipp->model_instance_num, submodel_num, &ship_objp->phys_info.orient, &ship_objp->phys_info.pos);
 
 		vm_quaternion_rotate(&m_rot, vm_vec_mag((vec3d*)&sii->angs), &model_axis);
 	} else {
@@ -132,17 +132,17 @@ void shipfx_subsystem_maybe_create_live_debris(object *ship_objp, ship *ship_p, 
 
 		// get start world pos
 		vm_vec_zero(&start_world_pos);
-		model_instance_find_world_point(&start_world_pos, &pm->submodel[live_debris_submodel].offset, shipp->model_instance_num, live_debris_submodel, &ship_objp->orient, &ship_objp->pos );
+		model_instance_find_world_point(&start_world_pos, &pm->submodel[live_debris_submodel].offset, shipp->model_instance_num, live_debris_submodel, &ship_objp->phys_info.orient, &ship_objp->phys_info.pos );
 
 		// convert to model coord of underlying submodel
 		// set angle to zero
 		pm->submodel[submodel_num].angs = zero_angs;
-		world_find_model_instance_point(&start_model_pos, &start_world_pos, pmi, submodel_num, &ship_objp->orient, &ship_objp->pos);
+		world_find_model_instance_point(&start_model_pos, &start_world_pos, pmi, submodel_num, &ship_objp->phys_info.orient, &ship_objp->phys_info.pos);
 
 		// rotate from submodel coord to world coords
 		// reset angle to current angle
 		pm->submodel[submodel_num].angs = copy_angs;
-		model_instance_find_world_point(&end_world_pos, &start_model_pos, shipp->model_instance_num, submodel_num, &ship_objp->orient, &ship_objp->pos);
+		model_instance_find_world_point(&end_world_pos, &start_model_pos, shipp->model_instance_num, submodel_num, &ship_objp->phys_info.orient, &ship_objp->phys_info.pos);
 
 		int fireball_type = fireball_ship_explosion_type(&Ship_info[ship_p->ship_info_index]);
 		if(fireball_type < 0) {
@@ -173,8 +173,8 @@ void shipfx_subsystem_maybe_create_live_debris(object *ship_objp, ship *ship_p, 
 
 			} else {
 				// Get rotation of debris object
-				matrix copy = live_debris_obj->orient;
-				vm_matrix_x_matrix(&live_debris_obj->orient, &copy, &m_rot);
+				matrix copy = live_debris_obj->phys_info.orient;
+				vm_matrix_x_matrix(&live_debris_obj->phys_info.orient, &copy, &m_rot);
 
 				// Add radial velocity (at least as large as exp velocity)
 				vec3d temp_vel;	// explosion velocity with ship_obj velocity removed
@@ -278,7 +278,7 @@ void shipfx_maybe_create_live_debris_at_ship_death( object *ship_objp )
 				if (pss != NULL) {
 					if (pss->system_info != NULL) {
 						vec3d exp_center, tmp = ZERO_VECTOR;
-						model_instance_find_world_point(&exp_center, &tmp, shipp->model_instance_num, parent, &ship_objp->orient, &ship_objp->pos );
+						model_instance_find_world_point(&exp_center, &tmp, shipp->model_instance_num, parent, &ship_objp->phys_info.orient, &ship_objp->phys_info.pos );
 
 						// if not blown off, blow it off
 						shipfx_subsystem_maybe_create_live_debris(ship_objp, shipp, pss, &exp_center, 3.0f);
@@ -346,7 +346,7 @@ void shipfx_blow_up_hull(object *obj, int model, vec3d *exp_center)
 	for (i=0; i<pm->num_debris_objects; i++ )	{
 		if (! pm->submodel[pm->debris_objects[i]].is_live_debris) {
 			vec3d tmp = ZERO_VECTOR;		
-			model_find_world_point(&tmp, &pm->submodel[pm->debris_objects[i]].offset, model, 0, &obj->orient, &obj->pos );
+			model_find_world_point(&tmp, &pm->submodel[pm->debris_objects[i]].offset, model, 0, &obj->phys_info.orient, &obj->phys_info.pos );
 			debris_create( obj, model, pm->debris_objects[i], &tmp, exp_center, 1, 3.0f );
 		} else {
 			if ( try_live_debris ) {
@@ -401,7 +401,7 @@ void shipfx_blow_up_model(object *obj,int model, int submodel, int ndebris, vec3
 		vec3d tmp, outpnt;
 
 		vm_vec_avg( &tmp, &pnt1, &pnt2 );
-		model_find_world_point(&outpnt, &tmp, model,submodel, &obj->orient, &obj->pos );
+		model_find_world_point(&outpnt, &tmp, model,submodel, &obj->phys_info.orient, &obj->phys_info.pos );
 
 		debris_create( obj, -1, -1, &outpnt, exp_center, 0, 1.0f );
 	}
@@ -661,17 +661,17 @@ int compute_special_warpout_stuff(object *objp, float *speed, float *warp_time, 
 	
 	//find the actual center of the model
 	polymodel *pm = model_get(sip->model_num);
-	vm_vec_add(&center_pos, &objp->pos, &pm->autocenter);
+	vm_vec_add(&center_pos, &objp->phys_info.pos, &pm->autocenter);
 
 	// get facing normal from knossos
-	vm_vec_sub(&vec_to_knossos, &sp_objp->pos, &center_pos);
-	facing_normal = sp_objp->orient.vec.fvec;
-	if (vm_vec_dot(&vec_to_knossos, &sp_objp->orient.vec.fvec) > 0) {
+	vm_vec_sub(&vec_to_knossos, &sp_objp->phys_info.pos, &center_pos);
+	facing_normal = sp_objp->phys_info.orient.vec.fvec;
+	if (vm_vec_dot(&vec_to_knossos, &sp_objp->phys_info.orient.vec.fvec) > 0) {
 		vm_vec_negate(&facing_normal);
 	}
 
 	// find position to play the warp ani..
-	dist_to_plane = fvi_ray_plane(warp_pos, &sp_objp->pos, &facing_normal, &center_pos, &objp->orient.vec.fvec, 0.0f);
+	dist_to_plane = fvi_ray_plane(warp_pos, &sp_objp->phys_info.pos, &facing_normal, &center_pos, &objp->phys_info.orient.vec.fvec, 0.0f);
 
 	// calculate distance to warpout point.
 	dist_to_plane += pm->mins.xyz.z;
@@ -688,7 +688,7 @@ int compute_special_warpout_stuff(object *objp, float *speed, float *warp_time, 
 		max_warpout_angle = 0.866f;	// 30 degree half-angle cone for BIG or HUGE
 	}
 
-	if (-vm_vec_dot(&objp->orient.vec.fvec, &facing_normal) < max_warpout_angle) {	// within allowed angle
+	if (-vm_vec_dot(&objp->phys_info.orient.vec.fvec, &facing_normal) < max_warpout_angle) {	// within allowed angle
 		Int3();
 		mprintf(("special warpout angle exceeded\n"));
 		return -1;
@@ -743,8 +743,8 @@ void compute_warpout_stuff(object *objp, float *speed, float *warp_time, vec3d *
 	else
 	{
 		polymodel *pm = model_get(sip->model_num);
-		vm_vec_unrotate(&center_pos, &pm->autocenter, &objp->orient);
-		vm_vec_add2(&center_pos,&objp->pos);
+		vm_vec_unrotate(&center_pos, &pm->autocenter, &objp->phys_info.orient);
+		vm_vec_add2(&center_pos,&objp->phys_info.pos);
 	}
 
 
@@ -784,7 +784,7 @@ void compute_warpout_stuff(object *objp, float *speed, float *warp_time, vec3d *
 		warp_dist -= pm->mins.xyz.z;
 	}
 
-	vm_vec_scale_add( warp_pos, &center_pos, &objp->orient.vec.fvec, warp_dist );
+	vm_vec_scale_add( warp_pos, &center_pos, &objp->phys_info.orient.vec.fvec, warp_dist );
 }
 
 // JAS - code to start the ship doing the warp out effect
@@ -905,8 +905,8 @@ bool shipfx_point_in_shadow( vec3d *p0, matrix *src_orient, vec3d *src_pos, floa
 			mc_info_init(&mc);
 			mc.model_instance_num = -1;
 			mc.model_num = Ship_info[Ships[objp->instance].ship_info_index].model_num;
-			mc.orient = &objp->orient;
-			mc.pos = &objp->pos;
+			mc.orient = &objp->phys_info.orient;
+			mc.pos = &objp->phys_info.pos;
 			mc.p0 = &rp0;
 			mc.p1 = &rp1;
 			mc.flags = MC_CHECK_MODEL;	
@@ -936,7 +936,7 @@ bool shipfx_in_shadow( object * src_obj )
 	vec3d rp0, rp1;
 	vec3d light_dir;
 
-	rp0 = src_obj->pos;
+	rp0 = src_obj->phys_info.pos;
 	
 	// get the # of global lights
 	n_lights = light_get_global_count();
@@ -955,8 +955,8 @@ bool shipfx_in_shadow( object * src_obj )
 				mc_info_init(&mc);
 				mc.model_instance_num = -1;
 				mc.model_num = Ship_info[Ships[objp->instance].ship_info_index].model_num;
-				mc.orient = &objp->orient;
-				mc.pos = &objp->pos;
+				mc.orient = &objp->phys_info.orient;
+				mc.pos = &objp->phys_info.pos;
 				mc.p0 = &rp0;
 				mc.p1 = &rp1;
 				mc.flags = MC_CHECK_MODEL;	
@@ -1007,8 +1007,8 @@ bool shipfx_eye_in_shadow( vec3d *eye_pos, object * src_obj, int sun_n )
 
 			mc.model_instance_num = Ships[objp->instance].model_instance_num;
 			mc.model_num = Ship_info[Ships[objp->instance].ship_info_index].model_num;
-			mc.orient = &objp->orient;
-			mc.pos = &objp->pos;
+			mc.orient = &objp->phys_info.orient;
+			mc.pos = &objp->phys_info.pos;
 			mc.p0 = &rp0;
 			mc.p1 = &rp1;
 			mc.flags = MC_CHECK_MODEL;	
@@ -1036,8 +1036,8 @@ bool shipfx_eye_in_shadow( vec3d *eye_pos, object * src_obj, int sun_n )
 		mc.model_num = db->model_num;	// Fill in the model to check
 		mc.submodel_num = db->submodel_num;
 		model_clear_instance( mc.model_num );
-		mc.orient = &objp->orient;					// The object's orient
-		mc.pos = &objp->pos;							// The object's position
+		mc.orient = &objp->phys_info.orient;					// The object's orient
+		mc.pos = &objp->phys_info.pos;							// The object's position
 		mc.p0 = &rp0;				// Point 1 of ray to check
 		mc.p1 = &rp1;					// Point 2 of ray to check
 		mc.flags = (MC_CHECK_MODEL | MC_SUBMODEL);
@@ -1112,8 +1112,8 @@ bool shipfx_eye_in_shadow( vec3d *eye_pos, object * src_obj, int sun_n )
 				mc.model_instance_num = -1;
 				mc.model_num = sip->model_num;
 				mc.submodel_num = -1;
-				mc.orient = &Viewer_obj->orient;
-				mc.pos = &Viewer_obj->pos;
+				mc.orient = &Viewer_obj->phys_info.orient;
+				mc.pos = &Viewer_obj->phys_info.pos;
 				mc.p0 = &rp0;
 				mc.p1 = &rp1;
 				mc.flags = MC_CHECK_MODEL;
@@ -1176,8 +1176,8 @@ bool shipfx_eye_in_shadow( vec3d *eye_pos, object * src_obj, int sun_n )
 		mc.model_num = Asteroid_info[ast->asteroid_type].model_num[ast->asteroid_subtype];	// Fill in the model to check
 		mc.submodel_num = -1;
 		model_clear_instance( mc.model_num );
-		mc.orient = &objp->orient;					// The object's orient
-		mc.pos = &objp->pos;							// The object's position
+		mc.orient = &objp->phys_info.orient;					// The object's orient
+		mc.pos = &objp->phys_info.pos;							// The object's position
 		mc.p0 = &rp0;				// Point 1 of ray to check
 		mc.p1 = &rp1;					// Point 2 of ray to check
 		mc.flags = MC_CHECK_MODEL;
@@ -1246,7 +1246,7 @@ void shipfx_flash_create(object *objp, int model_num, vec3d *gun_pos, vec3d *gun
 	// HACK - let the flak guns do this on their own since they fire so quickly
 	if ((Weapon_info[weapon_info_index].muzzle_flash >= 0) && !(Weapon_info[weapon_info_index].wi_flags[Weapon::Info_Flags::Flak])) {
 		vec3d real_dir;
-		vm_vec_rotate(&real_dir, gun_dir,&objp->orient);	
+		vm_vec_rotate(&real_dir, gun_dir,&objp->phys_info.orient);	
 		mflash_create(gun_pos, &real_dir, &objp->phys_info, Weapon_info[weapon_info_index].muzzle_flash, objp);		
 	}
 
@@ -1475,11 +1475,11 @@ void shipfx_emit_spark( int n, int sn )
 
 	// get spark position
 	if (shipp->sparks[spark_num].submodel_num != -1) {
-		model_instance_find_world_point(&outpnt, &shipp->sparks[spark_num].pos, shipp->model_instance_num, shipp->sparks[spark_num].submodel_num, &obj->orient, &obj->pos);
+		model_instance_find_world_point(&outpnt, &shipp->sparks[spark_num].pos, shipp->model_instance_num, shipp->sparks[spark_num].submodel_num, &obj->phys_info.orient, &obj->phys_info.pos);
 	} else {
 		// rotate sparks correctly with current ship orient
-		vm_vec_unrotate(&outpnt, &shipp->sparks[spark_num].pos, &obj->orient);
-		vm_vec_add2(&outpnt,&obj->pos);
+		vm_vec_unrotate(&outpnt, &shipp->sparks[spark_num].pos, &obj->phys_info.orient);
+		vm_vec_add2(&outpnt,&obj->phys_info.pos);
 	}
 
 	//WMC - I have two options here:
@@ -1536,7 +1536,7 @@ void shipfx_emit_spark( int n, int sn )
 		// model_find_world_dir(&out_dir, &in_dir, model_num, submodel_num, &objorient, &objpos);
 
 		vec3d tmp_norm, tmp_vel;
-		vm_vec_sub( &tmp_norm, &outpnt, &obj->pos );
+		vm_vec_sub( &tmp_norm, &outpnt, &obj->phys_info.pos );
 		vm_vec_normalize_safe(&tmp_norm);
 
 		tmp_vel = obj->phys_info.vel;
@@ -1689,13 +1689,13 @@ static void maybe_fireball_wipe(clip_ship* half_ship, int* sound_handle);
 static void split_ship_init( ship* shipp, split_ship* split_shipp )
 {
 	object* parent_ship_obj = &Objects[shipp->objnum];
-	matrix* orient = &parent_ship_obj->orient;
+	matrix* orient = &parent_ship_obj->phys_info.orient;
 	for (int ii=0; ii<NUM_SUB_EXPL_HANDLES; ++ii) {
 		split_shipp->sound_handle[ii] = shipp->sub_expl_sound_handle[ii];
 	}
 
 	// play 3d sound for shockwave explosion
-	snd_play_3d( &Snds[SND_SHOCKWAVE_EXPLODE], &parent_ship_obj->pos, &View_position, 0.0f, NULL, 0, 1.0f, SND_PRIORITY_SINGLE_INSTANCE, NULL, 3.0f );
+	snd_play_3d( &Snds[SND_SHOCKWAVE_EXPLODE], &parent_ship_obj->phys_info.pos, &View_position, 0.0f, NULL, 0, 1.0f, SND_PRIORITY_SINGLE_INSTANCE, NULL, 3.0f );
 
 	// initialize both ships
 	split_shipp->front_ship.parent_obj = parent_ship_obj;
@@ -1730,8 +1730,8 @@ static void split_ship_init( ship* shipp, split_ship* split_shipp )
 	dist = (split_shipp->back_ship.cur_clip_plane_pt +pm->mins.xyz.z)/2.0f;
 	vm_vec_copy_scale(&split_shipp->back_ship.local_pivot, &orient->vec.fvec, dist);
 	vm_vec_make(&split_shipp->back_ship.model_center_disp_to_orig_center, 0.0f, 0.0f, -dist);
-	vm_vec_add2(&split_shipp->front_ship.local_pivot, &parent_ship_obj->pos );
-	vm_vec_add2(&split_shipp->back_ship.local_pivot,  &parent_ship_obj->pos );
+	vm_vec_add2(&split_shipp->front_ship.local_pivot, &parent_ship_obj->phys_info.pos );
+	vm_vec_add2(&split_shipp->back_ship.local_pivot,  &parent_ship_obj->phys_info.pos );
 	
 	// find which debris pieces are in the front and back split ships
 	for (int i=0; i<pm->num_debris_objects; i++ )	{
@@ -1816,12 +1816,12 @@ void shipfx_queue_render_ship_halves_and_debris(model_draw_list *scene, clip_shi
 
 	// get rotated clip plane normal and world coord of original ship center
 	vec3d orig_ship_world_center, clip_plane_norm, model_clip_plane_pt, debris_clip_plane_pt;
-	vm_vec_unrotate(&clip_plane_norm, &half_ship->clip_plane_norm, &half_ship->orient);
-	vm_vec_unrotate(&orig_ship_world_center, &half_ship->model_center_disp_to_orig_center, &half_ship->orient);
+	vm_vec_unrotate(&clip_plane_norm, &half_ship->clip_plane_norm, &half_ship->phys_info.orient);
+	vm_vec_unrotate(&orig_ship_world_center, &half_ship->model_center_disp_to_orig_center, &half_ship->phys_info.orient);
 	vm_vec_add2(&orig_ship_world_center, &half_ship->local_pivot);
 
 	// get debris clip plane pt and draw debris
-	vm_vec_unrotate(&debris_clip_plane_pt, &half_ship->model_center_disp_to_orig_center, &half_ship->orient);
+	vm_vec_unrotate(&debris_clip_plane_pt, &half_ship->model_center_disp_to_orig_center, &half_ship->phys_info.orient);
 	vm_vec_add2(&debris_clip_plane_pt, &half_ship->local_pivot);
 
 	// set up render flags
@@ -1856,14 +1856,14 @@ void shipfx_queue_render_ship_halves_and_debris(model_draw_list *scene, clip_shi
 
 			// Draw debris, but not live debris
 			if ( !is_live_debris ) {
-				model_find_world_point(&tmp, &tmp1, pm->id, -1, &half_ship->orient, &temp_pos);
+				model_find_world_point(&tmp, &tmp1, pm->id, -1, &half_ship->phys_info.orient, &temp_pos);
 				model_render_params render_info;
 
 				render_info.set_clip_plane(debris_clip_plane_pt, clip_plane_norm);
 				render_info.set_replacement_textures(shipp->ship_replacement_textures);
 				render_info.set_flags(render_flags);
 
-				submodel_render_queue(&render_info, scene, pm->id, pm->debris_objects[i], &half_ship->orient, &tmp);
+				submodel_render_queue(&render_info, scene, pm->id, pm->debris_objects[i], &half_ship->phys_info.orient, &tmp);
 			}
 
 			// make free piece of debris
@@ -1885,7 +1885,7 @@ void shipfx_queue_render_ship_halves_and_debris(model_draw_list *scene, clip_shi
 					// AL: make sure debris_obj isn't NULL!
 					if ( debris_obj ) {
 						vm_vec_scale(&debris_obj->phys_info.rotvel, 4.0f);
-						debris_obj->orient = half_ship->orient;
+						debris_obj->phys_info.orient = half_ship->phys_info.orient;
 
 						vm_vec_sub(&center_to_debris, &tmp, &half_ship->local_pivot);
 						vm_vec_cross(&debris_vel, &center_to_debris, &half_ship->phys_info.rotvel);
@@ -1904,7 +1904,7 @@ void shipfx_queue_render_ship_halves_and_debris(model_draw_list *scene, clip_shi
 	// get model clip plane pt and draw model
 	vec3d temp;
 	vm_vec_make(&temp, 0.0f, 0.0f, half_ship->cur_clip_plane_pt);
-	vm_vec_unrotate(&model_clip_plane_pt, &temp, &half_ship->orient);
+	vm_vec_unrotate(&model_clip_plane_pt, &temp, &half_ship->phys_info.orient);
 	vm_vec_add2(&model_clip_plane_pt, &orig_ship_world_center);
 
 	model_render_params render_info;
@@ -1913,7 +1913,7 @@ void shipfx_queue_render_ship_halves_and_debris(model_draw_list *scene, clip_shi
 	render_info.set_clip_plane(model_clip_plane_pt, clip_plane_norm);
 	render_info.set_replacement_textures(shipp->ship_replacement_textures);
 
-	model_render_queue(&render_info, scene, pm->id, &half_ship->orient, &orig_ship_world_center);
+	model_render_queue(&render_info, scene, pm->id, &half_ship->phys_info.orient, &orig_ship_world_center);
 }
 
 void shipfx_large_blowup_level_init()
@@ -1958,7 +1958,7 @@ void shipfx_debris_limit_speed(debris *db, ship *shipp)
 		}
 		else
 		{
-			vm_vec_copy_scale(&pi->vel, &ship_objp->orient.vec.fvec, debris_speed);
+			vm_vec_copy_scale(&pi->vel, &ship_objp->phys_info.orient.vec.fvec, debris_speed);
 		}
 	}
 	else if(sip->debris_min_speed >= 0.0f)
@@ -1972,7 +1972,7 @@ void shipfx_debris_limit_speed(debris *db, ship *shipp)
 			}
 			else
 			{
-				vm_vec_copy_scale(&pi->vel, &ship_objp->orient.vec.fvec, sip->debris_min_speed);
+				vm_vec_copy_scale(&pi->vel, &ship_objp->phys_info.orient.vec.fvec, sip->debris_min_speed);
 			}
 		}
 	}
@@ -1987,7 +1987,7 @@ void shipfx_debris_limit_speed(debris *db, ship *shipp)
 			}
 			else
 			{
-				vm_vec_copy_scale(&pi->vel, &ship_objp->orient.vec.fvec, sip->debris_max_speed);
+				vm_vec_copy_scale(&pi->vel, &ship_objp->phys_info.orient.vec.fvec, sip->debris_max_speed);
 			}
 		}
 	}
@@ -2004,7 +2004,7 @@ void shipfx_debris_limit_speed(debris *db, ship *shipp)
 		}
 		else
 		{
-			vm_vec_copy_scale(&pi->rotvel, &ship_objp->orient.vec.uvec, debris_rotspeed);
+			vm_vec_copy_scale(&pi->rotvel, &ship_objp->phys_info.orient.vec.uvec, debris_rotspeed);
 		}
 	}
 	else if(sip->debris_min_rotspeed >= 0.0f)
@@ -2018,7 +2018,7 @@ void shipfx_debris_limit_speed(debris *db, ship *shipp)
 			}
 			else
 			{
-				vm_vec_copy_scale(&pi->rotvel, &ship_objp->orient.vec.uvec, sip->debris_min_rotspeed);
+				vm_vec_copy_scale(&pi->rotvel, &ship_objp->phys_info.orient.vec.uvec, sip->debris_min_rotspeed);
 			}
 		}
 	}
@@ -2034,7 +2034,7 @@ void shipfx_debris_limit_speed(debris *db, ship *shipp)
 			}
 			else
 			{
-				vm_vec_copy_scale(&pi->rotvel, &ship_objp->orient.vec.uvec, sip->debris_max_rotspeed);
+				vm_vec_copy_scale(&pi->rotvel, &ship_objp->phys_info.orient.vec.uvec, sip->debris_max_rotspeed);
 			}
 		}
 	}
@@ -2137,11 +2137,11 @@ static void maybe_fireball_wipe(clip_ship* half_ship, int* sound_handle)
 
 			vec3d model_clip_plane_pt, orig_ship_world_center, temp;
 
-			vm_vec_unrotate(&orig_ship_world_center, &half_ship->model_center_disp_to_orig_center, &half_ship->orient);
+			vm_vec_unrotate(&orig_ship_world_center, &half_ship->model_center_disp_to_orig_center, &half_ship->phys_info.orient);
 			vm_vec_add2(&orig_ship_world_center, &half_ship->local_pivot);
 
 			vm_vec_make(&temp, 0.0f, 0.0f, half_ship->cur_clip_plane_pt);
-			vm_vec_unrotate(&model_clip_plane_pt, &temp, &half_ship->orient);
+			vm_vec_unrotate(&model_clip_plane_pt, &temp, &half_ship->phys_info.orient);
 			vm_vec_add2(&model_clip_plane_pt, &orig_ship_world_center);
 			vm_vec_rand_vec_quick(&temp);
 			vm_vec_scale(&temp, 0.1f*frand());
@@ -2247,7 +2247,7 @@ int shipfx_large_blowup_do_frame(ship *shipp, float frametime)
 		if ( !the_split_ship->explosion_flash_started ) {
 			object* objp = &Objects[shipp->objnum];
 			if (objp->flags[Object::Object_Flags::Was_rendered]) {
-				float excess_dist = vm_vec_dist(&Player_obj->pos, &objp->pos) - 2.0f*objp->radius - Player_obj->radius;
+				float excess_dist = vm_vec_dist(&Player_obj->phys_info.pos, &objp->phys_info.pos) - 2.0f*objp->radius - Player_obj->radius;
 				float intensity = 1.0f - 0.1f*excess_dist / objp->radius;
 
 				if (intensity > 1) {
@@ -2465,8 +2465,8 @@ void shipfx_do_damaged_arcs_frame( ship *shipp )
 			// rotate v2 out of local coordinates into world.
 			// Use v2 since it is used in every bolt.  See above switch().
 			vec3d snd_pos;
-			vm_vec_unrotate(&snd_pos, &v2, &obj->orient);
-			vm_vec_add2(&snd_pos, &obj->pos );
+			vm_vec_unrotate(&snd_pos, &v2, &obj->phys_info.orient);
+			vm_vec_add2(&snd_pos, &obj->phys_info.pos );
 
 			//Play a sound effect
 			if ( lifetime > 750 )	{
@@ -2617,10 +2617,10 @@ void shipfx_do_lightning_frame( ship *shipp )
 		} else {
 			vm_vec_scale_add(&temp2, &v1, &n1, objp->radius);
 		}
-		vm_vec_unrotate(&temp, &temp2, &objp->orient);
-		vm_vec_add2(&temp, &objp->pos);
-		vm_vec_unrotate(&temp2, &v1, &objp->orient);
-		vm_vec_add2(&temp2, &objp->pos);
+		vm_vec_unrotate(&temp, &temp2, &objp->phys_info.orient);
+		vm_vec_add2(&temp, &objp->phys_info.pos);
+		vm_vec_unrotate(&temp2, &v1, &objp->phys_info.orient);
+		vm_vec_add2(&temp2, &objp->phys_info.pos);
 
 		// create the bolt
 		binfo.start = temp;
@@ -2643,10 +2643,10 @@ void shipfx_do_lightning_frame( ship *shipp )
 		} else {
 			vm_vec_scale_add(&temp2, &v2, &n2, objp->radius);
 		}
-		vm_vec_unrotate(&temp, &temp2, &objp->orient);
-		vm_vec_add2(&temp, &objp->pos);
-		vm_vec_unrotate(&temp2, &v2, &objp->orient);
-		vm_vec_add2(&temp2, &objp->pos);
+		vm_vec_unrotate(&temp, &temp2, &objp->phys_info.orient);
+		vm_vec_add2(&temp, &objp->phys_info.pos);
+		vm_vec_unrotate(&temp2, &v2, &objp->phys_info.orient);
+		vm_vec_add2(&temp2, &objp->phys_info.pos);
 
 		// create the bolt
 		binfo.start = temp;
@@ -2715,10 +2715,10 @@ void shipfx_do_shockwave_stuff(ship *shipp, shockwave_create_info *sci)
 	tail.xyz.z = pm->mins.xyz.z;
 
 	// transform the vectors into world coords
-	vm_vec_unrotate(&temp, &head, &objp->orient);
-	vm_vec_add(&head, &temp, &objp->pos);
-	vm_vec_unrotate(&temp, &tail, &objp->orient);
-	vm_vec_add(&tail, &temp, &objp->pos);
+	vm_vec_unrotate(&temp, &head, &objp->phys_info.orient);
+	vm_vec_add(&head, &temp, &objp->phys_info.pos);
+	vm_vec_unrotate(&temp, &tail, &objp->phys_info.orient);
+	vm_vec_add(&tail, &temp, &objp->phys_info.pos);
 
 	// now create as many shockwaves as needed
 	vm_vec_sub(&dir, &head, &tail);
@@ -2732,7 +2732,7 @@ void shipfx_do_shockwave_stuff(ship *shipp, shockwave_create_info *sci)
 
 		// if knossos device, make shockwave in center
 		if (Ship_info[shipp->ship_info_index].flags[Ship::Info_Flags::Knossos_device]) {
-			shockwave_pos = Objects[shipp->objnum].pos;
+			shockwave_pos = Objects[shipp->objnum].phys_info.pos;
 		}
 
 		// create the shockwave
@@ -2894,14 +2894,14 @@ void engine_wash_ship_process(ship *shipp)
 				}
 
 				// get world pos of thruster
-				vm_vec_unrotate(&world_thruster_pos, &loc_pos, &wash_objp->orient);
-				vm_vec_add2(&world_thruster_pos, &wash_objp->pos);
+				vm_vec_unrotate(&world_thruster_pos, &loc_pos, &wash_objp->phys_info.orient);
+				vm_vec_add2(&world_thruster_pos, &wash_objp->phys_info.pos);
 				
 				// get world norm of thruster;
-				vm_vec_unrotate(&world_thruster_norm, &loc_norm, &wash_objp->orient);
+				vm_vec_unrotate(&world_thruster_norm, &loc_norm, &wash_objp->phys_info.orient);
 
 				// get vector from thruster to ship
-				vm_vec_sub(&thruster_to_ship, &objp->pos, &world_thruster_pos);
+				vm_vec_sub(&thruster_to_ship, &objp->phys_info.pos, &world_thruster_pos);
 
 				// check if on back side of thruster
 				dot_to_ship = vm_vec_dot(&thruster_to_ship, &world_thruster_norm);
@@ -2928,7 +2928,7 @@ void engine_wash_ship_process(ship *shipp)
 							// check if inside cone - first fine apex of cone
 							inset_depth = (bank->points[j].radius / fl_tan(half_angle));
 							vm_vec_scale_add(&apex, &world_thruster_pos, &world_thruster_norm, -inset_depth);
-							vm_vec_sub(&apex_to_ship, &objp->pos, &apex);
+							vm_vec_sub(&apex_to_ship, &objp->phys_info.pos, &apex);
 							vm_vec_normalize(&apex_to_ship);
 
 							// check if inside cone angle
@@ -3418,7 +3418,7 @@ int WarpEffect::getWarpPosition(vec3d *output)
 	if(!this->isValid())
 		return 0;
 
-	*output = objp->pos;
+	*output = objp->phys_info.pos;
 	return 1;
 }
 
@@ -3427,7 +3427,7 @@ int WarpEffect::getWarpOrientation(matrix* output)
 	if(!this->isValid())
 		return 0;
 
-	*output = objp->orient;
+	*output = objp->phys_info.orient;
 	return 1;
 }
 
@@ -3470,7 +3470,7 @@ int WE_Default::warpStart()
 	if(direction == WD_WARP_IN)
 	{
 		polymodel *pm = model_get(sip->model_num);
-		vm_vec_scale_add( &pos, &objp->pos, &objp->orient.vec.fvec, (pm != NULL) ? -pm->mins.xyz.z : objp->radius );
+		vm_vec_scale_add( &pos, &objp->phys_info.pos, &objp->phys_info.orient.vec.fvec, (pm != NULL) ? -pm->mins.xyz.z : objp->radius );
 
 		// Effect time is 'SHIPFX_WARP_DELAY' (1.5 secs) seconds to start, 'shipfx_calculate_warp_time' 
 		// for ship to go thru, and 'SHIPFX_WARP_DELAY' (1.5 secs) to go away.
@@ -3520,7 +3520,7 @@ int WE_Default::warpStart()
 		return 0;
 	}
 
-	fvec = Objects[warp_objnum].orient.vec.fvec;
+	fvec = Objects[warp_objnum].phys_info.orient.vec.fvec;
 
 	stage_time_start = total_time_start = timestamp();
 	if(direction == WD_WARP_IN)
@@ -3551,7 +3551,7 @@ int WE_Default::warpStart()
 		// and keeps going 
 		if ( objp != Player_obj || Player_use_ai )	{
 			vec3d vel;
-			vel = objp->orient.vec.fvec;
+			vel = objp->phys_info.orient.vec.fvec;
 			vm_vec_scale( &vel, warpout_speed );
 			objp->phys_info.vel = vel;
 			objp->phys_info.desired_vel = vel;
@@ -3583,7 +3583,7 @@ int WE_Default::warpFrame(float frametime)
 
 			// Make ship move at velocity so that it moves two radii in warp_time seconds.
 			vec3d vel;
-			vel = objp->orient.vec.fvec;
+			vel = objp->phys_info.orient.vec.fvec;
 			vm_vec_scale( &vel, speed );
 			objp->phys_info.vel = vel;
 			objp->phys_info.desired_vel = vel;
@@ -3611,14 +3611,14 @@ int WE_Default::warpFrame(float frametime)
 		vec3d tempv;
 		float warp_pos;	// position of warp effect in object's frame of reference
 
-		vm_vec_sub( &tempv, &objp->pos, &pos );
+		vm_vec_sub( &tempv, &objp->phys_info.pos, &pos );
 		warp_pos = -vm_vec_dot( &tempv, &fvec );
 
 
 		// Find the closest point on line from center of wormhole
 		vec3d cpos;
 
-		fvi_ray_plane(&cpos, &objp->pos, &fvec, &pos, &fvec, 0.0f );
+		fvi_ray_plane(&cpos, &objp->phys_info.pos, &fvec, &pos, &fvec, 0.0f );
 
 		if ( objp == Player_obj )	{
 			// Code for player warpout frame
@@ -3699,7 +3699,7 @@ int WE_Default::getWarpOrientation(matrix* output)
         return 0;
     }
 
-    vm_vector_2_matrix(output, &objp->orient.vec.fvec, NULL, NULL);
+    vm_vector_2_matrix(output, &objp->phys_info.orient.vec.fvec, NULL, NULL);
     return 1;
 }
 
@@ -3844,7 +3844,7 @@ int WE_BSG::warpStart()
 
 		vec3d dock_center;
 		dock_calc_docked_center(&dock_center, objp);
-		vm_vec_sub(&autocenter, &dock_center, &objp->pos);
+		vm_vec_sub(&autocenter, &dock_center, &objp->phys_info.pos);
 	}
 
     if (direction == WD_WARP_IN)
@@ -3874,7 +3874,7 @@ int WE_BSG::warpStart()
 	if(gs_start_index > -1)
 	{
 		snd_start_gs = &Snds[gs_start_index];
-		snd_start = snd_play_3d(snd_start_gs, &objp->pos, &View_position, 0.0f, NULL, 0, 1, SND_PRIORITY_SINGLE_INSTANCE, NULL, snd_range_factor);
+		snd_start = snd_play_3d(snd_start_gs, &objp->phys_info.pos, &View_position, 0.0f, NULL, 0, 1, SND_PRIORITY_SINGLE_INSTANCE, NULL, snd_range_factor);
 	}
 	if(gs_end_index > -1)
 	{
@@ -3928,8 +3928,8 @@ int WE_BSG::warpFrame(float frametime)
 	{
 		case 0:
 		case 1:
-			vm_vec_unrotate(&pos, &autocenter, &objp->orient);
-			vm_vec_add2(&pos, &objp->pos);
+			vm_vec_unrotate(&pos, &autocenter, &objp->phys_info.orient);
+			vm_vec_add2(&pos, &objp->phys_info.pos);
 			break;
 		default:
 			this->warpEnd();
@@ -3937,7 +3937,7 @@ int WE_BSG::warpFrame(float frametime)
 	}
 
 	if(snd_start > -1)
-		snd_update_3d_pos(snd_start, snd_start_gs, &objp->pos, 0.0f, snd_range_factor);
+		snd_update_3d_pos(snd_start, snd_start_gs, &objp->phys_info.pos, 0.0f, snd_range_factor);
 
 	return 1;
 }
@@ -3950,8 +3950,8 @@ int WE_BSG::warpShipClip()
 	if(direction == WD_WARP_OUT && stage > 0)
 	{
 		vec3d position;
-		vm_vec_scale_add(&position, &objp->pos, &objp->orient.vec.fvec, objp->radius);
-		g3_start_user_clip_plane( &position, &objp->orient.vec.fvec );
+		vm_vec_scale_add(&position, &objp->phys_info.pos, &objp->phys_info.orient.vec.fvec, objp->radius);
+		g3_start_user_clip_plane( &position, &objp->phys_info.orient.vec.fvec );
 	}
 	return 1;
 }
@@ -3964,9 +3964,9 @@ int WE_BSG::warpShipClip(model_render_params *render_info)
 	if(direction == WD_WARP_OUT && stage > 0)
 	{
 		vec3d position;
-		vm_vec_scale_add(&position, &objp->pos, &objp->orient.vec.fvec, objp->radius);
+		vm_vec_scale_add(&position, &objp->phys_info.pos, &objp->phys_info.orient.vec.fvec, objp->radius);
 
-		render_info->set_clip_plane(position, objp->orient.vec.fvec);
+		render_info->set_clip_plane(position, objp->phys_info.orient.vec.fvec);
 	}
 
 	return 1;
@@ -3998,8 +3998,8 @@ int WE_BSG::warpShipRender()
 
 			//Do warpout geometry
 			vec3d start, end;
-			vm_vec_scale_add(&start, &pos, &objp->orient.vec.fvec, z_offset_min);
-			vm_vec_scale_add(&end, &pos, &objp->orient.vec.fvec, z_offset_max);
+			vm_vec_scale_add(&start, &pos, &objp->phys_info.orient.vec.fvec, z_offset_min);
+			vm_vec_scale_add(&end, &pos, &objp->phys_info.orient.vec.fvec, z_offset_max);
 
 			//Render the warpout effect
 			//batch_add_beam(anim + anim_frame, TMAP_FLAG_GOURAUD | TMAP_FLAG_RGB | TMAP_FLAG_TEXTURED | TMAP_FLAG_CORRECT | TMAP_HTL_3D_UNLIT, &start, &end, tube_radius*2.0f, 1.0f);
@@ -4033,7 +4033,7 @@ int WE_BSG::warpEnd()
 	if(snd_start > -1)
 		snd_stop(snd_start);
 	if(snd_end_gs != NULL)
-		snd_end = snd_play_3d(snd_end_gs, &objp->pos, &View_position, 0.0f, NULL, 0, 1.0f, SND_PRIORITY_SINGLE_INSTANCE, NULL, snd_range_factor);
+		snd_end = snd_play_3d(snd_end_gs, &objp->phys_info.pos, &View_position, 0.0f, NULL, 0, 1.0f, SND_PRIORITY_SINGLE_INSTANCE, NULL, snd_range_factor);
 
 	return WarpEffect::warpEnd();
 }
@@ -4046,7 +4046,7 @@ int WE_BSG::getWarpPosition(vec3d *output)
 		return 0;
 
 	vec3d position;
-	vm_vec_scale_add(&position, &objp->pos, &objp->orient.vec.fvec, objp->radius);
+	vm_vec_scale_add(&position, &objp->phys_info.pos, &objp->phys_info.orient.vec.fvec, objp->radius);
 
 	*output = position;
 	return 1;
@@ -4059,7 +4059,7 @@ int WE_BSG::getWarpOrientation(matrix* output)
         return 0;
     }
 
-    vm_vector_2_matrix(output, &objp->orient.vec.fvec, NULL, NULL);
+    vm_vector_2_matrix(output, &objp->phys_info.orient.vec.fvec, NULL, NULL);
     return 1;
 }
 
@@ -4167,8 +4167,8 @@ int WE_Homeworld::warpStart()
 	stage_time_end = timestamp(stage_duration[stage]);
 
 	//Position
-	vm_vec_scale_add(&pos, &objp->pos, &objp->orient.vec.fvec, z_offset_max);
-	fvec = objp->orient.vec.fvec;
+	vm_vec_scale_add(&pos, &objp->phys_info.pos, &objp->phys_info.orient.vec.fvec, z_offset_max);
+	fvec = objp->phys_info.orient.vec.fvec;
 	if(direction == WD_WARP_OUT)
 		vm_vec_negate(&fvec);
 
@@ -4248,7 +4248,7 @@ int WE_Homeworld::warpFrame(float frametime)
 		case 2:
 			break;
 		case 3:
-			vm_vec_scale_add(&pos, &objp->pos, &objp->orient.vec.fvec, z_offset_max - progress*(z_offset_max-z_offset_min));
+			vm_vec_scale_add(&pos, &objp->phys_info.pos, &objp->phys_info.orient.vec.fvec, z_offset_max - progress*(z_offset_max-z_offset_min));
 			break;
 		case 4:
 			break;
@@ -4295,7 +4295,7 @@ int WE_Homeworld::warpShipRender()
 		frame = fl2i( (int)(((float)(timestamp() - (float)total_time_start)/1000.0f) * (float)anim_fps) % anim_nframes);
 
 	//Set the correct frame
-	batching_add_polygon(anim + frame, &pos, &objp->orient, width, height);
+	batching_add_polygon(anim + frame, &pos, &objp->phys_info.orient, width, height);
 
 	return 1;
 }
@@ -4379,7 +4379,7 @@ int WE_Hyperspace::warpStart()
 		this->warpEnd();
 	}
 
-	pos_final = objp->pos;
+	pos_final = objp->phys_info.pos;
 
 	return 1;
 }
@@ -4391,13 +4391,13 @@ int WE_Hyperspace::warpFrame(float frametime)
 
 	if(timestamp_elapsed(total_time_end))
 	{
-		objp->pos = pos_final;
+		objp->phys_info.pos = pos_final;
 		if(direction == WD_WARP_OUT)
 			objp->phys_info.vel.xyz.z = 0.0f;
 		else
 		{
 			vec3d vel;
-			vel = objp->orient.vec.fvec;
+			vel = objp->phys_info.orient.vec.fvec;
 			vm_vec_scale( &vel, initial_velocity );
 			objp->phys_info.vel = vel;
 			objp->phys_info.desired_vel = vel;
@@ -4428,7 +4428,7 @@ int WE_Hyperspace::warpFrame(float frametime)
 			// known real velocity.
 			scale += initial_velocity * (total_duration / 1000) * progress;
 		}
-		vm_vec_scale_add(&objp->pos, &pos_final, &objp->orient.vec.fvec, scale);
+		vm_vec_scale_add(&objp->phys_info.pos, &pos_final, &objp->phys_info.orient.vec.fvec, scale);
 	}
 	return 1;
 }

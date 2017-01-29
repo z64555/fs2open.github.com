@@ -302,12 +302,12 @@ void do_view_track_target(float frame_time)
 		get_subsystem_world_pos(targetp, Player_ai->targeted_subsys, &target_pos);
 
 	} else {
-		target_pos = targetp->pos;
+		target_pos = targetp->phys_info.pos;
 	}
 
-	vm_vec_rotate(&targetpos_rotated, &target_pos, &Player_obj->orient);
-	vm_vec_rotate(&playerpos_rotated, &Player_obj->pos, &Player_obj->orient);
-	vm_vec_rotate(&forwardvec_rotated, &Player_obj->orient.vec.fvec, &Player_obj->orient);
+	vm_vec_rotate(&targetpos_rotated, &target_pos, &Player_obj->phys_info.orient);
+	vm_vec_rotate(&playerpos_rotated, &Player_obj->phys_info.pos, &Player_obj->phys_info.orient);
+	vm_vec_rotate(&forwardvec_rotated, &Player_obj->phys_info.orient.vec.fvec, &Player_obj->phys_info.orient);
 
 	vm_vec_normalized_dir(&view_vector,&targetpos_rotated,&playerpos_rotated);
 	vm_extract_angles_vector(&view_angles,&view_vector);
@@ -751,7 +751,7 @@ void read_keyboard_controls( control_info * ci, float frame_time, physics_info *
 				}
 
 				//	Note, if closer than 100 units, scale down speed a bit.  Prevents repeated collisions. -- MK, 12/17/97
-				float dist = vm_vec_dist(&Player_obj->pos, &targeted_objp->pos);
+				float dist = vm_vec_dist(&Player_obj->phys_info.pos, &targeted_objp->phys_info.pos);
 
 				if (dist < 100.0f) {
 					tspeed = tspeed * (0.5f + dist/200.0f);
@@ -1092,13 +1092,13 @@ void read_player_controls(object *objp, float frametime)
 			if ((Ships[objp->instance].wash_intensity > 0) && !((Player->control_mode == PCM_WARPOUT_STAGE1) || (Player->control_mode == PCM_WARPOUT_STAGE2) || (Player->control_mode == PCM_WARPOUT_STAGE3)) ) {
 				float intensity = 0.3f * MIN(Ships[objp->instance].wash_intensity, 1.0f);
 				vm_vec_copy_scale(&wash_rot, &Ships[objp->instance].wash_rot_axis, intensity);
-				physics_read_flying_controls( &objp->orient, &objp->phys_info, &(Player->ci), flFrametime, &wash_rot);
+				physics_read_flying_controls( &objp->phys_info.orient, &objp->phys_info, &(Player->ci), flFrametime, &wash_rot);
 			} else {
-				physics_read_flying_controls( &objp->orient, &objp->phys_info, &(Player->ci), flFrametime);
+				physics_read_flying_controls( &objp->phys_info.orient, &objp->phys_info, &(Player->ci), flFrametime);
 			}
 		}
 	} else if(Player_obj->type == OBJ_OBSERVER){
-		physics_read_flying_controls(&objp->orient,&objp->phys_info,&(Player->ci), flFrametime);
+		physics_read_flying_controls(&objp->phys_info.orient,&objp->phys_info,&(Player->ci), flFrametime);
 	}
 }
 
@@ -1600,8 +1600,8 @@ int player_inspect_cargo(float frametime, char *outstr)
 	if ( Player_ai->current_target_distance < MAX(CARGO_REVEAL_MIN_DIST, (cargo_objp->radius+CARGO_RADIUS_DELTA)) ) {
 
 		// check if player is facing cargo, do not proceed with inspection if not
-		vm_vec_normalized_dir(&vec_to_cargo, &cargo_objp->pos, &Player_obj->pos);
-		dot = vm_vec_dot(&vec_to_cargo, &Player_obj->orient.vec.fvec);
+		vm_vec_normalized_dir(&vec_to_cargo, &cargo_objp->phys_info.pos, &Player_obj->phys_info.pos);
+		dot = vm_vec_dot(&vec_to_cargo, &Player_obj->phys_info.orient.vec.fvec);
 		if ( dot < CARGO_MIN_DOT_TO_REVEAL ) {
 			if ( !(cargo_sp->flags[Ship::Ship_Flags::Scannable]) )
 				strcpy(outstr,XSTR( "cargo: <unknown>", 86));
@@ -1707,8 +1707,8 @@ int player_inspect_cap_subsys_cargo(float frametime, char *outstr)
 	if ( Player_ai->current_target_distance < scan_dist ) {
 
 		// check if player is facing cargo, do not proceed with inspection if not
-		vm_vec_normalized_dir(&vec_to_cargo, &subsys_pos, &Player_obj->pos);
-		dot = vm_vec_dot(&vec_to_cargo, &Player_obj->orient.vec.fvec);
+		vm_vec_normalized_dir(&vec_to_cargo, &subsys_pos, &Player_obj->phys_info.pos);
+		dot = vm_vec_dot(&vec_to_cargo, &Player_obj->phys_info.orient.vec.fvec);
 		int hud_targetbox_subsystem_in_view(object *target_objp, int *sx, int *sy);
 		subsys_in_view = hud_targetbox_subsystem_in_view(cargo_objp, &x, &y);
 
@@ -2101,35 +2101,35 @@ camid player_get_cam()
 			if ( view_from_player ) {
 				//	View target from player ship.
 				viewer_obj = NULL;
-				eye_pos = Player_obj->pos;
+				eye_pos = Player_obj->phys_info.pos;
 
-				vm_vec_normalized_dir(&tmp_dir, &Objects[Player_ai->target_objnum].pos, &eye_pos);
+				vm_vec_normalized_dir(&tmp_dir, &Objects[Player_ai->target_objnum].phys_info.pos, &eye_pos);
 				vm_vector_2_matrix(&eye_orient, &tmp_dir, NULL, NULL);
 			}
 		} else {
-			dist = vm_vec_normalized_dir(&vec_to_deader, &Player_obj->pos, &Dead_camera_pos);
+			dist = vm_vec_normalized_dir(&vec_to_deader, &Player_obj->phys_info.pos, &Dead_camera_pos);
 			
 			if (dist < MIN_DIST_TO_DEAD_CAMERA){
 				dist += flFrametime * 16.0f;
 			}
 
 			vm_vec_scale(&vec_to_deader, -dist);
-			vm_vec_add(&Dead_camera_pos, &Player_obj->pos, &vec_to_deader);
+			vm_vec_add(&Dead_camera_pos, &Player_obj->phys_info.pos, &vec_to_deader);
 			
-			view_pos = Player_obj->pos;
+			view_pos = Player_obj->phys_info.pos;
 
 			if (!(Game_mode & GM_DEAD_BLEW_UP)) {								
 			} else if (Player_ai->target_objnum != -1) {
-				view_pos = Objects[Player_ai->target_objnum].pos;
+				view_pos = Objects[Player_ai->target_objnum].phys_info.pos;
 			} else {
 				//	Make camera follow explosion, but gradually slow down.
-				vm_vec_scale_add2(&Player_obj->pos, &Dead_player_last_vel, flFrametime);
-				view_pos = Player_obj->pos;				
+				vm_vec_scale_add2(&Player_obj->phys_info.pos, &Dead_player_last_vel, flFrametime);
+				view_pos = Player_obj->phys_info.pos;
 			}
 
 			eye_pos = Dead_camera_pos;
 
-			vm_vec_normalized_dir(&tmp_dir, &Player_obj->pos, &eye_pos);
+			vm_vec_normalized_dir(&tmp_dir, &Player_obj->phys_info.pos, &eye_pos);
 
 			vm_vector_2_matrix(&eye_orient, &tmp_dir, NULL, NULL);
 			viewer_obj = NULL;
@@ -2154,13 +2154,13 @@ camid player_get_cam()
 			matrix	tm, tm2;
 
 			vm_angles_2_matrix(&tm2, &Viewer_external_info.angles);
-			vm_matrix_x_matrix(&tm, &viewer_obj->orient, &tm2);
+			vm_matrix_x_matrix(&tm, &viewer_obj->phys_info.orient, &tm2);
 
-			vm_vec_scale_add(&eye_pos, &viewer_obj->pos, &tm.vec.fvec, 2.0f * viewer_obj->radius + Viewer_external_info.distance);
+			vm_vec_scale_add(&eye_pos, &viewer_obj->phys_info.pos, &tm.vec.fvec, 2.0f * viewer_obj->radius + Viewer_external_info.distance);
 
-			vm_vec_sub(&tmp_dir, &viewer_obj->pos, &eye_pos);
+			vm_vec_sub(&tmp_dir, &viewer_obj->phys_info.pos, &eye_pos);
 			vm_vec_normalize(&tmp_dir);
-			vm_vector_2_matrix(&eye_orient, &tmp_dir, &viewer_obj->orient.vec.uvec, NULL);
+			vm_vector_2_matrix(&eye_orient, &tmp_dir, &viewer_obj->phys_info.orient.vec.uvec, NULL);
  			viewer_obj = NULL;
 
 			//	Modify the orientation based on head orientation.
@@ -2169,25 +2169,25 @@ camid player_get_cam()
 			vec3d	move_dir;
 
 			if ( viewer_obj->phys_info.speed < 0.1 ){
-				move_dir = viewer_obj->orient.vec.fvec;
+				move_dir = viewer_obj->phys_info.orient.vec.fvec;
 			} else {
 				move_dir = viewer_obj->phys_info.vel;
 				vm_vec_normalize_safe(&move_dir);
 			}
 
-			vm_vec_scale_add(&eye_pos, &viewer_obj->pos, &move_dir, -3.0f * viewer_obj->radius - Viewer_chase_info.distance);
-			vm_vec_scale_add2(&eye_pos, &viewer_obj->orient.vec.uvec, 0.75f * viewer_obj->radius);
-			vm_vec_sub(&tmp_dir, &viewer_obj->pos, &eye_pos);
+			vm_vec_scale_add(&eye_pos, &viewer_obj->phys_info.pos, &move_dir, -3.0f * viewer_obj->radius - Viewer_chase_info.distance);
+			vm_vec_scale_add2(&eye_pos, &viewer_obj->phys_info.orient.vec.uvec, 0.75f * viewer_obj->radius);
+			vm_vec_sub(&tmp_dir, &viewer_obj->phys_info.pos, &eye_pos);
 			vm_vec_normalize(&tmp_dir);
 
 			// JAS: I added the following code because if you slew up using
-			// Descent-style physics, eye_dir and Viewer_obj->orient.vec.uvec are
+			// Descent-style physics, eye_dir and Viewer_obj->phys_info.orient.vec.uvec are
 			// equal, which causes a zero-length vector in the vm_vector_2_matrix
 			// call because the up and the forward vector are the same.   I fixed
 			// it by adding in a fraction of the right vector all the time to the
 			// up vector.
-			vec3d tmp_up = viewer_obj->orient.vec.uvec;
-			vm_vec_scale_add2( &tmp_up, &viewer_obj->orient.vec.rvec, 0.00001f );
+			vec3d tmp_up = viewer_obj->phys_info.orient.vec.uvec;
+			vm_vec_scale_add2( &tmp_up, &viewer_obj->phys_info.orient.vec.rvec, 0.00001f );
 
 			vm_vector_2_matrix(&eye_orient, &tmp_dir, &tmp_up, NULL);
 			viewer_obj = NULL;
@@ -2200,11 +2200,11 @@ camid player_get_cam()
 			ship * shipp = &Ships[Player_obj->instance];
 
 
-			vec3d warp_pos = Player_obj->pos;
+			vec3d warp_pos = Player_obj->phys_info.pos;
 			shipp->warpout_effect->getWarpPosition(&warp_pos);
 			vm_vec_sub(&tmp_dir, &warp_pos, &eye_pos);
 			vm_vec_normalize(&tmp_dir);
-			vm_vector_2_matrix(&eye_orient, &tmp_dir, &Player_obj->orient.vec.uvec, NULL);
+			vm_vector_2_matrix(&eye_orient, &tmp_dir, &Player_obj->phys_info.orient.vec.uvec, NULL);
 			viewer_obj = NULL;
 		} else {
 			// get an eye position based upon the correct type of object

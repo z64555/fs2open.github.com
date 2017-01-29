@@ -323,7 +323,7 @@ void draw_bounding_brackets_subobject()
 			int subobj_y = fl2i(subobj_vertex.screen.xyw.y + 0.5f);
 			int hud_subtarget_w, hud_subtarget_h, bound_rc;
 
-			bound_rc = subobj_find_2d_bound(subsys->system_info->radius, &targetp->orient, &subobj_pos, &x1,&y1,&x2,&y2);
+			bound_rc = subobj_find_2d_bound(subsys->system_info->radius, &targetp->phys_info.orient, &subobj_pos, &x1,&y1,&x2,&y2);
 			if ( bound_rc != 0 )
 				return;
 
@@ -617,7 +617,7 @@ int draw_subsys_brackets(ship_subsys* subsys, int min_width, int min_height, boo
 	int subobj_y = fl2i(subobj_vertex.screen.xyw.y + 0.5f);
 	int hud_subtarget_w, hud_subtarget_h, bound_rc;
 
-	bound_rc = subobj_find_2d_bound(subsys->system_info->radius, &targetp->orient, &subobj_pos, &x1,&y1,&x2,&y2);
+	bound_rc = subobj_find_2d_bound(subsys->system_info->radius, &targetp->phys_info.orient, &subobj_pos, &x1,&y1,&x2,&y2);
 	if ( bound_rc != 0 )
 		return -1;
 
@@ -765,7 +765,7 @@ void HudGaugeBrackets::renderObjectBrackets(object *targetp, color *clr, int w_c
 		switch ( targetp->type ) {
 		case OBJ_SHIP:
 			modelnum = Ship_info[Ships[targetp->instance].ship_info_index].model_num;
-			bound_rc = model_find_2d_bound_min( modelnum, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
+			bound_rc = model_find_2d_bound_min(modelnum, &targetp->phys_info.orient, &targetp->phys_info.pos, &x1, &y1, &x2, &y2);
 			if ( bound_rc != 0 ) {
 				draw_box = false;
 			}
@@ -773,7 +773,7 @@ void HudGaugeBrackets::renderObjectBrackets(object *targetp, color *clr, int w_c
 
 		case OBJ_DEBRIS:
 			modelnum = Debris[targetp->instance].model_num;
-			bound_rc = submodel_find_2d_bound_min( modelnum, Debris[targetp->instance].submodel_num, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
+			bound_rc = submodel_find_2d_bound_min(modelnum, Debris[targetp->instance].submodel_num, &targetp->phys_info.orient, &targetp->phys_info.pos, &x1, &y1, &x2, &y2);
 			if ( bound_rc != 0 ) {
 				draw_box = false;
 			}
@@ -782,10 +782,10 @@ void HudGaugeBrackets::renderObjectBrackets(object *targetp, color *clr, int w_c
 		case OBJ_WEAPON:
 			modelnum = Weapon_info[Weapons[targetp->instance].weapon_info_index].model_num;
 			if (modelnum != -1)
-				bound_rc = model_find_2d_bound_min( modelnum, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
+				bound_rc = model_find_2d_bound_min(modelnum, &targetp->phys_info.orient, &targetp->phys_info.pos, &x1, &y1, &x2, &y2);
 			else {
 				vertex vtx;
-				g3_rotate_vertex(&vtx,&targetp->pos);
+				g3_rotate_vertex(&vtx, &targetp->phys_info.pos);
 				g3_project_vertex(&vtx);
 				x1 = x2 = (int) vtx.screen.xyw.x;
 				y1 = y2 = (int) vtx.screen.xyw.y;
@@ -798,7 +798,7 @@ void HudGaugeBrackets::renderObjectBrackets(object *targetp, color *clr, int w_c
 			int pof = 0;
 			pof = Asteroids[targetp->instance].asteroid_subtype;
 			modelnum = Asteroid_info[Asteroids[targetp->instance].asteroid_type].model_num[pof];
-			bound_rc = model_find_2d_bound_min( modelnum, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
+			bound_rc = model_find_2d_bound_min(modelnum, &targetp->phys_info.orient, &targetp->phys_info.pos, &x1, &y1, &x2, &y2);
 			}
 			break;
 
@@ -809,7 +809,7 @@ void HudGaugeBrackets::renderObjectBrackets(object *targetp, color *clr, int w_c
 			}	
 				
 			modelnum = jnp->GetModelNumber();
-			bound_rc = model_find_2d_bound_min( modelnum, &targetp->orient, &targetp->pos,&x1,&y1,&x2,&y2 );
+			bound_rc = model_find_2d_bound_min(modelnum, &targetp->phys_info.orient, &targetp->phys_info.pos, &x1, &y1, &x2, &y2);
 			break;
 
 		default:
@@ -869,7 +869,7 @@ void HudGaugeBrackets::renderNavBrackets(vec3d* nav_pos, vertex* nav_point, colo
 
 	gr_unsize_screen_pos( &x, &y );
 
-	dist = vm_vec_dist_quick(&Objects[Player_ship->objnum].pos, nav_pos);
+	dist = vm_vec_dist_quick(&Objects[Player_ship->objnum].phys_info.pos, nav_pos);
 
 	if (dist < 1000)
 		box_scale = int(float(dist)/1000.0f * 15);
@@ -1078,7 +1078,7 @@ void HudGaugeBrackets::renderBoundingBracketsSubobject()
 			int subobj_y = fl2i(subobj_vertex.screen.xyw.y + 0.5f);
 			int hud_subtarget_w, hud_subtarget_h, bound_rc;
 
-			bound_rc = subobj_find_2d_bound(subsys->system_info->radius, &targetp->orient, &subobj_pos, &x1,&y1,&x2,&y2);
+			bound_rc = subobj_find_2d_bound(subsys->system_info->radius, &targetp->phys_info.orient, &subobj_pos, &x1,&y1,&x2,&y2);
 			if ( bound_rc != 0 )
 				return;
 

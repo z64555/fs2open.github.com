@@ -470,8 +470,8 @@ void render_shield(int shield_num)
 		return;
 	}
 
-	orient = &objp->orient;
-	centerp = &objp->pos;
+	orient = &objp->phys_info.orient;
+	centerp = &objp->phys_info.pos;
 
 	int bitmap_id, frame_num;
 
@@ -864,7 +864,7 @@ void create_shield_explosion_all(object *objp)
 
 	for (i=0; i<Num_shield_points; i++) {
 		if (Shield_points[i].objnum == objnum) {
-			create_shield_explosion(objnum, Ship_info[shipp->ship_info_index].model_num, &objp->orient, &objp->pos, &Shield_points[i].hit_point, Shield_points[i].shield_tri);
+			create_shield_explosion(objnum, Ship_info[shipp->ship_info_index].model_num, &objp->phys_info.orient, &objp->phys_info.pos, &Shield_points[i].hit_point, Shield_points[i].shield_tri);
 			count--;
 			if (count <= 0){
 				break;
@@ -921,10 +921,10 @@ void ship_draw_shield( object *objp)
 		//	Need to rotate eye position into object's reference frame.
 		//	Only draw facing triangles.
 		vm_vec_rotate(&tri_point, &pm->shield.verts[tri->verts[0]].pos, &Eye_matrix);
-		vm_vec_add2(&tri_point, &objp->pos);
+		vm_vec_add2(&tri_point, &objp->phys_info.pos);
 
 		vm_vec_sub(&v2f, &tri_point, &Eye_position);
-		vm_vec_unrotate(&gnorm, &tri->norm, &objp->orient);
+		vm_vec_unrotate(&gnorm, &tri->norm, &objp->phys_info.orient);
 
 		if (vm_vec_dot(&gnorm, &v2f) < 0.0f) {
 			int	intensity;
@@ -944,8 +944,8 @@ void ship_draw_shield( object *objp)
 				vertex tmp;
 
 				// Rotate point into world coordinates
-				vm_vec_unrotate(&pnt, &pm->shield.verts[tri->verts[j]].pos, &objp->orient);
-				vm_vec_add2(&pnt, &objp->pos);
+				vm_vec_unrotate(&pnt, &pm->shield.verts[tri->verts[j]].pos, &objp->phys_info.orient);
+				vm_vec_add2(&pnt, &objp->phys_info.pos);
 
 				// Pnt is now the x,y,z world coordinates of this vert.
 				// For this example, I am just drawing a sphere at that

@@ -50,6 +50,9 @@ void physics_init( physics_info * pi )
 {
 	memset( pi, 0, sizeof(physics_info) );
 
+	pi->pos = pi->last_pos = vmd_zero_vector;
+	pi->orient = pi->last_orient = vmd_identity_matrix;
+
 	pi->mass = 10.0f;					// This ship weighs 10 units
 	pi->side_slip_time_const = 0.05f;
 	pi->rotdamp = 0.1f;
@@ -500,7 +503,7 @@ void physics_read_flying_controls( matrix * orient, physics_info * pi, control_i
 
 		ship_get_eye(&tmp_vec, &eyemat, Player_obj, false);
 
-		vm_copy_transpose(&tmp_mat, &Player_obj->orient);
+		vm_copy_transpose(&tmp_mat, &Player_obj->phys_info.orient);
 		vm_matrix_x_matrix(&rotvelmat, &tmp_mat, &eyemat);
 
 		vm_vec_rotate(&new_rotvel, &pi->max_rotvel, &rotvelmat);

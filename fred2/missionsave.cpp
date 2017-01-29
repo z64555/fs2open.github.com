@@ -2715,11 +2715,11 @@ int CFred_mission_save::save_objects() {
 
 		required_string_fred("$Location:");
 		parse_comments();
-		save_vector(Objects[shipp->objnum].pos);
+		save_vector(Objects[shipp->objnum].phys_info.pos);
 
 		required_string_fred("$Orientation:");
 		parse_comments();
-		save_matrix(Objects[shipp->objnum].orient);
+		save_matrix(Objects[shipp->objnum].phys_info.orient);
 
 		if (Format_fs2_retail) {
 			required_string_fred("$IFF:");
@@ -3792,7 +3792,7 @@ int CFred_mission_save::save_waypoints() {
 	for (jnp = Jump_nodes.begin(); jnp != Jump_nodes.end(); ++jnp) {
 		required_string_fred("$Jump Node:", "$Jump Node Name:");
 		parse_comments(2);
-		save_vector(jnp->GetSCPObject()->pos);
+		save_vector(jnp->GetSCPObject()->phys_info.pos);
 
 		required_string_fred("$Jump Node Name:", "$Jump Node:");
 		parse_comments();

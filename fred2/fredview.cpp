@@ -597,7 +597,7 @@ int drag_objects()
 
 	objp = &Objects[cur_object_index];
 	Assert(objp->type != OBJ_NONE);
-	obj = int_pnt = objp->pos;
+	obj = int_pnt = objp->phys_info.pos;
 
 	//	Get 3d vector specified by mouse cursor location.
 	g3_point_to_vec_delayed(&cursor_dir, marking_box.x2, marking_box.y2);
@@ -652,11 +652,11 @@ int drag_objects()
 		while (objp != END_OF_LIST(&obj_used_list))	{
 			Assert(objp->type != OBJ_NONE);
 			if (objp->flags[Object::Object_Flags::Marked]) {
-				vm_vec_add(&objp->pos, &objp->pos, &movement_vector);
+				vm_vec_add(&objp->phys_info.pos, &objp->phys_info.pos, &movement_vector);
 				if (objp->type == OBJ_WAYPOINT) {
 					waypoint *wpt = find_waypoint_with_instance(objp->instance);
 					Assert(wpt != NULL);
-					wpt->set_pos(&objp->pos);
+					wpt->set_pos(&objp->phys_info.pos);
 				}
 			}
 
@@ -692,8 +692,8 @@ void drag_rotate_save_backup()
 	while (objp != END_OF_LIST(&obj_used_list))			{
 		Assert(objp->type != OBJ_NONE);
 		if (objp->flags[Object::Object_Flags::Marked])	{
-			rotation_backup[OBJ_INDEX(objp)].pos = objp->pos;
-			rotation_backup[OBJ_INDEX(objp)].orient = objp->orient;
+			rotation_backup[OBJ_INDEX(objp)].pos = objp->phys_info.pos;
+			rotation_backup[OBJ_INDEX(objp)].orient = objp->phys_info.orient;
 		}
 
 		objp = GET_NEXT(objp);
@@ -727,7 +727,7 @@ int drag_rotate_objects()
 
 	objp = &Objects[cur_object_index];
 	Assert(objp->type != OBJ_NONE);
-	obj = int_pnt = objp->pos;
+	obj = int_pnt = objp->phys_info.pos;
 
 	memset(&a, 0, sizeof(angles));
 	if (Single_axis_constraint) {
@@ -752,12 +752,12 @@ int drag_rotate_objects()
 	}
 
 	leader = &Objects[cur_object_index];
-	leader_orient = leader->orient;			// save original orientation
+	leader_orient = leader->phys_info.orient;			// save original orientation
 	vm_copy_transpose(&leader_transpose, &leader_orient);
 
 	vm_angles_2_matrix(&rotmat, &a);
-	vm_matrix_x_matrix(&newmat, &leader->orient, &rotmat);
-	leader->orient = newmat;
+	vm_matrix_x_matrix(&newmat, &leader->phys_info.orient, &rotmat);
+	leader->phys_info.orient = newmat;
 
 	objp = GET_FIRST(&obj_used_list);
 	while (objp != END_OF_LIST(&obj_used_list))			{
@@ -772,7 +772,7 @@ int drag_rotate_objects()
 				vm_copy_transpose(&rot_trans, &rotmat);
 
 				// get point relative to our point of rotation (make POR the origin).
-				vm_vec_sub(&tmpv1, &objp->pos, &leader->pos);
+				vm_vec_sub(&tmpv1, &objp->phys_info.pos, &leader->phys_info.pos);
 
 				// convert point from real-world coordinates to leader's relative coordinate
 				// system (z=forward vec, y=up vec, x=right vec
@@ -786,16 +786,16 @@ int drag_rotate_objects()
 
 				// and move origin back to real-world origin.  Object is now at its correct
 				// position.
-				vm_vec_add(&objp->pos, &leader->pos, &tmpv2);
+				vm_vec_add(&objp->phys_info.pos, &leader->phys_info.pos, &tmpv2);
 
 				// Now fix the object's orientation to what it should be.
-				vm_matrix_x_matrix(&tmp, &objp->orient, &rotmat);
+				vm_matrix_x_matrix(&tmp, &objp->phys_info.orient, &rotmat);
 				vm_orthogonalize_matrix(&tmp);  // safety check
-				objp->orient = tmp;
+				objp->phys_info.orient = tmp;
 
 			} else {
-				vm_matrix_x_matrix(&tmp, &objp->orient, &rotmat);
-				objp->orient = tmp;
+				vm_matrix_x_matrix(&tmp, &objp->phys_info.orient, &rotmat);
+				objp->phys_info.orient = tmp;
 			}
 		}
 		
@@ -837,13 +837,13 @@ void cancel_drag()
 			if (query_valid_object()) {
 				objp = &Objects[cur_object_index];
 				Assert(objp->type != OBJ_NONE);
-				vm_vec_sub(&movement_vector, &original_pos, &objp->pos);
+				vm_vec_sub(&movement_vector, &original_pos, &objp->phys_info.pos);
 
 				objp = GET_FIRST(&obj_used_list);
 				while (objp != END_OF_LIST(&obj_used_list))	{
 					Assert(objp->type != OBJ_NONE);
 					if (objp->flags[Object::Object_Flags::Marked])
-						vm_vec_add(&objp->pos, &objp->pos, &movement_vector);
+						vm_vec_add(&objp->phys_info.pos, &objp->phys_info.pos, &movement_vector);
 
 					objp = GET_NEXT(objp);
 				}
@@ -862,8 +862,8 @@ void cancel_drag()
 						!IS_VEC_NULL(&rotation_backup[obj_index].orient.vec.uvec) && 
 						!IS_VEC_NULL(&rotation_backup[obj_index].orient.vec.fvec)){
 
-						objp->pos = rotation_backup[obj_index].pos;
-						objp->orient = rotation_backup[obj_index].orient;
+						objp->phys_info.pos = rotation_backup[obj_index].pos;
+						objp->phys_info.orient = rotation_backup[obj_index].orient;
 					}
 				}
 
@@ -942,7 +942,7 @@ void CFREDView::OnLButtonDown(UINT nFlags, CPoint point)
 	}
 
 	if (query_valid_object())
-		original_pos = Objects[cur_object_index].pos;
+		original_pos = Objects[cur_object_index].phys_info.pos;
 
 	moved = 0;
 	if (Selection_lock) {
@@ -1288,7 +1288,7 @@ void select_objects()
 				break;
 		}
 
-		g3_rotate_vertex(&v, &ptr->pos);
+		g3_rotate_vertex(&v, &ptr->phys_info.pos);
 		if (!(v.codes & CC_BEHIND) && valid)
 			if (!(g3_project_vertex(&v) & PF_OVERFLOW)) {
 				x = (int) v.screen.xyw.x;
@@ -2058,14 +2058,14 @@ void view_universe(int just_marked)
 	else
 		ptr = GET_FIRST(&obj_used_list);
 
-	p1.xyz.x = p2.xyz.x = ptr->pos.xyz.x;
-	p1.xyz.y = p2.xyz.y = ptr->pos.xyz.y;
-	p1.xyz.z = p2.xyz.z = ptr->pos.xyz.z;
+	p1.xyz.x = p2.xyz.x = ptr->phys_info.pos.xyz.x;
+	p1.xyz.y = p2.xyz.y = ptr->phys_info.pos.xyz.y;
+	p1.xyz.z = p2.xyz.z = ptr->phys_info.pos.xyz.z;
 
 	ptr = GET_FIRST(&obj_used_list);
 	while (ptr != END_OF_LIST(&obj_used_list)) {
 		if (!just_marked || (ptr->flags[Object::Object_Flags::Marked])) {
-			center = ptr->pos;
+			center = ptr->phys_info.pos;
 			if (center.xyz.x < p1.xyz.x)
 				p1.xyz.x = center.xyz.x;
 			if (center.xyz.x > p2.xyz.x)
@@ -2087,7 +2087,7 @@ void view_universe(int just_marked)
 	ptr = GET_FIRST(&obj_used_list);
 	while (ptr != END_OF_LIST(&obj_used_list)) {
 		if (!just_marked || (ptr->flags[Object::Object_Flags::Marked])) {
-			dist = vm_vec_dist_squared(&center, &ptr->pos);
+			dist = vm_vec_dist_squared(&center, &ptr->phys_info.pos);
 			if (dist > largest)
 				largest = dist;
 
@@ -2106,7 +2106,7 @@ void view_universe(int just_marked)
 	ptr = GET_FIRST(&obj_used_list);
 	while (ptr != END_OF_LIST(&obj_used_list)) {
 		if (!just_marked || (ptr->flags[Object::Object_Flags::Marked])) {
-			g3_rotate_vertex(&v, &ptr->pos);
+			g3_rotate_vertex(&v, &ptr->phys_info.pos);
 			Assert(!(v.codes & CC_BEHIND));
 			if (g3_project_vertex(&v) & PF_OVERFLOW)
 				Int3();
@@ -2115,7 +2115,7 @@ void view_universe(int just_marked)
 				dist += 5.0f;  // zoom out a little and check again.
 				vm_vec_scale_add(&view_pos, &center, &view_orient.vec.fvec, -dist);
 				g3_set_view_matrix(&view_pos, &view_orient, 0.5f);
-				g3_rotate_vertex(&v, &ptr->pos);
+				g3_rotate_vertex(&v, &ptr->phys_info.pos);
 				if (g3_project_vertex(&v) & PF_OVERFLOW)
 					Int3();
 			}
@@ -2161,7 +2161,7 @@ void CFREDView::OnZoomSelected()
 		if (Marked > 1)
 			view_universe(1);
 		else
-			vm_vec_scale_add(&view_pos, &Objects[cur_object_index].pos, &view_orient.vec.fvec, Objects[cur_object_index].radius * -3.0f);
+			vm_vec_scale_add(&view_pos, &Objects[cur_object_index].phys_info.pos, &view_orient.vec.fvec, Objects[cur_object_index].radius * -3.0f);
 	}
 
 	Update_window = 1;
@@ -4041,7 +4041,7 @@ void CFREDView::OnLookatObj()
 		vec3d v, loc;
 		matrix m;
 
-		loc = Objects[cur_object_index].pos;
+		loc = Objects[cur_object_index].phys_info.pos;
 		vm_vec_sub(&v, &loc, &view_pos);
 
 		if (v.xyz.x || v.xyz.y || v.xyz.z) {

@@ -139,7 +139,7 @@ int obj_in_view_cone( object * objp )
 	ubyte and_codes = 0xff;
 
 	for (i=0; i<8; i++ ) {
-		vm_vec_scale_add( &pt, &objp->pos, &check_offsets[i], objp->radius );
+		vm_vec_scale_add( &pt, &objp->phys_info.pos, &check_offsets[i], objp->radius );
 		codes=g3_rotate_vector(&tmp,&pt);
 		if ( !codes ) {
 			//mprintf(( "A point is inside, so render it.\n" ));
@@ -190,7 +190,7 @@ void obj_render_all(void (*render_function)(object *objp), bool *draw_viewer_las
 				osp.obj = objp;
 
 				vec3d to_obj;
-				vm_vec_sub( &to_obj, &objp->pos, &Eye_position );
+				vm_vec_sub( &to_obj, &objp->phys_info.pos, &Eye_position );
 				osp.z = vm_vec_dot( &Eye_matrix.vec.fvec, &to_obj );
 /*
 				if ( objp->type == OBJ_SHOCKWAVE )
@@ -358,7 +358,7 @@ void obj_render_queue_all()
 
 			if ( (The_mission.flags[Mission::Mission_Flags::Fullneb]) && (Neb2_render_mode != NEB2_RENDER_NONE) && !Fred_running ) {
 				vec3d to_obj;
-				vm_vec_sub( &to_obj, &objp->pos, &Eye_position );
+				vm_vec_sub( &to_obj, &objp->phys_info.pos, &Eye_position );
 				float z = vm_vec_dot( &Eye_matrix.vec.fvec, &to_obj );
 
 				if ( neb2_skip_render(objp, z) ){

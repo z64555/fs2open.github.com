@@ -1639,7 +1639,7 @@ void position_ship_for_knossos_warpin(p_object *p_objp)
 		if (Ship_info[Ships[ship_objp->instance].ship_info_index].flags[Ship::Info_Flags::Knossos_device])
 		{
 			// be close to the right device (allow multiple knossoses)
-			if ( vm_vec_dist_quick(&ship_objp->pos, &p_objp->pos) < 2.0f*(ship_objp->radius + objp->radius) )
+			if ( vm_vec_dist_quick(&ship_objp->phys_info.pos, &p_objp->pos) < 2.0f*(ship_objp->radius + objp->radius) )
 			{
 				knossos_objp = ship_objp;
 				break;
@@ -1657,16 +1657,16 @@ void position_ship_for_knossos_warpin(p_object *p_objp)
 	vec3d new_point;
 	polymodel *pm = model_get(Ship_info[shipp->ship_info_index].model_num);
 
-	float dist = fvi_ray_plane(&new_point, &knossos_objp->pos, &knossos_objp->orient.vec.fvec, &p_objp->pos, &p_objp->orient.vec.fvec, 0.0f);
+	float dist = fvi_ray_plane(&new_point, &knossos_objp->phys_info.pos, &knossos_objp->phys_info.orient.vec.fvec, &p_objp->pos, &p_objp->orient.vec.fvec, 0.0f);
 	float desired_dist = -pm->mins.xyz.z;
-	vm_vec_scale_add2(&objp->pos, &objp->orient.vec.fvec, (dist - desired_dist));
+	vm_vec_scale_add2(&objp->phys_info.pos, &objp->phys_info.orient.vec.fvec, (dist - desired_dist));
 	
 	// if ship is HUGE, make it go through the center of the knossos
 	if (Ship_info[shipp->ship_info_index].is_huge_ship())
 	{
 		vec3d offset;
-		vm_vec_sub(&offset, &knossos_objp->pos, &new_point);
-		vm_vec_add2(&knossos_objp->pos, &offset);
+		vm_vec_sub(&offset, &knossos_objp->phys_info.pos, &new_point);
+		vm_vec_add2(&knossos_objp->phys_info.pos, &offset);
 	}
 }
 
@@ -1840,7 +1840,7 @@ int parse_create_object_sub(p_object *p_objp)
 			parse_bring_in_docked_wing(p_objp, p_objp->wingnum, shipnum);
 	}
 
-	// if arriving through knossos, adjust objpj->pos to plane of knossos and set flag
+	// if arriving through knossos, adjust objpj->phys_info.pos to plane of knossos and set flag
 	// special warp is single player only
 	if ((p_objp->flags[Mission::Parse_Object_Flags::Knossos_warp_in]) && !(Game_mode & GM_MULTIPLAYER))
 	{
@@ -3467,7 +3467,7 @@ void mission_parse_maybe_create_parse_object(p_object *pobjp)
 			if (!Fred_running)
 			{
 				int i;
-				shipfx_blow_up_model(objp, Ship_info[Ships[objp->instance].ship_info_index].model_num, 0, 0, &objp->pos);
+				shipfx_blow_up_model(objp, Ship_info[Ships[objp->instance].ship_info_index].model_num, 0, 0, &objp->phys_info.pos);
 				objp->flags.set(Object::Object_Flags::Should_be_dead);
 
 				// Make sure that the ship is marked as destroyed so the AI doesn't freak out later
@@ -3491,7 +3491,7 @@ void mission_parse_maybe_create_parse_object(p_object *pobjp)
 
 					// now move the debris along its path for N seconds
 					objp = &Objects[db->objnum];
-					physics_sim(&objp->pos, &objp->orient, &objp->phys_info, (float) pobjp->destroy_before_mission_time);
+					physics_sim(&objp->phys_info.pos, &objp->phys_info.orient, &objp->phys_info, (float) pobjp->destroy_before_mission_time);
 				}
 			}
 			// FRED
@@ -6060,8 +6060,8 @@ void mission_set_wing_arrival_location( wing *wingp, int num_to_set )
 
 				// change the position of the next ships in the wing.  Use the cool function in AiCode.cpp which
 				// Mike K wrote to give new positions to the wing members.
-				get_absolute_wing_pos( &objp->pos, leader_objp, wing_index++, 0);
-				memcpy( &objp->orient, &orient, sizeof(matrix) );
+				get_absolute_wing_pos( &objp->phys_info.pos, leader_objp, wing_index++, 0);
+				memcpy( &objp->phys_info.orient, &orient, sizeof(matrix) );
 
 				index++;
 			}
@@ -6501,7 +6501,7 @@ int mission_set_arrival_location(int anchor, int location, int dist, int objnum,
 	// to make this ship appear
 	Assert ( shipnum != -1 );
 	anchor_objnum = Ships[shipnum].objnum;
-	anchor_pos = Objects[anchor_objnum].pos;
+	anchor_pos = Objects[anchor_objnum].phys_info.pos;
 
 	// if arriving from docking bay, then set ai mode and call function as per AL's instructions.
 	if ( location == ARRIVE_FROM_DOCK_BAY ) {
@@ -6512,8 +6512,8 @@ int mission_set_arrival_location(int anchor, int location, int dist, int objnum,
 			Int3();			// get MWA or AL -- not sure what to do here when we cannot acquire a path
 			return -1;
 		}
-		Objects[objnum].pos = pos;
-		vm_vector_2_matrix(&Objects[objnum].orient, &fvec, NULL, NULL);
+		Objects[objnum].phys_info.pos = pos;
+		vm_vector_2_matrix(&Objects[objnum].phys_info.orient, &fvec, NULL, NULL);
 	} else {
 
 		// AL: ensure dist > 0 (otherwise get errors in vecmat)
@@ -6554,9 +6554,9 @@ int mission_set_arrival_location(int anchor, int location, int dist, int objnum,
 				r2 = static_rand(Objects[objnum].net_signature+1) < RAND_MAX_2 ? -1 : 1;
 			}
 
-			vm_vec_copy_scale(&t1, &(Objects[anchor_objnum].orient.vec.fvec), x);
-			vm_vec_copy_scale(&t2, &(Objects[anchor_objnum].orient.vec.rvec), (1.0f - x) * r1);
-			vm_vec_copy_scale(&t3, &(Objects[anchor_objnum].orient.vec.uvec), (1.0f - x) * r2);
+			vm_vec_copy_scale(&t1, &(Objects[anchor_objnum].phys_info.orient.vec.fvec), x);
+			vm_vec_copy_scale(&t2, &(Objects[anchor_objnum].phys_info.orient.vec.rvec), (1.0f - x) * r1);
+			vm_vec_copy_scale(&t3, &(Objects[anchor_objnum].phys_info.orient.vec.uvec), (1.0f - x) * r2);
 
 			vm_vec_add(&rand_vec, &t1, &t2);
 			vm_vec_add2(&rand_vec, &t3);
@@ -6569,24 +6569,24 @@ int mission_set_arrival_location(int anchor, int location, int dist, int objnum,
 		// the object centers were at the correct distance, but the model itself was much closer to the
 		// target ship.
 		dist += (int)Objects[objnum].radius + (int)Objects[anchor_objnum].radius;
-		vm_vec_scale_add(&Objects[objnum].pos, &anchor_pos, &rand_vec, (float)dist);
+		vm_vec_scale_add(&Objects[objnum].phys_info.pos, &anchor_pos, &rand_vec, (float) dist);
 
 		// I think that we will always want to orient the ship that is arriving to face towards
 		// the ship it is arriving near/in front of.  The effect will be cool!
 		//
 		// calculate the new fvec of the ship arriving and use only that to get the matrix.  isn't a big
 		// deal not getting bank.
-		vm_vec_sub(&new_fvec, &anchor_pos, &Objects[objnum].pos );
+		vm_vec_sub(&new_fvec, &anchor_pos, &Objects[objnum].phys_info.pos);
 		vm_vector_2_matrix( &orient, &new_fvec, NULL, NULL );
-		Objects[objnum].orient = orient;
+		Objects[objnum].phys_info.orient = orient;
 	}
 
 	// set the new_pos parameter since it might be used outside the function (i.e. when dealing with wings).
 	if ( new_pos )
-		memcpy(new_pos, &Objects[objnum].pos, sizeof(vec3d) );
+		memcpy(new_pos, &Objects[objnum].phys_info.pos, sizeof(vec3d));
 
 	if ( new_orient )
-		memcpy( new_orient, &Objects[objnum].orient, sizeof(matrix) );
+		memcpy(new_orient, &Objects[objnum].phys_info.orient, sizeof(matrix));
 
 	return anchor_objnum;
 }
@@ -7511,13 +7511,13 @@ int get_warp_in_pos(vec3d *pos, object *objp, float x, float y, float z)
 
 	rand_val = 1.0f + (rand_val - 0.5f)*0.2f;
 
-	*pos = objp->pos;
+	*pos = objp->phys_info.pos;
 
-	vm_vec_scale_add2( pos, &objp->orient.vec.rvec, x*rand_val*800.0f);
-	vm_vec_scale_add2( pos, &objp->orient.vec.uvec, y*rand_val*800.0f);
-	vm_vec_scale_add2( pos, &objp->orient.vec.fvec, z*rand_val*800.0f);
+	vm_vec_scale_add2( pos, &objp->phys_info.orient.vec.rvec, x*rand_val*800.0f);
+	vm_vec_scale_add2( pos, &objp->phys_info.orient.vec.uvec, y*rand_val*800.0f);
+	vm_vec_scale_add2( pos, &objp->phys_info.orient.vec.fvec, z*rand_val*800.0f);
 
-	return pp_collide_any(&objp->pos, pos, objp->radius, objp, NULL, 1);
+	return pp_collide_any(&objp->phys_info.pos, pos, objp->radius, objp, NULL, 1);
 }
 
 /**
@@ -7550,7 +7550,7 @@ void mission_bring_in_support_ship( object *requester_objp )
 
 	// get average position of all ships
 	obj_get_average_ship_pos( &center );
-	vm_vec_sub( &warp_in_pos, &center, &(requester_objp->pos) );
+	vm_vec_sub( &warp_in_pos, &center, &(requester_objp->phys_info.pos) );
 
 	//	Choose position to warp in ship.
 	//	Temporary, but changed by MK because it used to be exactly behind the player.

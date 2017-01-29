@@ -364,8 +364,8 @@ namespace particle
 			vec3d p_pos;
 			if (part->attached_objnum >= 0)
 			{
-				vm_vec_unrotate(&p_pos, &part->pos, &Objects[part->attached_objnum].orient);
-				vm_vec_add2(&p_pos, &Objects[part->attached_objnum].pos);
+				vm_vec_unrotate(&p_pos, &part->pos, &Objects[part->attached_objnum].phys_info.orient);
+				vm_vec_add2(&p_pos, &Objects[part->attached_objnum].phys_info.pos);
 			}
 			else
 			{

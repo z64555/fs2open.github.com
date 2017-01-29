@@ -940,15 +940,15 @@ void initial_status::undock(object *objp1, object *objp2)
 	if (objp1 == NULL || objp2 == NULL)
 		return;
 
-	vm_vec_sub(&v, &objp2->pos, &objp1->pos);
+	vm_vec_sub(&v, &objp2->phys_info.pos, &objp1->phys_info.pos);
 	vm_vec_normalize(&v);
 	ship_num = get_ship_from_obj(OBJ_INDEX(objp1));
 	other_ship_num = get_ship_from_obj(OBJ_INDEX(objp2));
 
 	if (ship_class_compare(Ships[ship_num].ship_info_index, Ships[other_ship_num].ship_info_index) <= 0)
-		vm_vec_scale_add2(&objp2->pos, &v, objp2->radius * 2.0f);
+		vm_vec_scale_add2(&objp2->phys_info.pos, &v, objp2->radius * 2.0f);
 	else
-		vm_vec_scale_add2(&objp1->pos, &v, objp1->radius * -2.0f);
+		vm_vec_scale_add2(&objp1->phys_info.pos, &v, objp1->radius * -2.0f);
 
 	ai_do_objects_undocked_stuff(objp1, objp2);
 

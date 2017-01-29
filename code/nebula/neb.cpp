@@ -1185,7 +1185,7 @@ float neb2_get_fog_intensity(object *obj)
 	neb2_get_adjusted_fog_values(&nNf_near, &nNf_far, obj);
 
 	// get the fog pct
-	pct = vm_vec_dist_quick(&Eye_position, &obj->pos) / (nNf_far - nNf_near);
+	pct = vm_vec_dist_quick(&Eye_position, &obj->phys_info.pos) / (nNf_far - nNf_near);
     
     CLAMP(pct, 0.0f, 1.0f);
 

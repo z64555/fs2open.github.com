@@ -447,12 +447,12 @@ void display_distances() {
 			{
 				if (o2->flags[Object::Object_Flags::Marked])
 				{
-					rpd_line(&objp->pos, &o2->pos);
-					vm_vec_avg(&pos, &objp->pos, &o2->pos);
+					rpd_line(&objp->phys_info.pos, &o2->phys_info.pos);
+					vm_vec_avg(&pos, &objp->phys_info.pos, &o2->phys_info.pos);
 					g3_rotate_vertex(&v, &pos);
 					if (!(v.codes & CC_BEHIND))
 						if (!(g3_project_vertex(&v) & PF_OVERFLOW))	{
-							sprintf(buf, "%.1f", vm_vec_dist(&objp->pos, &o2->pos));
+							sprintf(buf, "%.1f", vm_vec_dist(&objp->phys_info.pos, &o2->phys_info.pos));
 							gr_set_color_fast(&colour_white);
 							gr_string((int) v.screen.xyw.x, (int) v.screen.xyw.y, buf);
 						}
@@ -503,7 +503,7 @@ void display_ship_info() {
 		if (objp->flags[Object::Object_Flags::Hidden])
 			render = 0;
 
-		g3_rotate_vertex(&v, &objp->pos);
+		g3_rotate_vertex(&v, &objp->phys_info.pos);
 		if (!(v.codes & CC_BEHIND) && render)
 			if (!(g3_project_vertex(&v) & PF_OVERFLOW)) {
 				*buf = 0;
@@ -536,7 +536,7 @@ void display_ship_info() {
 				}
 
 				if (Show_coordinates) {
-					sprintf(pos, "(%.0f,%.0f,%.0f)", objp->pos.xyz.x, objp->pos.xyz.y, objp->pos.xyz.z);
+					sprintf(pos, "(%.0f,%.0f,%.0f)", objp->phys_info.pos.xyz.x, objp->phys_info.pos.xyz.y, objp->phys_info.pos.xyz.z);
 					if (*buf)
 						strcat_s(buf, "\n");
 
@@ -641,15 +641,15 @@ void draw_orient_sphere(object *obj, int r, int g, int b) {
 	vec3d	v1, v2;
 	float		size;
 
-	size = fl_sqrt(vm_vec_dist(&eye_pos, &obj->pos) / 20.0f);
+	size = fl_sqrt(vm_vec_dist(&eye_pos, &obj->phys_info.pos) / 20.0f);
 	if (size < LOLLIPOP_SIZE)
 		size = LOLLIPOP_SIZE;
 
 	if ((obj->type != OBJ_WAYPOINT) && (obj->type != OBJ_POINT)) {
-		flag = (vm_vec_dot(&eye_orient.vec.fvec, &obj->orient.vec.fvec) < 0.0f);
-		v1 = v2 = obj->pos;
-		vm_vec_scale_add2(&v1, &obj->orient.vec.fvec, size);
-		vm_vec_scale_add2(&v2, &obj->orient.vec.fvec, size * 1.5f);
+		flag = (vm_vec_dot(&eye_orient.vec.fvec, &obj->phys_info.orient.vec.fvec) < 0.0f);
+		v1 = v2 = obj->phys_info.pos;
+		vm_vec_scale_add2(&v1, &obj->phys_info.orient.vec.fvec, size);
+		vm_vec_scale_add2(&v2, &obj->phys_info.orient.vec.fvec, size * 1.5f);
 
 		if (!flag) {
 			gr_set_color(192, 192, 192);
@@ -658,7 +658,7 @@ void draw_orient_sphere(object *obj, int r, int g, int b) {
 	}
 
 	gr_set_color(r, g, b);
-	g3_rotate_vertex(&v, &obj->pos);
+	g3_rotate_vertex(&v, &obj->phys_info.pos);
 	if (!(v.codes & CC_BEHIND))
 		if (!(g3_project_vertex(&v) & PF_OVERFLOW))
 			g3_draw_sphere(&v, size);
@@ -675,16 +675,16 @@ void draw_orient_sphere2(int col, object *obj, int r, int g, int b) {
 	vec3d	v1, v2;
 	float		size;
 
-	size = fl_sqrt(vm_vec_dist(&eye_pos, &obj->pos) / 20.0f);
+	size = fl_sqrt(vm_vec_dist(&eye_pos, &obj->phys_info.pos) / 20.0f);
 	if (size < LOLLIPOP_SIZE)
 		size = LOLLIPOP_SIZE;
 
 	if ((obj->type != OBJ_WAYPOINT) && (obj->type != OBJ_POINT)) {
-		flag = (vm_vec_dot(&eye_orient.vec.fvec, &obj->orient.vec.fvec) < 0.0f);
+		flag = (vm_vec_dot(&eye_orient.vec.fvec, &obj->phys_info.orient.vec.fvec) < 0.0f);
 
-		v1 = v2 = obj->pos;
-		vm_vec_scale_add2(&v1, &obj->orient.vec.fvec, size);
-		vm_vec_scale_add2(&v2, &obj->orient.vec.fvec, size * 1.5f);
+		v1 = v2 = obj->phys_info.pos;
+		vm_vec_scale_add2(&v1, &obj->phys_info.orient.vec.fvec, size);
+		vm_vec_scale_add2(&v2, &obj->phys_info.orient.vec.fvec, size * 1.5f);
 
 		if (!flag) {
 			gr_set_color(192, 192, 192);
@@ -692,7 +692,7 @@ void draw_orient_sphere2(int col, object *obj, int r, int g, int b) {
 		}
 	}
 
-	g3_rotate_vertex(&v, &obj->pos);
+	g3_rotate_vertex(&v, &obj->phys_info.pos);
 	if (!(v.codes & CC_BEHIND))
 		if (!(g3_project_vertex(&v) & PF_OVERFLOW)) {
 			gr_set_color((col >> 16) & 0xff, (col >> 8) & 0xff, col & 0xff);
@@ -729,7 +729,7 @@ void fredhtl_render_subsystem_bounding_box(subsys_to_render * s2r) {
 	fred_enable_htl();
 
 	//draw a cube around the subsystem
-	g3_start_instance_matrix(&s2r->ship_obj->pos, &s2r->ship_obj->orient, true);
+	g3_start_instance_matrix(&s2r->ship_obj->phys_info.pos, &s2r->ship_obj->phys_info.orient, true);
 	g3_start_instance_matrix(&bsp->offset, &vmd_identity_matrix, true);
 	g3_draw_htl_line(&front_top_left, &front_top_right);
 	g3_draw_htl_line(&front_top_right, &front_bot_right);
@@ -788,8 +788,8 @@ void fredhtl_render_subsystem_bounding_box(subsys_to_render * s2r) {
 	//draw the text.  rotate the center of the subsystem into place before finding out where to put the text
 	strcpy_s(buf, Render_subsys.cur_subsys->system_info->subobj_name);
 	vec3d center_pt;
-	vm_vec_unrotate(&center_pt, &bsp->offset, &s2r->ship_obj->orient);
-	vm_vec_add2(&center_pt, &s2r->ship_obj->pos);
+	vm_vec_unrotate(&center_pt, &bsp->offset, &s2r->ship_obj->phys_info.orient);
+	vm_vec_add2(&center_pt, &s2r->ship_obj->phys_info.pos);
 	g3_rotate_vertex(&text_center, &center_pt);
 	g3_project_vertex(&text_center);
 	gr_set_color_fast(&colour_white);
@@ -919,10 +919,10 @@ void game_do_frame() {
 		break;
 
 	case 2:  // Control viewpoint object
-		process_controls(&Objects[view_obj].pos, &Objects[view_obj].orient, f2fl(Frametime), key);
+		process_controls(&Objects[view_obj].phys_info.pos, &Objects[view_obj].phys_info.orient, f2fl(Frametime), key);
 		object_moved(&Objects[view_obj]);
-		control_pos = Objects[view_obj].pos;
-		control_orient = Objects[view_obj].orient;
+		control_pos = Objects[view_obj].phys_info.pos;
+		control_orient = Objects[view_obj].phys_info.orient;
 		break;
 
 	case 1:  //	Control the current object's location and orientation
@@ -932,14 +932,14 @@ void game_do_frame() {
 			object *leader;
 
 			leader = &Objects[cur_object_index];
-			leader_old_pos = leader->pos;  // save original position
-			leader_orient = leader->orient;			// save original orientation
+			leader_old_pos = leader->phys_info.pos;  // save original position
+			leader_orient = leader->phys_info.orient;			// save original orientation
 			vm_copy_transpose(&leader_transpose, &leader_orient);
 
-			process_controls(&leader->pos, &leader->orient, f2fl(Frametime), key);
-			vm_vec_sub(&delta_pos, &leader->pos, &leader_old_pos);  // get position change
-			control_pos = leader->pos;
-			control_orient = leader->orient;
+			process_controls(&leader->phys_info.pos, &leader->phys_info.orient, f2fl(Frametime), key);
+			vm_vec_sub(&delta_pos, &leader->phys_info.pos, &leader_old_pos);  // get position change
+			control_pos = leader->phys_info.pos;
+			control_orient = leader->phys_info.orient;
 
 			objp = GET_FIRST(&obj_used_list);
 			while (objp != END_OF_LIST(&obj_used_list)) {
@@ -956,7 +956,7 @@ void game_do_frame() {
 						// get point relative to our point of rotation (make POR the origin).  Since
 						// only the leader has been moved yet, and not the objects, we have to use
 						// the old leader's position.
-						vm_vec_sub(&tmpv1, &objp->pos, &leader_old_pos);
+						vm_vec_sub(&tmpv1, &objp->phys_info.pos, &leader_old_pos);
 
 						// convert point from real-world coordinates to leader's relative coordinate
 						// system (z=forward vec, y=up vec, x=right vec
@@ -970,17 +970,17 @@ void game_do_frame() {
 
 						// and move origin back to real-world origin.  Object is now at its correct
 						// position.  Note we used the leader's new position, instead of old position.
-						vm_vec_add(&objp->pos, &leader->pos, &tmpv2);
+						vm_vec_add(&objp->phys_info.pos, &leader->phys_info.pos, &tmpv2);
 
 						// Now fix the object's orientation to what it should be.
-						vm_matrix_x_matrix(&tmp, &objp->orient, &view_physics.last_rotmat);
+						vm_matrix_x_matrix(&tmp, &objp->phys_info.orient, &view_physics.last_rotmat);
 						vm_orthogonalize_matrix(&tmp);  // safety check
-						objp->orient = tmp;
+						objp->phys_info.orient = tmp;
 
 					} else {
-						vm_vec_add2(&objp->pos, &delta_pos);
-						vm_matrix_x_matrix(&tmp, &objp->orient, &view_physics.last_rotmat);
-						objp->orient = tmp;
+						vm_vec_add2(&objp->phys_info.pos, &delta_pos);
+						vm_matrix_x_matrix(&tmp, &objp->phys_info.orient, &view_physics.last_rotmat);
+						objp->phys_info.orient = tmp;
 					}
 				}
 
@@ -1007,8 +1007,8 @@ void game_do_frame() {
 	if (Lookat_mode && query_valid_object()) {
 		float dist;
 
-		dist = vm_vec_dist(&view_pos, &Objects[cur_object_index].pos);
-		vm_vec_scale_add(&view_pos, &Objects[cur_object_index].pos, &view_orient.vec.fvec, -dist);
+		dist = vm_vec_dist(&view_pos, &Objects[cur_object_index].phys_info.pos);
+		vm_vec_scale_add(&view_pos, &Objects[cur_object_index].phys_info.pos, &view_orient.vec.fvec, -dist);
 	}
 
 	switch (viewpoint) {
@@ -1018,8 +1018,8 @@ void game_do_frame() {
 		break;
 
 	case 1:
-		eye_pos = Objects[view_obj].pos;
-		eye_orient = Objects[view_obj].orient;
+		eye_pos = Objects[view_obj].phys_info.pos;
+		eye_orient = Objects[view_obj].phys_info.orient;
 		break;
 
 	default:
@@ -1050,12 +1050,12 @@ void game_do_frame() {
 
 vec3d* get_subsystem_world_pos2(object* parent_obj, ship_subsys* subsys, vec3d* world_pos) {
 	if (subsys == NULL) {
-		*world_pos = parent_obj->pos;
+		*world_pos = parent_obj->phys_info.pos;
 		return world_pos;
 	}
 
-	vm_vec_unrotate(world_pos, &subsys->system_info->pnt, &parent_obj->orient);
-	vm_vec_add2(world_pos, &parent_obj->pos);
+	vm_vec_unrotate(world_pos, &subsys->system_info->pnt, &parent_obj->phys_info.orient);
+	vm_vec_add2(world_pos, &parent_obj->phys_info.pos);
 
 	return world_pos;
 }
@@ -1075,7 +1075,7 @@ int get_subsys_bounding_rect(object *ship_obj, ship_subsys *subsys, int *x1, int
 
 		int bound_rc;
 
-		bound_rc = subobj_find_2d_bound(subsys->system_info->radius, &ship_obj->orient, &subobj_pos, x1, y1, x2, y2);
+		bound_rc = subobj_find_2d_bound(subsys->system_info->radius, &ship_obj->phys_info.orient, &subobj_pos, x1, y1, x2, y2);
 		if (bound_rc != 0)
 			return 0;
 
@@ -1152,7 +1152,7 @@ void level_controlled() {
 		break;
 
 	case 2:  // Control viewpoint object
-		level_object(&Objects[view_obj].orient);
+		level_object(&Objects[view_obj].phys_info.orient);
 		object_moved(&Objects[view_obj]);
 		set_modified();
 		FREDDoc_ptr->autosave("level object");
@@ -1162,7 +1162,7 @@ void level_controlled() {
 		objp = GET_FIRST(&obj_used_list);
 		while (objp != END_OF_LIST(&obj_used_list)) {
 			if (objp->flags[Object::Object_Flags::Marked])
-				level_object(&objp->orient);
+				level_object(&objp->phys_info.orient);
 
 			objp = GET_NEXT(objp);
 		}
@@ -1265,11 +1265,11 @@ int object_check_collision(object *objp, vec3d *p0, vec3d *p1, vec3d *hitpos) {
 		mc.model_num = Ship_info[Ships[objp->instance].ship_info_index].model_num;			// Fill in the model to check
 
 	} else
-		return fvi_ray_sphere(hitpos, p0, p1, &objp->pos, (objp->radius > 0.1f) ? objp->radius : LOLLIPOP_SIZE);
+		return fvi_ray_sphere(hitpos, p0, p1, &objp->phys_info.pos, (objp->radius > 0.1f) ? objp->radius : LOLLIPOP_SIZE);
 
 	mc.model_instance_num = -1;
-	mc.orient = &objp->orient;	// The object's orient
-	mc.pos = &objp->pos;			// The object's position
+	mc.orient = &objp->phys_info.orient;	// The object's orient
+	mc.pos = &objp->phys_info.pos;			// The object's position
 	mc.p0 = p0;					// Point 1 of ray to check
 	mc.p1 = p1;					// Point 2 of ray to check
 	mc.flags = MC_CHECK_MODEL | MC_CHECK_RAY;  // flags
@@ -1277,8 +1277,8 @@ int object_check_collision(object *objp, vec3d *p0, vec3d *p1, vec3d *hitpos) {
 	*hitpos = mc.hit_point_world;
 	if (mc.num_hits < 1) {
 		// check shield
-		mc.orient = &objp->orient;	// The object's orient
-		mc.pos = &objp->pos;			// The object's position
+		mc.orient = &objp->phys_info.orient;	// The object's orient
+		mc.pos = &objp->phys_info.pos;			// The object's position
 		mc.p0 = p0;					// Point 1 of ray to check
 		mc.p1 = p1;					// Point 2 of ray to check
 		mc.flags = MC_CHECK_SHIELD;	// flags
@@ -1523,10 +1523,10 @@ void render_frame() {
 	render_active_rect();
 
 	if (query_valid_object(Cursor_over)) {  // display a tool-tip like infobox
-		pos = Objects[Cursor_over].pos;
+		pos = Objects[Cursor_over].phys_info.pos;
 		inst = Objects[Cursor_over].instance;
 		if ((Objects[Cursor_over].type == OBJ_SHIP) || (Objects[Cursor_over].type == OBJ_START)) {
-			vm_extract_angles_matrix(&a, &Objects[Cursor_over].orient);
+			vm_extract_angles_matrix(&a, &Objects[Cursor_over].phys_info.orient);
 
 			a_deg.h = a.h * CONVERT_DEGREES; // convert angles to more readable degrees
 			a_deg.p = a.p * CONVERT_DEGREES;
@@ -1704,7 +1704,7 @@ void render_one_model_briefing_screen(object *objp) {
 		if (objp->instance != BRIEFING_LOOKAT_POINT_ID) {
 			Assert(Briefing_dialog);
 			Briefing_dialog->draw_icon(objp);
-			render_model_x_htl(&objp->pos, The_grid);
+			render_model_x_htl(&objp->phys_info.pos, The_grid);
 			render_count++;
 		}
 
@@ -1793,14 +1793,14 @@ void render_one_model_htl(object *objp) {
 		if (Fred_outline) {
 			render_info.set_color(Fred_outline >> 16, (Fred_outline >> 8) & 0xff, Fred_outline & 0xff);
 			render_info.set_flags(j | MR_SHOW_OUTLINE_HTL | MR_NO_LIGHTING | MR_NO_POLYS | MR_NO_TEXTURING);
-			model_render_immediate(&render_info, Ship_info[Ships[z].ship_info_index].model_num, &objp->orient, &objp->pos);
+			model_render_immediate(&render_info, Ship_info[Ships[z].ship_info_index].model_num, &objp->phys_info.orient, &objp->phys_info.pos);
 		}
 
 		g3_done_instance(0);
 
 		if (Show_ship_models) {
 			render_info.set_flags(j);
-			model_render_immediate(&render_info, Ship_info[Ships[z].ship_info_index].model_num, &objp->orient, &objp->pos);
+			model_render_immediate(&render_info, Ship_info[Ships[z].ship_info_index].model_num, &objp->phys_info.orient, &objp->phys_info.pos);
 		}
 	} else {
 		int r = 0, g = 0, b = 0;
@@ -1833,17 +1833,17 @@ void render_one_model_htl(object *objp) {
 		} else
 			Assert(0);
 
-		float size = fl_sqrt(vm_vec_dist(&eye_pos, &objp->pos) / 20.0f);
+		float size = fl_sqrt(vm_vec_dist(&eye_pos, &objp->phys_info.pos) / 20.0f);
 
 		if (size < LOLLIPOP_SIZE)
 			size = LOLLIPOP_SIZE;
 
 		if (Fred_outline) {
 			gr_set_color(__min(r * 2, 255), __min(g * 2, 255), __min(b * 2, 255));
-			g3_draw_htl_sphere(&objp->pos, size * 1.5f);
+			g3_draw_htl_sphere(&objp->phys_info.pos, size * 1.5f);
 		} else {
 			gr_set_color(r, g, b);
-			g3_draw_htl_sphere(&objp->pos, size);
+			g3_draw_htl_sphere(&objp->phys_info.pos, size);
 		}
 	}
 
@@ -1852,13 +1852,13 @@ void render_one_model_htl(object *objp) {
 			o2 = &Objects[rendering_order[j]];
 			if (o2->type == OBJ_WAYPOINT) {
 				if ((o2->instance == objp->instance - 1) || (o2->instance == objp->instance + 1)) {
-					g3_draw_htl_line(&o2->pos, &objp->pos);
+					g3_draw_htl_line(&o2->phys_info.pos, &objp->phys_info.pos);
 				}
 			}
 		}
 	}
 
-	render_model_x_htl(&objp->pos, The_grid);
+	render_model_x_htl(&objp->phys_info.pos, The_grid);
 	render_count++;
 }
 
@@ -1943,7 +1943,7 @@ void render_one_model_nohtl(object *objp) {
 			render_info.set_debug_flags(debug_flags);
 			render_info.set_replacement_textures(Ships[z].ship_replacement_textures);
 
-			model_render_immediate(&render_info, Ship_info[Ships[z].ship_info_index].model_num, &objp->orient, &objp->pos);
+			model_render_immediate(&render_info, Ship_info[Ships[z].ship_info_index].model_num, &objp->phys_info.orient, &objp->phys_info.pos);
 		}
 
 	} else {
@@ -1986,11 +1986,11 @@ void render_one_model_nohtl(object *objp) {
 			o2 = &Objects[rendering_order[j]];
 			if (o2->type == OBJ_WAYPOINT)
 				if ((o2->instance == objp->instance - 1) || (o2->instance == objp->instance + 1))
-					rpd_line(&o2->pos, &objp->pos);
+					rpd_line(&o2->phys_info.pos, &objp->phys_info.pos);
 		}
 	}
 
-	render_model_x(&objp->pos, The_grid);
+	render_model_x(&objp->phys_info.pos, The_grid);
 	render_count++;
 }
 
@@ -2069,9 +2069,9 @@ int select_object(int cx, int cy) {
 	ptr = GET_FIRST(&obj_used_list);
 	while (ptr != END_OF_LIST(&obj_used_list)) {
 		if (object_check_collision(ptr, &p0, &p1, &hitpos)) {
-			hitpos.xyz.x = ptr->pos.xyz.x - view_pos.xyz.x;
-			hitpos.xyz.y = ptr->pos.xyz.y - view_pos.xyz.y;
-			hitpos.xyz.z = ptr->pos.xyz.z - view_pos.xyz.z;
+			hitpos.xyz.x = ptr->phys_info.pos.xyz.x - view_pos.xyz.x;
+			hitpos.xyz.y = ptr->phys_info.pos.xyz.y - view_pos.xyz.y;
+			hitpos.xyz.z = ptr->phys_info.pos.xyz.z - view_pos.xyz.z;
 			dist = hitpos.xyz.x * hitpos.xyz.x + hitpos.xyz.y * hitpos.xyz.y + hitpos.xyz.z * hitpos.xyz.z;
 			if (dist < best_dist) {
 				best = OBJ_INDEX(ptr);
@@ -2090,7 +2090,7 @@ int select_object(int cx, int cy) {
 	}
 	ptr = GET_FIRST(&obj_used_list);
 	while (ptr != END_OF_LIST(&obj_used_list)) {
-		g3_rotate_vertex(&vt, &ptr->pos);
+		g3_rotate_vertex(&vt, &ptr->phys_info.pos);
 		if (!(vt.codes & CC_BEHIND))
 			if (!(g3_project_vertex(&vt) & PF_OVERFLOW)) {
 				hitpos.xyz.x = vt.screen.xyw.x - cx;
@@ -2126,7 +2126,7 @@ void verticalize_controlled() {
 		break;
 
 	case 2:  // Control viewpoint object
-		verticalize_object(&Objects[view_obj].orient);
+		verticalize_object(&Objects[view_obj].phys_info.orient);
 		object_moved(&Objects[view_obj]);
 		FREDDoc_ptr->autosave("align object");
 		set_modified();
@@ -2136,7 +2136,7 @@ void verticalize_controlled() {
 		objp = GET_FIRST(&obj_used_list);
 		while (objp != END_OF_LIST(&obj_used_list)) {
 			if (objp->flags[Object::Object_Flags::Marked])
-				verticalize_object(&objp->orient);
+				verticalize_object(&objp->phys_info.orient);
 
 			objp = GET_NEXT(objp);
 		}

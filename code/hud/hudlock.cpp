@@ -318,7 +318,7 @@ int hud_lock_world_pos_in_range(vec3d *target_world_pos, vec3d *vec_to_target)
 	swp = &Player_ship->weapons;
 	wip = &Weapon_info[swp->secondary_bank_weapons[swp->current_secondary_bank]];
 
-	vm_vec_sub(vec_to_target, target_world_pos, &Player_obj->pos);
+	vm_vec_sub(vec_to_target, target_world_pos, &Player_obj->phys_info.pos);
 	dist_to_target = vm_vec_mag(vec_to_target);
 
 	//local ssms are always in range :)
@@ -356,15 +356,15 @@ int hud_lock_target_in_range()
 	targetp = &Objects[Player_ai->target_objnum];
 
 	if ( Player_ai->targeted_subsys != NULL ) {
-		vm_vec_unrotate(&target_world_pos, &Player_ai->targeted_subsys->system_info->pnt, &targetp->orient);
-		vm_vec_add2(&target_world_pos, &targetp->pos);
+		vm_vec_unrotate(&target_world_pos, &Player_ai->targeted_subsys->system_info->pnt, &targetp->phys_info.orient);
+		vm_vec_add2(&target_world_pos, &targetp->phys_info.pos);
 	} else {
 		if ( Player->locking_subsys ) {
-			vm_vec_unrotate(&target_world_pos, &Player->locking_subsys->system_info->pnt, &targetp->orient);
-			vm_vec_add2(&target_world_pos, &targetp->pos);
+			vm_vec_unrotate(&target_world_pos, &Player->locking_subsys->system_info->pnt, &targetp->phys_info.orient);
+			vm_vec_add2(&target_world_pos, &targetp->phys_info.pos);
 		} else {
 			Assert(Player->locking_on_center);
-			target_world_pos = targetp->pos;
+			target_world_pos = targetp->phys_info.pos;
 		}
 	}
 
@@ -423,8 +423,8 @@ int hud_lock_on_subsys_ok()
 		return 0;
 	}
 
-	vm_vec_unrotate(&subobj_pos, &subsys->system_info->pnt, &target_objp->orient);
-	vm_vec_add2(&subobj_pos, &target_objp->pos);
+	vm_vec_unrotate(&subobj_pos, &subsys->system_info->pnt, &target_objp->phys_info.orient);
+	vm_vec_add2(&subobj_pos, &target_objp->phys_info.pos);
 
 	if ( Player->subsys_in_view < 0 ) {
 		in_sight = ship_subsystem_in_sight(target_objp, subsys, &View_position, &subobj_pos);
@@ -441,8 +441,8 @@ void hud_lock_check_if_target_in_lock_cone()
 	float	dot;
 	vec3d	vec_to_target;
 
-	vm_vec_normalized_dir(&vec_to_target, &lock_world_pos, &Player_obj->pos);
-	dot = vm_vec_dot(&Player_obj->orient.vec.fvec, &vec_to_target);
+	vm_vec_normalized_dir(&vec_to_target, &lock_world_pos, &Player_obj->phys_info.pos);
+	dot = vm_vec_dot(&Player_obj->phys_info.orient.vec.fvec, &vec_to_target);
 
 	if ( dot > 0.85) {
 		Player->target_in_lock_cone = 1;
@@ -530,7 +530,7 @@ void hud_do_lock_indicator(float frametime)
 
 	object *tobjp = &Objects[Player_ai->target_objnum];
 	vec3d dir_to_target;
-	vm_vec_normalized_dir(&dir_to_target, &tobjp->pos, &Player_obj->pos);
+	vm_vec_normalized_dir(&dir_to_target, &tobjp->phys_info.pos, &Player_obj->phys_info.pos);
 
 	if ( !(wip->is_locked_homing()) ) {
 		hud_lock_reset();
@@ -548,13 +548,13 @@ void hud_do_lock_indicator(float frametime)
 		tobjp->type == OBJ_SHIP &&
 		Player->locking_subsys != NULL) {
 			vec3d subobj_pos;
-			vm_vec_unrotate(&subobj_pos, &Player->locking_subsys->system_info->pnt, &tobjp->orient);
-			vm_vec_add2(&subobj_pos, &tobjp->pos);
-			int target_subsys_in_sight = ship_subsystem_in_sight(tobjp, Player->locking_subsys, &Player_obj->pos, &subobj_pos);
+			vm_vec_unrotate(&subobj_pos, &Player->locking_subsys->system_info->pnt, &tobjp->phys_info.orient);
+			vm_vec_add2(&subobj_pos, &tobjp->phys_info.pos);
+			int target_subsys_in_sight = ship_subsystem_in_sight(tobjp, Player->locking_subsys, &Player_obj->phys_info.pos, &subobj_pos);
 
 			if (!target_subsys_in_sight || Player->locking_subsys->system_info->type != SUBSYSTEM_ENGINE) {
 				Player->locking_subsys =
-					ship_get_closest_subsys_in_sight(&Ships[tobjp->instance], SUBSYSTEM_ENGINE, &Player_obj->pos);
+					ship_get_closest_subsys_in_sight(&Ships[tobjp->instance], SUBSYSTEM_ENGINE, &Player_obj->phys_info.pos);
 			}
 	}
 
@@ -562,7 +562,7 @@ void hud_do_lock_indicator(float frametime)
 		tobjp->type == OBJ_SHIP &&
 		Player->locking_subsys == NULL) {
 			Player->locking_subsys =
-				ship_get_closest_subsys_in_sight(&Ships[tobjp->instance], SUBSYSTEM_ENGINE, &Player_obj->pos);
+				ship_get_closest_subsys_in_sight(&Ships[tobjp->instance], SUBSYSTEM_ENGINE, &Player_obj->phys_info.pos);
 
 			if (Player->locking_subsys == NULL) {
 				hud_lock_reset();
@@ -995,7 +995,7 @@ void hud_lock_update_lock_pos(object *target_objp)
 	}
 
 	if ( Player->locking_on_center) {
-		lock_world_pos = target_objp->pos;
+		lock_world_pos = target_objp->phys_info.pos;
 	} else {
 		Assert(Player->locking_subsys);
 		get_subsystem_world_pos(target_objp, Player->locking_subsys, &lock_world_pos);
@@ -1026,14 +1026,14 @@ void hud_lock_get_new_lock_pos(object *target_objp)
 		// check all the subsystems and the center of the ship
 		
 		// assume best lock pos is the center of the ship
-		lock_world_pos = target_objp->pos;
+		lock_world_pos = target_objp->phys_info.pos;
 		Player->locking_on_center=1;
 		Player->locking_subsys=NULL;
 		Player->locking_subsys_parent=-1;
 		lock_in_range = hud_lock_world_pos_in_range(&lock_world_pos, &vec_to_lock);
 		vm_vec_normalize(&vec_to_lock);
 		if ( lock_in_range ) {
-			best_lock_dot=vm_vec_dot(&Player_obj->orient.vec.fvec, &vec_to_lock);
+			best_lock_dot=vm_vec_dot(&Player_obj->phys_info.orient.vec.fvec, &vec_to_lock);
 		} 
 		// take center if reasonable dot
 		if ( best_lock_dot > 0.95 ) {
@@ -1049,7 +1049,7 @@ void hud_lock_get_new_lock_pos(object *target_objp)
 
 			if ( hud_lock_world_pos_in_range(&subsys_world_pos, &vec_to_lock) ) {
 				vm_vec_normalize(&vec_to_lock);
-				lock_dot=vm_vec_dot(&Player_obj->orient.vec.fvec, &vec_to_lock);
+				lock_dot=vm_vec_dot(&Player_obj->phys_info.orient.vec.fvec, &vec_to_lock);
 				if ( lock_dot > best_lock_dot ) {
 					best_lock_dot=lock_dot;
 					Player->locking_on_center=0;
@@ -1061,7 +1061,7 @@ void hud_lock_get_new_lock_pos(object *target_objp)
 			ss = GET_NEXT( ss );
 		}
 	} else if ( (target_shipp) && (wip->wi_flags[Weapon::Info_Flags::Homing_javelin])) {
-		Player->locking_subsys = ship_get_closest_subsys_in_sight(target_shipp, SUBSYSTEM_ENGINE, &Player_obj->pos);
+		Player->locking_subsys = ship_get_closest_subsys_in_sight(target_shipp, SUBSYSTEM_ENGINE, &Player_obj->phys_info.pos);
 		if (Player->locking_subsys != NULL) {
 			get_subsystem_world_pos(target_objp, Player->locking_subsys, &lock_world_pos);
 			Player->locking_on_center=0;
@@ -1072,7 +1072,7 @@ void hud_lock_get_new_lock_pos(object *target_objp)
 		}
 	} else {
 		// if small ship (or weapon), just go for the center
-		lock_world_pos = target_objp->pos;
+		lock_world_pos = target_objp->phys_info.pos;
 		Player->locking_on_center=1;
 		Player->locking_subsys=NULL;
 		Player->locking_subsys_parent=-1;
@@ -1107,7 +1107,7 @@ void hud_lock_determine_lock_point(vec3d *lock_world_pos_out)
 	} else if ( (wip->wi_flags[Weapon::Info_Flags::Homing_javelin]) && (target_objp->type == OBJ_SHIP)) {
 		if (!Player->locking_subsys ||
 			Player->locking_subsys->system_info->type != SUBSYSTEM_ENGINE) {
-				Player->locking_subsys = ship_get_closest_subsys_in_sight(&Ships[target_objp->instance], SUBSYSTEM_ENGINE, &Player_obj->pos);
+			Player->locking_subsys = ship_get_closest_subsys_in_sight(&Ships[target_objp->instance], SUBSYSTEM_ENGINE, &Player_obj->phys_info.pos);
 		}
 		if (Player->locking_subsys != NULL) {
 			get_subsystem_world_pos(target_objp, Player->locking_subsys, &lock_world_pos);
@@ -1128,8 +1128,8 @@ void hud_lock_determine_lock_point(vec3d *lock_world_pos_out)
 
 	*lock_world_pos_out=lock_world_pos;
 
-	vm_vec_sub(&vec_to_lock_pos,&lock_world_pos,&Player_obj->pos);
-	vm_vec_rotate(&lock_local_pos,&vec_to_lock_pos,&Player_obj->orient);
+	vm_vec_sub(&vec_to_lock_pos, &lock_world_pos, &Player_obj->phys_info.pos);
+	vm_vec_rotate(&lock_local_pos,&vec_to_lock_pos,&Player_obj->phys_info.orient);
 
 	if ( lock_local_pos.xyz.z > 0.0f ) {
 		// Get the location of our target in the "virtual frame" where the locking computation will be done

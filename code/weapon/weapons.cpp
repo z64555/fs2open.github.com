@@ -3648,7 +3648,7 @@ void detonate_nearby_missiles(object* killer_objp, object* missile_objp)
 
 		if (iff_x_attacks_y(Weapons[killer_objp->instance].team, wp->team)) {
 			if ( Missiontime - wp->creation_time > F1_0/2) {
-				if (vm_vec_dist_quick(&killer_objp->pos, &objp->pos) < killer_infop->cm_detonation_rad) {
+				if (vm_vec_dist_quick(&killer_objp->phys_info.pos, &objp->phys_info.pos) < killer_infop->cm_detonation_rad) {
 					if (wp->lifeleft > 0.2f) { 
 						nprintf(("Countermeasures", "Countermeasure (%s-%i) detonated missile (%s-%i) Frame: %i\n",
 									killer_infop->name, killer_objp->signature,
@@ -3735,7 +3735,7 @@ void find_homing_object(object *weapon_objp, int num)
 
                     if (wip->wi_flags[Weapon::Info_Flags::Homing_javelin])
                     {
-                        target_engines = ship_get_closest_subsys_in_sight(sp, SUBSYSTEM_ENGINE, &weapon_objp->pos);
+                        target_engines = ship_get_closest_subsys_in_sight(sp, SUBSYSTEM_ENGINE, &weapon_objp->phys_info.pos);
 
                         if (!target_engines)
                             continue;
@@ -3762,13 +3762,13 @@ void find_homing_object(object *weapon_objp, int num)
 						continue;
 				}
 
-				dist = vm_vec_normalized_dir(&vec_to_object, &objp->pos, &weapon_objp->pos);
+				dist = vm_vec_normalized_dir(&vec_to_object, &objp->phys_info.pos, &weapon_objp->phys_info.pos);
 
 				if (objp->type == OBJ_WEAPON && (Weapon_info[Weapons[objp->instance].weapon_info_index].wi_flags[Weapon::Info_Flags::Cmeasure])) {
 					dist *= 0.5f;
 				}
 
-				dot = vm_vec_dot(&vec_to_object, &weapon_objp->orient.vec.fvec);
+				dot = vm_vec_dot(&vec_to_object, &weapon_objp->phys_info.orient.vec.fvec);
 
 				if (dot > wip->fov) {
 					if (dist < best_dist) {
@@ -3827,7 +3827,7 @@ void find_homing_object_cmeasures_1(object *weapon_objp)
 					continue;
 
 				vec3d	vec_to_object;
-				dist = vm_vec_normalized_dir(&vec_to_object, &objp->pos, &weapon_objp->pos);
+				dist = vm_vec_normalized_dir(&vec_to_object, &objp->phys_info.pos, &weapon_objp->phys_info.pos);
 
 				if (dist < cm_wip->cm_effective_rad)
 				{
@@ -3869,7 +3869,7 @@ void find_homing_object_cmeasures_1(object *weapon_objp)
 					}
 					else {
 						// successful decoy, maybe chase the new cm
-						dot = vm_vec_dot(&vec_to_object, &weapon_objp->orient.vec.fvec);
+						dot = vm_vec_dot(&vec_to_object, &weapon_objp->phys_info.orient.vec.fvec);
 
 						if (dot > best_dot)
 						{
@@ -4045,7 +4045,7 @@ void weapon_home(object *obj, int num, float frame_time)
 		}
 
 		// set velocity using whatever speed we have
-		vm_vec_copy_scale( &obj->phys_info.desired_vel, &obj->orient.vec.fvec, obj->phys_info.speed);
+		vm_vec_copy_scale( &obj->phys_info.desired_vel, &obj->phys_info.orient.vec.fvec, obj->phys_info.speed);
 
 		return;
 	}
@@ -4059,7 +4059,7 @@ void weapon_home(object *obj, int num, float frame_time)
 
 			t = f2fl(Missiontime - wp->creation_time) / wip->acceleration_time;
 			obj->phys_info.speed = wp->launch_speed + (wp->weapon_max_vel - wp->launch_speed) * t;
-			vm_vec_copy_scale( &obj->phys_info.desired_vel, &obj->orient.vec.fvec, obj->phys_info.speed);
+			vm_vec_copy_scale( &obj->phys_info.desired_vel, &obj->phys_info.orient.vec.fvec, obj->phys_info.speed);
 		}
 	}
 
@@ -4103,7 +4103,7 @@ void weapon_home(object *obj, int num, float frame_time)
 			int sindex = ship_get_by_signature(wp->target_sig);
 			if (sindex >= 0) {
 				ship *enemy = &Ships[sindex];
-				wp->homing_subsys = ship_get_closest_subsys_in_sight(enemy, SUBSYSTEM_ENGINE, &Objects[wp->objnum].pos);
+				wp->homing_subsys = ship_get_closest_subsys_in_sight(enemy, SUBSYSTEM_ENGINE, &Objects[wp->objnum].phys_info.pos);
 			}
 	}
 
@@ -4173,7 +4173,7 @@ void weapon_home(object *obj, int num, float frame_time)
 	if (hobjp != &obj_used_list) {
 		float	dist;
 
-		dist = vm_vec_dist_quick(&obj->pos, &hobjp->pos);
+		dist = vm_vec_dist_quick(&obj->phys_info.pos, &hobjp->phys_info.pos);
 
 		if (hobjp->type == OBJ_SHIP) {
 			ai_info	*aip;
@@ -4207,7 +4207,7 @@ void weapon_home(object *obj, int num, float frame_time)
 			float	fov;
 			float	dist;
 
-			dist = vm_vec_dist_quick(&obj->pos, &hobjp->pos);
+			dist = vm_vec_dist_quick(&obj->phys_info.pos, &hobjp->phys_info.pos);
 			if (hobjp->type == OBJ_WEAPON && (hobj_infop->wi_flags[Weapon::Info_Flags::Cmeasure]))
 			{
 				if (dist < hobj_infop->cm_detonation_rad)
@@ -4230,7 +4230,7 @@ void weapon_home(object *obj, int num, float frame_time)
 			//	Update homing position if it hasn't been set, you're within 500 meters, or every half second, approximately.
 			//	For large objects, don't lead them.
 			if (hobjp->radius < 40.0f) {
-				target_pos = hobjp->pos;
+				target_pos = hobjp->phys_info.pos;
 				wp->homing_pos = target_pos;
 			} else if ( pick_homing_point || (dist < 500.0f) || (rand_chance(flFrametime, 2.0f)) ) {
 
@@ -4276,7 +4276,7 @@ void weapon_home(object *obj, int num, float frame_time)
 					ai_big_pick_attack_point(hobjp, obj, &target_pos, fov);
 
 				} else {
-					target_pos = hobjp->pos;
+					target_pos = hobjp->phys_info.pos;
 				}
 
 				wp->homing_pos = target_pos;
@@ -4294,7 +4294,7 @@ void weapon_home(object *obj, int num, float frame_time)
 		//	If do this, with a ship headed towards missile, could choose a point behind missile.
 		float	dist_to_target, time_to_target;
 		
-		dist_to_target = vm_vec_normalized_dir(&vec_to_goal, &target_pos, &obj->pos);
+		dist_to_target = vm_vec_normalized_dir(&vec_to_goal, &target_pos, &obj->phys_info.pos);
 		time_to_target = dist_to_target/max_speed;
 
 		vec3d	tvec;
@@ -4371,7 +4371,7 @@ void weapon_home(object *obj, int num, float frame_time)
 
 		Assert( obj->phys_info.speed > 0.0f );
 
-		vm_vec_copy_scale( &obj->phys_info.desired_vel, &obj->orient.vec.fvec, obj->phys_info.speed);
+		vm_vec_copy_scale( &obj->phys_info.desired_vel, &obj->phys_info.orient.vec.fvec, obj->phys_info.speed);
 
 		// turn the missile towards the target only if non-swarm.  Homing swarm missiles choose
 		// a different vector to turn towards, this is done in swarm_update_direction().
@@ -4379,7 +4379,7 @@ void weapon_home(object *obj, int num, float frame_time)
 			ai_turn_towards_vector(&target_pos, obj, frame_time, wip->turn_time, NULL, NULL, 0.0f, 0, NULL);
 			vel = vm_vec_mag(&obj->phys_info.desired_vel);
 
-			vm_vec_copy_scale(&obj->phys_info.desired_vel, &obj->orient.vec.fvec, vel);
+			vm_vec_copy_scale(&obj->phys_info.desired_vel, &obj->phys_info.orient.vec.fvec, vel);
 
 		}
 	}
@@ -4405,7 +4405,7 @@ void weapon_process_pre( object *obj, float frame_time)
 	if(wp->det_range > 0.0f)
 	{
 		vec3d temp;
-		vm_vec_sub(&temp, &obj->pos, &wp->start_pos);
+		vm_vec_sub(&temp, &obj->phys_info.pos, &wp->start_pos);
 		if(vm_vec_mag(&temp) >= wp->det_range){
 			weapon_detonate(obj);		
 		}
@@ -4416,13 +4416,13 @@ void weapon_process_pre( object *obj, float frame_time)
 	{
 		if((wp->homing_object != &obj_used_list) && (wp->homing_object->type != 0))
 		{
-			if(!IS_VEC_NULL(&wp->homing_pos) && vm_vec_dist(&wp->homing_pos, &obj->pos) <= wip->det_radius)
+			if(!IS_VEC_NULL(&wp->homing_pos) && vm_vec_dist(&wp->homing_pos, &obj->phys_info.pos) <= wip->det_radius)
 			{
 				weapon_detonate(obj);
 			}
 		} else if(wp->target_num > -1)
 		{
-			if(vm_vec_dist(&obj->pos, &Objects[wp->target_num].pos) <= wip->det_radius)
+			if(vm_vec_dist(&obj->phys_info.pos, &Objects[wp->target_num].phys_info.pos) <= wip->det_radius)
 			{
 				weapon_detonate(obj);
 			}
@@ -4449,9 +4449,9 @@ void weapon_maybe_play_flyby_sound(object *weapon_objp, weapon *wp)
 		float		dist, dot, radius;
 
 		if ( (Weapon_info[wp->weapon_info_index].wi_flags[Weapon::Info_Flags::Corkscrew]) ) {
-			dist = vm_vec_dist_quick(&weapon_objp->last_pos, &Eye_position);
+			dist = vm_vec_dist_quick(&weapon_objp->phys_info.last_pos, &Eye_position);
 		} else {
-			dist = vm_vec_dist_quick(&weapon_objp->pos, &Eye_position);
+			dist = vm_vec_dist_quick(&weapon_objp->phys_info.pos, &Eye_position);
 		}
 
 		if ( Viewer_obj ) {
@@ -4463,7 +4463,7 @@ void weapon_maybe_play_flyby_sound(object *weapon_objp, weapon *wp)
 		if ( (dist > radius) && (dist < 55) ) {
 			vec3d	vec_to_weapon;
 
-			vm_vec_sub(&vec_to_weapon, &weapon_objp->pos, &Eye_position);
+			vm_vec_sub(&vec_to_weapon, &weapon_objp->phys_info.pos, &Eye_position);
 			vm_vec_normalize(&vec_to_weapon);
 
 			// ensure laser is in front of eye
@@ -4473,14 +4473,14 @@ void weapon_maybe_play_flyby_sound(object *weapon_objp, weapon *wp)
 			}
 
 			// ensure that laser is moving in similar direction to fvec
-			dot = vm_vec_dot(&vec_to_weapon, &weapon_objp->orient.vec.fvec);
+			dot = vm_vec_dot(&vec_to_weapon, &weapon_objp->phys_info.orient.vec.fvec);
 			
 			if ( (dot < -0.80) && (dot > -0.98) ) {
 				if(Weapon_info[wp->weapon_info_index].flyby_snd != -1) {
-					snd_play_3d( &Snds[Weapon_info[wp->weapon_info_index].flyby_snd], &weapon_objp->pos, &Eye_position );
+					snd_play_3d( &Snds[Weapon_info[wp->weapon_info_index].flyby_snd], &weapon_objp->phys_info.pos, &Eye_position );
 				} else {
 					if ( Weapon_info[wp->weapon_info_index].subtype == WP_LASER ) {
-						snd_play_3d( &Snds[SND_WEAPON_FLYBY], &weapon_objp->pos, &Eye_position );
+						snd_play_3d( &Snds[SND_WEAPON_FLYBY], &weapon_objp->phys_info.pos, &Eye_position );
 					}
 				}
 				Weapon_flyby_sound_timer = timestamp(200);
@@ -4644,9 +4644,9 @@ void weapon_process_post(object * obj, float frame_time)
 			
 			if (wip->render_type == WRT_LASER) {
 				// place tail origin in center of the bolt
-				vm_vec_scale_add(&pos, &obj->pos, &obj->orient.vec.fvec, (wip->laser_length / 2));
+				vm_vec_scale_add(&pos, &obj->phys_info.pos, &obj->phys_info.orient.vec.fvec, (wip->laser_length / 2));
 			} else {
-				pos = obj->pos;
+				pos = obj->phys_info.pos;
 			}
 
 			if (trail_stamp_elapsed(wp->trail_ptr)) {
@@ -4680,9 +4680,9 @@ void weapon_process_post(object * obj, float frame_time)
 			float		cur_dist;
 			vec3d	v0;
 
-			vm_vec_avg(&v0, &obj->pos, &obj->last_pos);
+			vm_vec_avg(&v0, &obj->phys_info.pos, &obj->phys_info.last_pos);
 
-			cur_dist = vm_vec_dist_quick(&v0, &Objects[wp->target_num].pos);
+			cur_dist = vm_vec_dist_quick(&v0, &Objects[wp->target_num].phys_info.pos);
 
 			if (cur_dist < wp->nearest_dist) {
 				wp->nearest_dist = cur_dist;
@@ -4696,8 +4696,8 @@ void weapon_process_post(object * obj, float frame_time)
 					parent_aip = &Ai_info[Ships[Objects[obj->parent].instance].ai_index];
 				}
 
-				vm_vec_normalized_dir(&tvec, &v0, &Objects[wp->target_num].pos);
-				dot = vm_vec_dot(&tvec, &Objects[wp->target_num].orient.vec.fvec);
+				vm_vec_normalized_dir(&tvec, &v0, &Objects[wp->target_num].phys_info.pos);
+				dot = vm_vec_dot(&tvec, &Objects[wp->target_num].phys_info.orient.vec.fvec);
 				wp->target_num = -1;
 
 				//	Learn!  If over-shooting or under-shooting, compensate.
@@ -4748,7 +4748,7 @@ void weapon_process_post(object * obj, float frame_time)
 			obj->phys_info.flags |= PF_CONST_VEL; // Max speed reached, can use simpler physics calculations now
 		}
 
-		vm_vec_copy_scale( &obj->phys_info.desired_vel, &obj->orient.vec.fvec, obj->phys_info.speed);
+		vm_vec_copy_scale( &obj->phys_info.desired_vel, &obj->phys_info.orient.vec.fvec, obj->phys_info.speed);
 	}
 
 	//local ssm stuff
@@ -4778,8 +4778,8 @@ void weapon_process_post(object * obj, float frame_time)
 			wp->lssm_warp_pct = 1.0f - (3.0f/wp->lssm_warp_time);
 
 			//create the warphole
-			vm_vec_add2(&warpout,&obj->pos);
-			wp->lssm_warp_idx=fireball_create(&warpout, FIREBALL_WARP, FIREBALL_WARP_EFFECT, -1,obj->radius*1.5f,1,&vmd_zero_vector,wp->lssm_warp_time,0,&obj->orient);
+			vm_vec_add2(&warpout,&obj->phys_info.pos);
+			wp->lssm_warp_idx=fireball_create(&warpout, FIREBALL_WARP, FIREBALL_WARP_EFFECT, -1,obj->radius*1.5f,1,&vmd_zero_vector,wp->lssm_warp_time,0,&obj->phys_info.orient);
 
 			if (wp->lssm_warp_idx < 0) {
 				mprintf(("LSSM: Failed to create warp effect! Please report if this happens frequently.\n"));
@@ -4803,12 +4803,12 @@ void weapon_process_post(object * obj, float frame_time)
 			//so we have an idea of where it will be.
 			if (wp->target_num >= 0)
 			{
-				vm_vec_scale_add(&wp->lssm_target_pos, &Objects[wp->target_num].pos, &Objects[wp->target_num].phys_info.vel, (float)wip->lssm_warpin_delay / 1000.0f);
+				vm_vec_scale_add(&wp->lssm_target_pos, &Objects[wp->target_num].phys_info.pos, &Objects[wp->target_num].phys_info.vel, (float)wip->lssm_warpin_delay / 1000.0f);
 			}
 			else
 			{
 				// Our target is invalid, just jump to our position
-				wp->lssm_target_pos = obj->pos;
+				wp->lssm_target_pos = obj->phys_info.pos;
 			}
 
 			wp->lssm_stage=3;
@@ -4825,7 +4825,7 @@ void weapon_process_post(object * obj, float frame_time)
 			matrix orient;
 
 			//spawn the ssm at a random point in a circle around the target
-			vm_vec_random_in_circle(&warpin, &wp->lssm_target_pos, &target_objp->orient, wip->lssm_warpin_radius + target_objp->radius,1);
+			vm_vec_random_in_circle(&warpin, &wp->lssm_target_pos, &target_objp->phys_info.orient, wip->lssm_warpin_radius + target_objp->radius,1);
 	
 			//orient the missile properly
 			vm_vec_sub(&fvec,&wp->lssm_target_pos, &warpin);
@@ -4838,8 +4838,8 @@ void weapon_process_post(object * obj, float frame_time)
 				mprintf(("LSSM: Failed to create warp effect! Please report if this happens frequently.\n"));
 			}
 
-			obj->orient=orient;
-			obj->pos=warpin;
+			obj->phys_info.orient=orient;
+			obj->phys_info.pos=warpin;
 			obj->phys_info.speed=0;
 			obj->phys_info.desired_vel = vmd_zero_vector;
 			obj->phys_info.vel = obj->phys_info.desired_vel;
@@ -4851,7 +4851,7 @@ void weapon_process_post(object * obj, float frame_time)
 		// If the previous fireball creation failed just put it into normal space now
 		if ((wp->lssm_stage==4) && (wp->lssm_warp_idx < 0 || fireball_lifeleft_percent(&Objects[wp->lssm_warp_idx]) <=0.5f))
 		{
-			vm_vec_copy_scale(&obj->phys_info.desired_vel, &obj->orient.vec.fvec, wip->lssm_stage5_vel );
+			vm_vec_copy_scale(&obj->phys_info.desired_vel, &obj->phys_info.orient.vec.fvec, wip->lssm_stage5_vel );
 			obj->phys_info.vel = obj->phys_info.desired_vel;
 			obj->phys_info.speed = vm_vec_mag(&obj->phys_info.desired_vel);
 
@@ -4973,7 +4973,7 @@ void weapon_set_tracking_info(int weapon_objnum, int parent_objnum, int target_o
 					( (wp->homing_subsys == NULL) ||
 					  (wp->homing_subsys->system_info->type != SUBSYSTEM_ENGINE) )) {
 						ship *target_ship = &Ships[Objects[target_objnum].instance];
-						wp->homing_subsys = ship_get_closest_subsys_in_sight(target_ship, SUBSYSTEM_ENGINE, &Objects[weapon_objnum].pos);
+						wp->homing_subsys = ship_get_closest_subsys_in_sight(target_ship, SUBSYSTEM_ENGINE, &Objects[weapon_objnum].phys_info.pos);
 						if (wp->homing_subsys == NULL) {
 							wp->homing_object = &obj_used_list;
 						} else {
@@ -5336,12 +5336,12 @@ int weapon_create( vec3d * pos, matrix * porient, int weapon_type, int parent_ob
 	//	Note: If you change how speed works here, such as adding in speed of parent ship, you'll need to change the AI code
 	//	that predicts collision points.  See Mike Kulas or Dave Andsager.  (Or see ai_get_weapon_speed().)
 	if (wip->acceleration_time > 0.0f) {
-		vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.vec.fvec, 0.01f ); // Tiny initial velocity to avoid possible null vec issues
+		vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->phys_info.orient.vec.fvec, 0.01f ); // Tiny initial velocity to avoid possible null vec issues
 		objp->phys_info.vel = objp->phys_info.desired_vel;
 		objp->phys_info.speed = 0.0f;
 		wp->launch_speed = 0.0f;
 	} else if (!(wip->is_homing())) {
-		vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.vec.fvec, objp->phys_info.max_vel.xyz.z );
+		vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->phys_info.orient.vec.fvec, objp->phys_info.max_vel.xyz.z );
 		objp->phys_info.vel = objp->phys_info.desired_vel;
 		objp->phys_info.speed = vm_vec_mag(&objp->phys_info.desired_vel);
 	} else {		
@@ -5350,17 +5350,17 @@ int weapon_create( vec3d * pos, matrix * porient, int weapon_type, int parent_ob
 		//	the missile will not be moving forward.
 		if(parent_objp != NULL){
 			if (wip->free_flight_time > 0.0)
-				vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.vec.fvec, vm_vec_dot(&parent_objp->phys_info.vel, &parent_objp->orient.vec.fvec) + objp->phys_info.max_vel.xyz.z/4 );
+				vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->phys_info.orient.vec.fvec, vm_vec_dot(&parent_objp->phys_info.vel, &parent_objp->phys_info.orient.vec.fvec) + objp->phys_info.max_vel.xyz.z/4 );
 			else
-				vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.vec.fvec, objp->phys_info.max_vel.xyz.z );
+				vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->phys_info.orient.vec.fvec, objp->phys_info.max_vel.xyz.z );
 		} else {
 			if (!is_locked && wip->free_flight_time > 0.0)
             {
-			    vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.vec.fvec, objp->phys_info.max_vel.xyz.z/4 );
+			    vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->phys_info.orient.vec.fvec, objp->phys_info.max_vel.xyz.z/4 );
             }
             else
             {
-                vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->orient.vec.fvec, objp->phys_info.max_vel.xyz.z );
+                vm_vec_copy_scale(&objp->phys_info.desired_vel, &objp->phys_info.orient.vec.fvec, objp->phys_info.max_vel.xyz.z );
             }
 		}
 		objp->phys_info.vel = objp->phys_info.desired_vel;
@@ -5419,8 +5419,8 @@ int weapon_create( vec3d * pos, matrix * porient, int weapon_type, int parent_ob
 
 		if ( wp->trail_ptr != NULL )	{
 			// Add two segments.  One to stay at launch pos, one to move.
-			trail_add_segment( wp->trail_ptr, &objp->pos );
-			trail_add_segment( wp->trail_ptr, &objp->pos );
+			trail_add_segment( wp->trail_ptr, &objp->phys_info.pos );
+			trail_add_segment( wp->trail_ptr, &objp->phys_info.pos );
 		}
 	}
 	else
@@ -5537,8 +5537,8 @@ void spawn_child_weapons(object *objp)
 		multi_set_network_signature( objp->net_signature, MULTI_SIG_NON_PERMANENT );
 	}
 
-	opos = &objp->pos;
-	fvec = &objp->orient.vec.fvec;
+	opos = &objp->phys_info.pos;
+	fvec = &objp->phys_info.orient.vec.fvec;
 
 	for (i = 0; i < wip->num_spawn_weapons_defined; i++)
 	{
@@ -5765,8 +5765,8 @@ void weapon_do_electronics_effect(object *ship_objp, vec3d *blast_pos, int wi_in
 		psub = ss->system_info;
 
 		// convert subsys point to world coords
-		vm_vec_unrotate(&subsys_world_pos, &psub->pnt, &ship_objp->orient);
-		vm_vec_add2(&subsys_world_pos, &ship_objp->pos);
+		vm_vec_unrotate(&subsys_world_pos, &psub->pnt, &ship_objp->phys_info.orient);
+		vm_vec_add2(&subsys_world_pos, &ship_objp->phys_info.pos);
 
 		// see if subsys point is within damage sphere
 		dist = vm_vec_dist_quick(blast_pos, &subsys_world_pos);
@@ -5855,7 +5855,7 @@ int weapon_area_calc_damage(object *objp, vec3d *pos, float inner_rad, float out
 			dist = vm_vec_dist_quick(pos, &box_pt);
 		}
 	} else {
-		dist = vm_vec_dist_quick(&objp->pos, pos) - objp->radius;
+		dist = vm_vec_dist_quick(&objp->phys_info.pos, pos) - objp->radius;
 	}
 
 	if ( (dist > outer_rad) || (dist > limit) ) {
@@ -5905,17 +5905,17 @@ void weapon_area_apply_blast(vec3d *force_apply_pos, object *ship_objp, vec3d *b
 		return;
 
 	// apply blast force based on distance from center of explosion
-	vm_vec_sub(&vec_blast_to_ship, &ship_objp->pos, blast_pos);
+	vm_vec_sub(&vec_blast_to_ship, &ship_objp->phys_info.pos, blast_pos);
 	vm_vec_normalize_safe(&vec_blast_to_ship);
 	vm_vec_copy_scale(&force, &vec_blast_to_ship, blast );
 
-	vm_vec_sub(&vec_ship_to_impact, blast_pos, &ship_objp->pos);
+	vm_vec_sub(&vec_ship_to_impact, blast_pos, &ship_objp->phys_info.pos);
 
 	pm = model_get(Ship_info[Ships[ship_objp->instance].ship_info_index].model_num);
 	Assert ( pm != NULL );
 
 	if (make_shockwave) {
-		physics_apply_shock (&force, blast, &ship_objp->phys_info, &ship_objp->orient, &pm->mins, &pm->maxs, pm->rad);
+		physics_apply_shock (&force, blast, &ship_objp->phys_info, &ship_objp->phys_info.orient, &pm->mins, &pm->maxs, pm->rad);
 		if (ship_objp == Player_obj) {
 			joy_ff_play_vector_effect(&vec_blast_to_ship, blast * 2.0f);
 		}
@@ -6047,14 +6047,14 @@ bool weapon_armed(weapon *wp, bool hit_target)
 		}
 
 		if(		((wip->arm_time) && ((Missiontime - wp->creation_time) < wip->arm_time))
-			|| ((wip->arm_dist) && (pobj != NULL && pobj->type != OBJ_NONE && (vm_vec_dist(&wobj->pos, &pobj->pos) < wip->arm_dist))))
+			|| ((wip->arm_dist) && (pobj != NULL && pobj->type != OBJ_NONE && (vm_vec_dist(&wobj->phys_info.pos, &pobj->phys_info.pos) < wip->arm_dist))))
 		{
 			return false;
 		}
 		if(wip->arm_radius && (!hit_target)) {
 			if(wp->homing_object == &obj_used_list)
 				return false;
-			if(IS_VEC_NULL(&wp->homing_pos) || vm_vec_dist(&wobj->pos, &wp->homing_pos) > wip->arm_radius)
+			if(IS_VEC_NULL(&wp->homing_pos) || vm_vec_dist(&wobj->phys_info.pos, &wp->homing_pos) > wip->arm_radius)
 				return false;
 		}
 	}
@@ -6169,8 +6169,8 @@ void weapon_hit( object * weapon_obj, object * other_obj, vec3d * hitpos, int qu
 				using namespace particle;
 
 				auto primarySource = ParticleManager::get()->createSource(wip->piercing_impact_effect);
-				primarySource.moveTo(&weapon_obj->pos);
-				primarySource.setOrientationMatrix(&weapon_obj->last_orient);
+				primarySource.moveTo(&weapon_obj->phys_info.pos);
+				primarySource.setOrientationMatrix(&weapon_obj->phys_info.last_orient);
 
 				if (hitnormal)
 				{
@@ -6182,8 +6182,8 @@ void weapon_hit( object * weapon_obj, object * other_obj, vec3d * hitpos, int qu
 				if (wip->piercing_impact_secondary_effect >= 0)
 				{
 					auto secondarySource = ParticleManager::get()->createSource(wip->piercing_impact_secondary_effect);
-					secondarySource.moveTo(&weapon_obj->pos);
-					secondarySource.setOrientationMatrix(&weapon_obj->last_orient);
+					secondarySource.moveTo(&weapon_obj->phys_info.pos);
+					secondarySource.setOrientationMatrix(&weapon_obj->phys_info.last_orient);
 
 					if (hitnormal)
 					{
@@ -6256,7 +6256,7 @@ void weapon_hit( object * weapon_obj, object * other_obj, vec3d * hitpos, int qu
 
 	// check if this is an EMP weapon
 	if(wip->wi_flags[Weapon::Info_Flags::Emp]){
-		emp_apply(&weapon_obj->pos, wip->shockwave.inner_rad, wip->shockwave.outer_rad, wip->emp_intensity, wip->emp_time, (wip->wi_flags[Weapon::Info_Flags::Use_emp_time_for_capship_turrets]) != 0);
+		emp_apply(&weapon_obj->phys_info.pos, wip->shockwave.inner_rad, wip->shockwave.outer_rad, wip->emp_intensity, wip->emp_time, (wip->wi_flags[Weapon::Info_Flags::Use_emp_time_for_capship_turrets]) != 0);
 	}	
 
 	// spawn weapons - note the change from FS 1 multiplayer.
@@ -6286,9 +6286,9 @@ void weapon_detonate(object *objp)
 	// call weapon hit
 	// Wanderer - use last frame pos for the corkscrew missiles
 	if ( (Weapon_info[Weapons[objp->instance].weapon_info_index].wi_flags[Weapon::Info_Flags::Corkscrew]) ) {
-		weapon_hit(objp, NULL, &objp->last_pos);
+		weapon_hit(objp, NULL, &objp->phys_info.last_pos);
 	} else {
-		weapon_hit(objp, NULL, &objp->pos);
+		weapon_hit(objp, NULL, &objp->phys_info.pos);
 	}
 }
 
@@ -6740,13 +6740,13 @@ void weapon_maybe_spew_particle(object *obj)
 
 				// turn normals and origins to world space if we need to
 				if (!vm_vec_same(&wip->particle_spewers[psi].particle_spew_offset, &vmd_zero_vector)) {	// don't xform unused vectors
-					vm_vec_unrotate(&spawn_pos, &wip->particle_spewers[psi].particle_spew_offset, &obj->orient);
+					vm_vec_unrotate(&spawn_pos, &wip->particle_spewers[psi].particle_spew_offset, &obj->phys_info.orient);
 				} else {
 					spawn_pos = vmd_zero_vector;
 				}
 
 				if (!vm_vec_same(&wip->particle_spewers[psi].particle_spew_velocity, &vmd_zero_vector)) {
-					vm_vec_unrotate(&spawn_vel, &wip->particle_spewers[psi].particle_spew_velocity, &obj->orient);
+					vm_vec_unrotate(&spawn_vel, &wip->particle_spewers[psi].particle_spew_velocity, &obj->phys_info.orient);
 				} else {
 					spawn_vel = vmd_zero_vector;
 				}
@@ -6761,26 +6761,26 @@ void weapon_maybe_spew_particle(object *obj)
 
 					for (idx = 0; idx < wip->particle_spewers[psi].particle_spew_count; idx++) {
 						// get the backward vector of the weapon
-						direct = obj->orient.vec.fvec;
+						direct = obj->phys_info.orient.vec.fvec;
 						vm_vec_negate(&direct);
 
 						// randomly perturb x, y and z
 						
 						// uvec
 						ang = frand_range(-PI_2,PI_2);	// fl_radian(frand_range(-90.0f, 90.0f));	-optimized by nuke
-						vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->orient.vec.fvec);			
+						vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->phys_info.orient.vec.fvec);			
 						direct = direct_temp;
 						vm_vec_scale(&direct, wip->particle_spewers[psi].particle_spew_scale);
 
 						// rvec
 						ang = frand_range(-PI_2,PI_2);	// fl_radian(frand_range(-90.0f, 90.0f));	-optimized by nuke
-						vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->orient.vec.rvec);			
+						vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->phys_info.orient.vec.rvec);			
 						direct = direct_temp;
 						vm_vec_scale(&direct, wip->particle_spewers[psi].particle_spew_scale);
 
 						// fvec
 						ang = frand_range(-PI_2,PI_2);	// fl_radian(frand_range(-90.0f, 90.0f));	-optimized by nuke
-						vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->orient.vec.uvec);			
+						vm_rot_point_around_line(&direct_temp, &direct, ang, &null_vec, &obj->phys_info.orient.vec.uvec);			
 						direct = direct_temp;
 						vm_vec_scale(&direct, wip->particle_spewers[psi].particle_spew_scale);
 
@@ -6797,9 +6797,9 @@ void weapon_maybe_spew_particle(object *obj)
 						}
 
 						if (wip->wi_flags[Weapon::Info_Flags::Corkscrew]) {
-							vm_vec_add(&particle_pos, &obj->last_pos, &direct);
+							vm_vec_add(&particle_pos, &obj->phys_info.last_pos, &direct);
 						} else {
-							vm_vec_add(&particle_pos, &obj->pos, &direct);
+							vm_vec_add(&particle_pos, &obj->phys_info.pos, &direct);
 						}
 
 						// emit the particle
@@ -6822,12 +6822,12 @@ void weapon_maybe_spew_particle(object *obj)
 						input_vel.xyz.x = sinf(particle_rot) * wip->particle_spewers[psi].particle_spew_scale; // determine x/y velocity based on scale and rotation
 						input_vel.xyz.y = cosf(particle_rot) * wip->particle_spewers[psi].particle_spew_scale;
 						input_vel.xyz.z = wip->max_speed * wip->particle_spewers[psi].particle_spew_vel; // velocity inheritance
-						vm_vec_unrotate(&output_vel, &input_vel, &obj->orient);				// orient velocity to weapon
+						vm_vec_unrotate(&output_vel, &input_vel, &obj->phys_info.orient);				// orient velocity to weapon
 						input_pos_l.xyz.x = input_vel.xyz.x * flFrametime * (1.0f - is);	// interpolate particle motion
 						input_pos_l.xyz.y = input_vel.xyz.y * flFrametime * (1.0f - is);
 						input_pos_l.xyz.z = segment_length * is;							// position particle correctly on the z axis
-						vm_vec_unrotate(&input_pos, &input_pos_l, &obj->orient);			// orient to weapon
-						vm_vec_sub(&output_pos, &obj->pos, &input_pos);						// translate to world space
+						vm_vec_unrotate(&input_pos, &input_pos_l, &obj->phys_info.orient);			// orient to weapon
+						vm_vec_sub(&output_pos, &obj->phys_info.pos, &input_pos);						// translate to world space
 
 						//maybe add in offset and initial velocity
 						if (!vm_vec_same(&spawn_vel, &vmd_zero_vector)) { // add particle velocity if needed
@@ -6857,11 +6857,11 @@ void weapon_maybe_spew_particle(object *obj)
 						if (wip->particle_spewers[psi].particle_spew_z_scale != 1.0f) {	// don't do the extra math for spherical effect
 							temp_vel = input_vel;
 							temp_vel.xyz.z *= wip->particle_spewers[psi].particle_spew_z_scale;	// for an ovoid particle effect to better combine with laser effects
-							vm_vec_unrotate(&input_vel, &temp_vel, &obj->orient);				// so it has to be rotated
+							vm_vec_unrotate(&input_vel, &temp_vel, &obj->phys_info.orient);				// so it has to be rotated
 						}
 
 						vm_vec_add2(&output_vel, &input_vel); // add to weapon velocity
-						output_pos = obj->pos;
+						output_pos = obj->phys_info.pos;
 
 						// maybe add in offset and initial velocity
 						if (!vm_vec_same(&spawn_vel, &vmd_zero_vector)) { // add particle velocity if needed
@@ -6885,9 +6885,9 @@ void weapon_maybe_spew_particle(object *obj)
 						input_vel.xyz.x = sinf(ir) * wip->particle_spewers[psi].particle_spew_scale; // generate velocity from rotation data
 						input_vel.xyz.y = cosf(ir) * wip->particle_spewers[psi].particle_spew_scale;
 						input_vel.xyz.z = obj->phys_info.fspeed * wip->particle_spewers[psi].particle_spew_vel;
-						vm_vec_unrotate(&output_vel, &input_vel, &obj->orient); // rotate it to model
+						vm_vec_unrotate(&output_vel, &input_vel, &obj->phys_info.orient); // rotate it to model
 
-						output_pos = obj->pos;
+						output_pos = obj->phys_info.pos;
 
 						// maybe add in offset amd iitial velocity
 						if (!vm_vec_same(&spawn_vel, &vmd_zero_vector)) { // add particle velocity if needed
@@ -6918,12 +6918,12 @@ void weapon_maybe_spew_particle(object *obj)
 						input_vel.xyz.x = wip->particle_spewers[psi].particle_spew_z_scale * -sin_ang;
 						input_vel.xyz.y = wip->particle_spewers[psi].particle_spew_z_scale * -cos_ang;
 						input_vel.xyz.z = obj->phys_info.fspeed * wip->particle_spewers[psi].particle_spew_vel;
-						vm_vec_unrotate(&output_vel, &input_vel, &obj->orient); // rotate it to model
+						vm_vec_unrotate(&output_vel, &input_vel, &obj->phys_info.orient); // rotate it to model
 						// place particle on a disk prependicular to the weapon normal and rotate to model space
 						input_pos_l.xyz.x = sin_ang * len_rand;
 						input_pos_l.xyz.y = cos_ang * len_rand;
-						vm_vec_unrotate(&input_pos, &input_pos_l, &obj->orient); // rotate to world
-						vm_vec_sub(&output_pos, &obj->pos, &input_pos); // translate to world
+						vm_vec_unrotate(&input_pos, &input_pos_l, &obj->phys_info.orient); // rotate to world
+						vm_vec_sub(&output_pos, &obj->phys_info.pos, &input_pos); // translate to world
 						
 						// maybe add in offset amd iitial velocity
 						if (!vm_vec_same(&spawn_vel, &vmd_zero_vector)) { // add particle velocity if needed
@@ -7277,9 +7277,9 @@ void weapon_render(object* obj, model_draw_list *scene)
 
 				vec3d headp;
 
-				vm_vec_scale_add(&headp, &obj->pos, &obj->orient.vec.fvec, wip->laser_length);
+				vm_vec_scale_add(&headp, &obj->phys_info.pos, &obj->phys_info.orient.vec.fvec, wip->laser_length);
 
-				batching_add_laser(wip->laser_bitmap.first_frame + framenum, &headp, wip->laser_head_radius, &obj->pos, wip->laser_tail_radius, alpha, alpha, alpha);
+				batching_add_laser(wip->laser_bitmap.first_frame + framenum, &headp, wip->laser_head_radius, &obj->phys_info.pos, wip->laser_tail_radius, alpha, alpha, alpha);
 			}			
 
 			// maybe draw laser glow bitmap
@@ -7291,8 +7291,8 @@ void weapon_render(object* obj, model_draw_list *scene)
 				//  it caused uneven glow between the head and tail, which really shows in big lasers. So...fixed!    -Et1
 				vec3d headp2, tailp;
 
-				vm_vec_scale_add(&headp2, &obj->pos, &obj->orient.vec.fvec, wip->laser_length * weapon_glow_scale_l);
-				vm_vec_scale_add(&tailp, &obj->pos, &obj->orient.vec.fvec, wip->laser_length * (1 -  weapon_glow_scale_l) );
+				vm_vec_scale_add(&headp2, &obj->phys_info.pos, &obj->phys_info.orient.vec.fvec, wip->laser_length * weapon_glow_scale_l);
+				vm_vec_scale_add(&tailp, &obj->phys_info.pos, &obj->phys_info.orient.vec.fvec, wip->laser_length * (1 -  weapon_glow_scale_l) );
 
 				framenum = 0;
 
@@ -7378,12 +7378,12 @@ void weapon_render(object* obj, model_draw_list *scene)
 			if ( wp->lssm_stage == 2 ) {
 				object *wobj=&Objects[wp->lssm_warp_idx];		//warphole object
 
-				render_info.set_clip_plane(wobj->pos, wobj->orient.vec.fvec);
+				render_info.set_clip_plane(wobj->phys_info.pos, wobj->phys_info.orient.vec.fvec);
 			}
 
 			render_info.set_flags(render_flags);
 
-			model_render_queue(&render_info, scene, wip->model_num, &obj->orient, &obj->pos);
+			model_render_queue(&render_info, scene, wip->model_num, &obj->phys_info.orient, &obj->phys_info.pos);
 
 			break;
 		}

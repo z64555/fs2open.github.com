@@ -136,8 +136,8 @@ void supernova_do_particles()
 
 		// get particle norm
 		stars_get_sun_pos(0, &sun_temp);
-		vm_vec_add2(&sun_temp, &Player_obj->pos);
-		vm_vec_sub(&norm, &Player_obj->pos, &sun_temp);
+		vm_vec_add2(&sun_temp, &Player_obj->phys_info.pos);
+		vm_vec_sub(&norm, &Player_obj->phys_info.pos, &sun_temp);
 		vm_vec_normalize(&norm);
 
 		particle::particle_emitter whee;
@@ -160,8 +160,8 @@ void supernova_do_particles()
 			}
 
 			// rotate into world space
-			vm_vec_unrotate(&a, &ta, &Player_obj->orient);
-			vm_vec_add2(&a, &Player_obj->pos);
+			vm_vec_unrotate(&a, &ta, &Player_obj->phys_info.orient);
+			vm_vec_add2(&a, &Player_obj->phys_info.pos);
 			whee.pos = a;
 			whee.vel = norm;
 			vm_vec_scale(&whee.vel, 30.0f);
@@ -169,8 +169,8 @@ void supernova_do_particles()
 			whee.normal = norm;
 			particle::emit(&whee, particle::PARTICLE_FIRE, 0);
 
-			vm_vec_unrotate(&b, &tb, &Player_obj->orient);
-			vm_vec_add2(&b, &Player_obj->pos);
+			vm_vec_unrotate(&b, &tb, &Player_obj->phys_info.orient);
+			vm_vec_add2(&b, &Player_obj->phys_info.pos);
 			whee.pos = b;
 			particle::emit(&whee, particle::PARTICLE_FIRE, 0);
 		}
@@ -329,15 +329,15 @@ void supernova_get_eye(vec3d *eye_pos, matrix *eye_orient)
 
 	// set the controls for the heart of the sun
 	stars_get_sun_pos(0, &sun_temp);
-	vm_vec_add2(&sun_temp, &Player_obj->pos);
-	vm_vec_sub(&sun_vec, &sun_temp, &Player_obj->pos);
+	vm_vec_add2(&sun_temp, &Player_obj->phys_info.pos);
+	vm_vec_sub(&sun_vec, &sun_temp, &Player_obj->phys_info.pos);
 	vm_vec_normalize(&sun_vec);
 
 	// always set the camera pos
 	vec3d move;
 	matrix whee;
 	vm_vector_2_matrix(&whee, &move, NULL, NULL);
-	vm_vec_scale_add(&Supernova_camera_pos, &Player_obj->pos, &whee.vec.rvec, sn_cam_distance);
+	vm_vec_scale_add(&Supernova_camera_pos, &Player_obj->phys_info.pos, &whee.vec.rvec, sn_cam_distance);
 	vm_vec_scale_add2(&Supernova_camera_pos, &whee.vec.uvec, 30.0f);
 	//cam->set_position(&Supernova_camera_pos);
 	*eye_pos = Supernova_camera_pos;
@@ -351,9 +351,9 @@ void supernova_get_eye(vec3d *eye_pos, matrix *eye_orient)
 	// otherwise move it
 	else {
 		// get a vector somewhere between the supernova shockwave and the player ship
-		at = Player_obj->pos;
+		at = Player_obj->phys_info.pos;
 		vm_vec_scale_add2(&at, &sun_vec, sn_distance);
-		vm_vec_sub(&move, &Player_obj->pos, &at);
+		vm_vec_sub(&move, &Player_obj->phys_info.pos, &at);
 		vm_vec_normalize(&move);
 
 		// linearly move towards the player pos

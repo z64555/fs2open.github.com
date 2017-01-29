@@ -1420,8 +1420,8 @@ void send_ingame_ship_request_packet(int code,int rdata,net_player *pl)
 		shipp = &Ships[Objects[rdata].instance];
 
 		// add the most recent position and orientation for the requested ship
-		ADD_VECTOR(Objects[rdata].pos);
-		ADD_ORIENT(Objects[rdata].orient);
+		ADD_VECTOR(Objects[rdata].phys_info.pos);
+		ADD_ORIENT(Objects[rdata].phys_info.orient);
 		ADD_INT( Missiontime ); // NOTE: this is a long so careful with swapping in 64-bit platforms - taylor
 
 		// add the # of respawns this ship has left
@@ -1643,8 +1643,8 @@ void process_ingame_ship_request_packet(ubyte *data, header *hinfo)
 		Assert(objp != NULL);
 
 		// get its most recent position and orientation
-		GET_VECTOR(objp->pos);
-		GET_ORIENT(objp->orient);
+		GET_VECTOR(objp->phys_info.pos);
+		GET_ORIENT(objp->phys_info.orient);
 		GET_INT( Missiontime ); // NOTE: this is a long so careful with swapping in 64-bit platforms - taylor
 		GET_UINT( respawn_count );
 				

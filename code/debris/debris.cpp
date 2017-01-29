@@ -70,11 +70,11 @@ static void debris_start_death_roll(object *debris_obj, debris *debris_p)
 		if(fireball_type < 0) {
 			fireball_type = FIREBALL_EXPLOSION_LARGE1 + rand()%FIREBALL_NUM_LARGE_EXPLOSIONS;
 		}
-		fireball_create( &debris_obj->pos, fireball_type, FIREBALL_LARGE_EXPLOSION, OBJ_INDEX(debris_obj), debris_obj->radius*1.75f);
+		fireball_create( &debris_obj->phys_info.pos, fireball_type, FIREBALL_LARGE_EXPLOSION, OBJ_INDEX(debris_obj), debris_obj->radius*1.75f);
 
 		// only play debris destroy sound if hull piece and it has been around for at least 2 seconds
 		if ( Missiontime > debris_p->time_started + 2*F1_0 ) {
-			snd_play_3d( &Snds[SND_MISSILE_IMPACT1], &debris_obj->pos, &View_position, debris_obj->radius );
+			snd_play_3d( &Snds[SND_MISSILE_IMPACT1], &debris_obj->phys_info.pos, &View_position, debris_obj->radius );
 			
 		}
 	}
@@ -196,14 +196,14 @@ void maybe_delete_debris(debris *db)
 
 	if (timestamp_elapsed(db->next_distance_check) && timestamp_elapsed(db->must_survive_until)) {
 		if (!(Game_mode & GM_MULTIPLAYER)) {		//	In single player game, just check against player.
-			if (vm_vec_dist_quick(&Player_obj->pos, &Objects[db->objnum].pos) > MAX_DEBRIS_DIST)
+			if (vm_vec_dist_quick(&Player_obj->phys_info.pos, &Objects[db->objnum].phys_info.pos) > MAX_DEBRIS_DIST)
 				db->lifeleft = 0.1f;
 			else
 				db->next_distance_check = timestamp(DEBRIS_DISTANCE_CHECK_TIME);
 		} else {
 			for ( objp = GET_FIRST(&obj_used_list); objp !=END_OF_LIST(&obj_used_list); objp = GET_NEXT(objp) ) {
 				if (objp->flags[Object::Object_Flags::Player_ship]) {
-					if (vm_vec_dist_quick(&objp->pos, &Objects[db->objnum].pos) < MAX_DEBRIS_DIST) {
+					if (vm_vec_dist_quick(&objp->phys_info.pos, &Objects[db->objnum].phys_info.pos) < MAX_DEBRIS_DIST) {
 						db->next_distance_check = timestamp(DEBRIS_DISTANCE_CHECK_TIME);
 						return;
 					}
@@ -318,8 +318,8 @@ void debris_process_post(object * obj, float frame_time)
 			// rotate v2 out of local coordinates into world.
 			// Use v2 since it is used in every bolt.  See above switch().
 			vec3d snd_pos;
-			vm_vec_unrotate(&snd_pos, &v2, &obj->orient);
-			vm_vec_add2(&snd_pos, &obj->pos );
+			vm_vec_unrotate(&snd_pos, &v2, &obj->phys_info.orient);
+			vm_vec_add2(&snd_pos, &obj->phys_info.pos );
 
 			//Play a sound effect
 			if ( lifetime > 750 )	{
@@ -547,14 +547,14 @@ object *debris_create(object *source_obj, int model_num, int submodel_num, vec3d
 	db->next_fireball = timestamp_rand(500,2000);	//start one 1/2 - 2 secs later
 
 	if ( pos == NULL )
-		pos = &source_obj->pos;
+		pos = &source_obj->phys_info.pos;
 
     flagset<Object::Object_Flags> default_flags;
     default_flags.set(Object::Object_Flags::Renders);
     default_flags.set(Object::Object_Flags::Physics);
     default_flags.set(Object::Object_Flags::Collides, hull_flag != 0);
 
-    objnum = obj_create( OBJ_DEBRIS, parent_objnum, n, &source_obj->orient, pos, radius, default_flags);
+    objnum = obj_create( OBJ_DEBRIS, parent_objnum, n, &source_obj->phys_info.orient, pos, radius, default_flags);
 	if ( objnum == -1 ) {
 		mprintf(("Couldn't create debris object -- out of object slots\n"));
 		return NULL;
@@ -648,7 +648,7 @@ object *debris_create(object *source_obj, int model_num, int submodel_num, vec3d
 	// DA: here we need to vel_from_rot = w x to_center, where w is world is unrotated to world coords and offset is the 
 	// displacement fromt the center of the parent object to the center of the debris piece
 	vec3d world_rotvel, vel_from_rotvel;
-	vm_vec_unrotate ( &world_rotvel, &source_obj->phys_info.rotvel, &source_obj->orient );
+	vm_vec_unrotate ( &world_rotvel, &source_obj->phys_info.rotvel, &source_obj->phys_info.orient );
 	vm_vec_cross ( &vel_from_rotvel, &world_rotvel, &to_center );
 	vm_vec_scale ( &vel_from_rotvel, DEBRIS_ROTVEL_SCALE);
 
@@ -705,7 +705,7 @@ void debris_hit(object *debris_obj, object *other_obj, vec3d *hitpos, float dama
 		pe.vel = debris_obj->phys_info.vel;		// Initial velocity of all the particles
 
 		vec3d tmp_norm;
-		vm_vec_sub( &tmp_norm, hitpos, &debris_obj->pos );
+		vm_vec_sub( &tmp_norm, hitpos, &debris_obj->phys_info.pos );
 		vm_vec_normalize_safe(&tmp_norm);
 			
 		pe.normal = tmp_norm;			// What normal the particle emit around
@@ -771,10 +771,10 @@ int debris_check_collision(object *pdebris, object *other_obj, vec3d *hitpos, co
 		mc.model_num = Debris[num].model_num;	// Fill in the model to check
 		mc.submodel_num = Debris[num].submodel_num;
 		model_clear_instance( mc.model_num );
-		mc.orient = &pdebris->orient;					// The object's orient
-		mc.pos = &pdebris->pos;							// The object's position
-		mc.p0 = &other_obj->last_pos;				// Point 1 of ray to check
-		mc.p1 = &other_obj->pos;					// Point 2 of ray to check
+		mc.orient = &pdebris->phys_info.orient;					// The object's orient
+		mc.pos = &pdebris->phys_info.pos;							// The object's position
+		mc.p0 = &other_obj->phys_info.last_pos;				// Point 1 of ray to check
+		mc.p1 = &other_obj->phys_info.pos;					// Point 2 of ray to check
 		mc.flags = (MC_CHECK_MODEL | MC_SUBMODEL);
 
 		if (model_collide(&mc)) {
@@ -807,8 +807,8 @@ int debris_check_collision(object *pdebris, object *other_obj, vec3d *hitpos, co
 
 	vec3d zero, p0, p1;
 	vm_vec_zero(&zero);
-	vm_vec_sub(&p0, &lighter->last_pos, &heavy->last_pos);
-	vm_vec_sub(&p1, &lighter->pos, &heavy->pos);
+	vm_vec_sub(&p0, &lighter->phys_info.last_pos, &heavy->phys_info.last_pos);
+	vm_vec_sub(&p1, &lighter->phys_info.pos, &heavy->phys_info.pos);
 
 	mc.pos = &zero;								// The object's position
 	mc.p0 = &p0;									// Point 1 of ray to check
@@ -822,8 +822,8 @@ int debris_check_collision(object *pdebris, object *other_obj, vec3d *hitpos, co
 	if ( (vm_vec_mag_squared(&heavy->phys_info.rotvel) * flFrametime*flFrametime) < (PI*PI/36) ) {
 		// collide_rotate calculate (1) start position and (2) relative velocity
 		debris_hit_info->collide_rotate = 1;
-		vm_vec_rotate(&p0_temp, &p0, &heavy->last_orient);
-		vm_vec_unrotate(&p0_rotated, &p0_temp, &heavy->orient);
+		vm_vec_rotate(&p0_temp, &p0, &heavy->phys_info.last_orient);
+		vm_vec_unrotate(&p0_rotated, &p0_temp, &heavy->phys_info.orient);
 		mc.p0 = &p0_rotated;				// Point 1 of ray to check
 		vm_vec_sub(&debris_hit_info->light_rel_vel, &p1, &p0_rotated);
 		vm_vec_scale(&debris_hit_info->light_rel_vel, 1/flFrametime);
@@ -837,7 +837,7 @@ int debris_check_collision(object *pdebris, object *other_obj, vec3d *hitpos, co
 	if ( debris_hit_info->heavy == pship_obj ) {	// ship is heavier, so debris is sphere. Check sphere collision against ship poly model
 		mc.model_instance_num = Ships[pship_obj->instance].model_instance_num;
 		mc.model_num = Ship_info[Ships[pship_obj->instance].ship_info_index].model_num;	// Fill in the model to check
-		mc.orient = &pship_obj->orient;								// The object's orient
+		mc.orient = &pship_obj->phys_info.orient;								// The object's orient
 		mc.radius = pdebris->radius;
 		mc.flags = (MC_CHECK_MODEL | MC_CHECK_SPHERELINE);
 
@@ -890,10 +890,10 @@ int debris_check_collision(object *pdebris, object *other_obj, vec3d *hitpos, co
 
 					// find the start and end positions of the sphere in submodel RF
 					pmi->submodel[*smv].angs = pmi->submodel[*smv].prev_angs;
-					world_find_model_instance_point(&p0, &light_obj->last_pos, pmi, *smv, &heavy_obj->last_orient, &heavy_obj->last_pos);
+					world_find_model_instance_point(&p0, &light_obj->phys_info.last_pos, pmi, *smv, &heavy_obj->phys_info.last_orient, &heavy_obj->phys_info.last_pos);
 
 					pmi->submodel[*smv].angs = copy_angles;
-					world_find_model_instance_point(&p1, &light_obj->pos, pmi, *smv, &heavy_obj->orient, &heavy_obj->pos);
+					world_find_model_instance_point(&p1, &light_obj->phys_info.pos, pmi, *smv, &heavy_obj->phys_info.orient, &heavy_obj->phys_info.pos);
 
 					mc.p0 = &p0;
 					mc.p1 = &p1;
@@ -907,18 +907,18 @@ int debris_check_collision(object *pdebris, object *other_obj, vec3d *hitpos, co
 
 							// set up debris_hit_info common
 							set_hit_struct_info(debris_hit_info, &mc, SUBMODEL_ROT_HIT);
-							model_instance_find_world_point(&debris_hit_info->hit_pos, &mc.hit_point, mc.model_instance_num, mc.hit_submodel, &heavy_obj->orient, &zero);
+							model_instance_find_world_point(&debris_hit_info->hit_pos, &mc.hit_point, mc.model_instance_num, mc.hit_submodel, &heavy_obj->phys_info.orient, &zero);
 
 							// set up debris_hit_info for rotating submodel
 							if (debris_hit_info->edge_hit == 0) {
-								model_instance_find_obj_dir(&debris_hit_info->collision_normal, &mc.hit_normal, mc.model_instance_num, mc.hit_submodel, &heavy_obj->orient);
+								model_instance_find_obj_dir(&debris_hit_info->collision_normal, &mc.hit_normal, mc.model_instance_num, mc.hit_submodel, &heavy_obj->phys_info.orient);
 							}
 
 							// find position in submodel RF of light object at collison
 							vec3d int_light_pos, diff;
 							vm_vec_sub(&diff, mc.p1, mc.p0);
 							vm_vec_scale_add(&int_light_pos, mc.p0, &diff, mc.hit_dist);
-							model_instance_find_world_point(&debris_hit_info->light_collision_cm_pos, &int_light_pos, mc.model_instance_num, mc.hit_submodel, &heavy_obj->orient, &zero);
+							model_instance_find_world_point(&debris_hit_info->light_collision_cm_pos, &int_light_pos, mc.model_instance_num, mc.hit_submodel, &heavy_obj->phys_info.orient, &zero);
 						}
 					}
 					// Don't look at this submodel again
@@ -930,7 +930,7 @@ int debris_check_collision(object *pdebris, object *other_obj, vec3d *hitpos, co
 			mc.flags = copy_flags;
 			*mc.p0 = copy_p0;
 			*mc.p1 = copy_p1;
-			mc.orient = &heavy_obj->orient;
+			mc.orient = &heavy_obj->phys_info.orient;
 
 			// usual ship_ship collision test
 			if ( model_collide(&mc) )	{
@@ -942,7 +942,7 @@ int debris_check_collision(object *pdebris, object *other_obj, vec3d *hitpos, co
 
 					// get collision normal if not edge hit
 					if (debris_hit_info->edge_hit == 0) {
-						model_instance_find_obj_dir(&debris_hit_info->collision_normal, &mc.hit_normal, Ships[heavy_obj->instance].model_instance_num, mc.hit_submodel, &heavy_obj->orient);
+						model_instance_find_obj_dir(&debris_hit_info->collision_normal, &mc.hit_normal, Ships[heavy_obj->instance].model_instance_num, mc.hit_submodel, &heavy_obj->phys_info.orient);
 					}
 
 					// find position in submodel RF of light object at collison
@@ -960,7 +960,7 @@ int debris_check_collision(object *pdebris, object *other_obj, vec3d *hitpos, co
 		mc.model_num = Debris[num].model_num;		// Fill in the model to check
 		mc.submodel_num = Debris[num].submodel_num;
 		model_clear_instance( mc.model_num );
-		mc.orient = &pdebris->orient;				// The object's orient
+		mc.orient = &pdebris->phys_info.orient;				// The object's orient
 		mc.radius = model_get_core_radius(Ship_info[Ships[pship_obj->instance].ship_info_index].model_num);
 
 		// check for collision between debris model and ship sphere
@@ -973,7 +973,7 @@ int debris_check_collision(object *pdebris, object *other_obj, vec3d *hitpos, co
 
 			// set normal if not edge hit
 			if ( !debris_hit_info->edge_hit ) {
-				vm_vec_unrotate(&debris_hit_info->collision_normal, &mc.hit_normal, &heavy->orient);
+				vm_vec_unrotate(&debris_hit_info->collision_normal, &mc.hit_normal, &heavy->phys_info.orient);
 			}
 
 			// find position in submodel RF of light object at collison
@@ -1003,7 +1003,7 @@ int debris_check_collision(object *pdebris, object *other_obj, vec3d *hitpos, co
 		}
 
 		// get world hitpos
-		vm_vec_add(hitpos, &debris_hit_info->heavy->pos, &debris_hit_info->r_heavy);
+		vm_vec_add(hitpos, &debris_hit_info->heavy->phys_info.pos, &debris_hit_info->r_heavy);
 
 		return 1;
 	} else {
@@ -1086,7 +1086,7 @@ void debris_render(object * obj, model_draw_list *scene)
 	}
 
 	// Only render electrical arcs if within 500m of the eye (for a 10m piece)
-	if ( vm_vec_dist_quick( &obj->pos, &Eye_position ) < obj->radius*50.0f )	{
+	if ( vm_vec_dist_quick( &obj->phys_info.pos, &Eye_position ) < obj->radius*50.0f )	{
 		for (i=0; i<MAX_DEBRIS_ARCS; i++ )	{
 			if ( timestamp_valid( db->arc_timestamp[i] ) )	{
 				model_add_arc( db->model_num, db->submodel_num, &db->arc_pts[i][0], &db->arc_pts[i][1], MARC_TYPE_NORMAL );
@@ -1103,7 +1103,7 @@ void debris_render(object * obj, model_draw_list *scene)
 		render_info.set_flags(MR_NO_LIGHTING);
 	}
 
-	submodel_render_queue( &render_info, scene, db->model_num, db->submodel_num, &obj->orient, &obj->pos );
+	submodel_render_queue( &render_info, scene, db->model_num, db->submodel_num, &obj->phys_info.orient, &obj->phys_info.pos );
 
 	if (tbase != NULL && (swapped!=-1) && pm)	{
 		tbase->SetTexture(swapped);

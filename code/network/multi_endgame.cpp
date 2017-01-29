@@ -183,7 +183,7 @@ int multi_quit_game(int prompt, int notify_code, int err_code, int wsa_error)
 	if ( Game_mode & GM_IN_MISSION ) {
 		memset(&Player->ci, 0, sizeof(Player->ci) );
 		Player->ci.afterburner_stop = 1;
-		physics_read_flying_controls( &Player_obj->orient, &Player_obj->phys_info, &(Player->ci), flFrametime);
+		physics_read_flying_controls(&Player_obj->phys_info.orient, &Player_obj->phys_info, &(Player->ci), flFrametime);
 	}
 
 	// CASE 1 - response to a user request

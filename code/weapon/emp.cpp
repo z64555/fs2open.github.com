@@ -132,7 +132,7 @@ void emp_apply(vec3d *pos, float inner_radius, float outer_radius, float emp_int
 		wip_target = &Weapon_info[Weapons[target->instance].weapon_info_index];
 		if((wip_target->weapon_hitpoints > 0) && !(wip_target->wi_flags[Weapon::Info_Flags::No_emp_kill])) {
 			// get the distance between the detonation and the target object
-			vm_vec_sub(&dist, &target->pos, pos);
+			vm_vec_sub(&dist, &target->phys_info.pos, pos);
 			dist_mag = vm_vec_mag(&dist);
 
 			// if the bomb was within 1/4 of the outer radius, castrate it
@@ -179,8 +179,8 @@ void emp_apply(vec3d *pos, float inner_radius, float outer_radius, float emp_int
 					vec3d actual_pos;					
 					
 					// get the distance to the subsys					
-					vm_vec_unrotate(&actual_pos, &moveup->system_info->pnt, &target->orient);
-					vm_vec_add2(&actual_pos, &target->pos);					
+					vm_vec_unrotate(&actual_pos, &moveup->system_info->pnt, &target->phys_info.orient);
+					vm_vec_add2(&actual_pos, &target->phys_info.pos);					
 					vm_vec_sub(&dist, &actual_pos, pos);
 					dist_mag = vm_vec_mag(&dist);
 			
@@ -217,7 +217,7 @@ void emp_apply(vec3d *pos, float inner_radius, float outer_radius, float emp_int
 		// otherwise coat the whole ship with the effect. mmmmmmmmm.
 		else {				
 			// get the distance between the detonation and the target object
-			vm_vec_sub(&dist, &target->pos, pos);
+			vm_vec_sub(&dist, &target->phys_info.pos, pos);
 			dist_mag = vm_vec_mag(&dist);
 
 			// if for some reason, the object was outside the blast, radius

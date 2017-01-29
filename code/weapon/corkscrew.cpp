@@ -144,18 +144,18 @@ int cscrew_create(object *obj)
 
 	// get the "center" pointing vector
 	vec3d neg;
-	neg = obj->orient.vec.uvec;
+	neg = obj->phys_info.orient.vec.uvec;
 	if(Corkscrew_down_first){
 		vm_vec_negate(&neg);
 	}
 	vm_vec_scale_add2(&cscrewp->cen_p, &neg, wip->cs_radius);	
 
 	// move the missile up so that the corkscrew point is at the muzzle of the gun
-	// vm_vec_scale_add2(&obj->pos, &obj->orient.vec.uvec, Corkscrew_radius);
+	// vm_vec_scale_add2(&obj->phys_info.pos, &obj->phys_info.orient.vec.uvec, Corkscrew_radius);
 
 	// store some initial helix params
-	cscrewp->real_orient = obj->orient;
-	cscrewp->last_corkscrew_pos = obj->pos;
+	cscrewp->real_orient = obj->phys_info.orient;
+	cscrewp->last_corkscrew_pos = obj->phys_info.pos;
 	
 	return i;
 }
@@ -188,10 +188,10 @@ void cscrew_process_pre(object *objp)
 	// unrotate the missile itself
 	if(Corkscrew_helix){
 		// restore the "real" matrix now
-		objp->orient = ci->real_orient;		
+		objp->phys_info.orient = ci->real_orient;		
 	}
 	// move the missile back to the center of the corkscrew	
-	vm_vec_add2(&objp->pos, &ci->cen_p);	
+	vm_vec_add2(&objp->phys_info.pos, &ci->cen_p);	
 }
 
 // post process the corkscrew weapon by putting him back to the right spot on his corkscrew
@@ -216,42 +216,42 @@ void cscrew_process_post(object *objp)
 
 	// move to the outside of the corkscrew			
 	neg = ci->cen_p;
-	cen = objp->pos;	
+	cen = objp->phys_info.pos;
 	vm_vec_negate(&neg);		
-	vm_vec_add2(&objp->pos, &neg);		
+	vm_vec_add2(&objp->phys_info.pos, &neg);
 
 	// determine what direction (clockwise or counterclockwise) the missile will spin	
 	twist_val = ci->flags & CS_FLAG_COUNTER ? -wip->cs_twist : wip->cs_twist;
 	twist_val *= flFrametime;	
 	
 	// rotate the missile position
-	vm_rot_point_around_line(&new_pt, &objp->pos, twist_val, &cen, &objp->orient.vec.fvec);	
-	objp->pos = new_pt;
+	vm_rot_point_around_line(&new_pt, &objp->phys_info.pos, twist_val, &cen, &objp->phys_info.orient.vec.fvec);
+	objp->phys_info.pos = new_pt;
 
 	// rotate the missile itself
 	if(Corkscrew_helix){		
 		vec3d dir;
 	
 		// compute a "fake" orient and store the old one for safekeeping
-		ci->real_orient = objp->orient;
-		vm_vec_sub(&dir, &objp->pos, &ci->last_corkscrew_pos);
+		ci->real_orient = objp->phys_info.orient;
+		vm_vec_sub(&dir, &objp->phys_info.pos, &ci->last_corkscrew_pos);
 		vm_vec_normalize(&dir);
-		vm_vector_2_matrix(&objp->orient, &dir, NULL, NULL);	
+		vm_vector_2_matrix(&objp->phys_info.orient, &dir, NULL, NULL);	
 		
 		// mark down this position so we can orient nicely _next_ frame
-		ci->last_corkscrew_pos = objp->pos;
+		ci->last_corkscrew_pos = objp->phys_info.pos;
 	}	
 
 	// get the new center pointing vector
-	vm_vec_sub(&ci->cen_p, &cen, &objp->pos);
+	vm_vec_sub(&ci->cen_p, &cen, &objp->phys_info.pos);
 
 	// do trail stuff here
 	if ( wp->trail_ptr != NULL )	{
 		if (trail_stamp_elapsed(wp->trail_ptr)) {
-			trail_add_segment( wp->trail_ptr, &objp->pos );
+			trail_add_segment(wp->trail_ptr, &objp->phys_info.pos);
 			trail_set_stamp(wp->trail_ptr);
 		} else {
-			trail_set_segment( wp->trail_ptr, &objp->pos );
+			trail_set_segment(wp->trail_ptr, &objp->phys_info.pos);
 		}
 	}	
 }

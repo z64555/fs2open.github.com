@@ -110,9 +110,9 @@ void multi_obs_create_observer(net_player *pl)
 	Objects[objnum].net_signature = 0;
 
 	// put it a 1,1,1
-	Objects[objnum].pos.xyz.x = 1.0f;
-	Objects[objnum].pos.xyz.y = 1.0f;
-	Objects[objnum].pos.xyz.z = 1.0f;
+	Objects[objnum].phys_info.pos.xyz.x = 1.0f;
+	Objects[objnum].phys_info.pos.xyz.y = 1.0f;
+	Objects[objnum].phys_info.pos.xyz.z = 1.0f;
 
 	// assign this object to the player
 	pl->m_player->objnum = objnum;				
@@ -200,12 +200,12 @@ void multi_obs_zoom_to_target()
 	}
 
 	// get the normalized direction vector between the observer and the targeted object
-	vm_vec_sub(&direct,&Objects[Player_ai->target_objnum].pos,&Player_obj->pos);
+	vm_vec_sub(&direct, &Objects[Player_ai->target_objnum].phys_info.pos, &Player_obj->phys_info.pos);
 	dist = vm_vec_mag(&direct);
 	vm_vec_normalize(&direct);	
 
 	// orient the guy correctly
-	vm_vec_ang_2_matrix(&Player_obj->orient,&direct,0.0f);
+	vm_vec_ang_2_matrix(&Player_obj->phys_info.orient, &direct, 0.0f);
 
 	// keep about 3 object radii away when moving
 	dist -= (Objects[Player_ai->target_objnum].radius * 3.0f);
@@ -214,5 +214,5 @@ void multi_obs_zoom_to_target()
 	vm_vec_scale(&direct,dist);
 
 	// move
-	vm_vec_add2(&Player_obj->pos,&direct);
+	vm_vec_add2(&Player_obj->phys_info.pos, &direct);
 }

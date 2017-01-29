@@ -408,7 +408,7 @@ CJumpNode *jumpnode_get_which_in(object *objp)
 			continue;
 
 		radius = model_get_radius( jnp->GetModelNumber() );
-		dist = vm_vec_dist( &objp->pos, &jnp->GetSCPObject()->pos );
+		dist = vm_vec_dist( &objp->phys_info.pos, &jnp->GetSCPObject()->phys_info.pos );
 		if ( dist <= radius ) {
 			return &(*jnp);
 		}
@@ -427,7 +427,7 @@ void jumpnode_render_all()
 	SCP_list<CJumpNode>::iterator jnp;
 	
 	for (jnp = Jump_nodes.begin(); jnp != Jump_nodes.end(); ++jnp) {	
-		jnp->Render(&jnp->GetSCPObject()->pos);
+		jnp->Render(&jnp->GetSCPObject()->phys_info.pos);
 	}
 }
 
