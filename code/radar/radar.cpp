@@ -361,7 +361,8 @@ void HudGaugeRadarStd::pageIn()
 
 void HudGaugeRadarStd::plotBlip(blip *b, int *x, int *y)
 {
-	float zdist, rscale;
+	float zdist;	// Hypotenuse of x and y, at P(0, 0, z)
+	float rscale;	// Radius scale [0, 1], which is based on the altitude angle
 	vec3d *pos = &b->position;
 
 	if (b->dist < pos->xyz.z) {
@@ -370,7 +371,7 @@ void HudGaugeRadarStd::plotBlip(blip *b, int *x, int *y)
 		rscale = (float) acosf(pos->xyz.z / b->dist) / PI;		//2.0f;	 
 	}
 
-	zdist = fl_sqrt((pos->xyz.x * pos->xyz.x) + (pos->xyz.y * pos->xyz.y));
+	zdist = (float) _hypot(pos->xyz.x, pos->xyz.y);
 
 	float new_x_dist, clipped_x_dist;
 	float new_y_dist, clipped_y_dist;
@@ -382,10 +383,12 @@ void HudGaugeRadarStd::plotBlip(blip *b, int *x, int *y)
 	}
 	else
 	{
+		// Normalize (x, y), scale it according to its angles, and then scale it to fit the radar
+		// Point at z=0 is somewhere on a great circle at 0.5 Radar Radius
 		new_x_dist = (pos->xyz.x / zdist) * rscale * (Radar_radius[0]/2.0f);
 		new_y_dist = (pos->xyz.y / zdist) * rscale * (Radar_radius[1]/2.0f);
 
-		// force new_x_dist and new_y_dist to be inside the radar
+		// clamp new_x_dist and new_y_dist to be 5 pixels inside the radar limits
 
 		float hypotenuse;
 		float max_radius;
