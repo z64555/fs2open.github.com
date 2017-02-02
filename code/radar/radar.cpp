@@ -29,12 +29,16 @@
 #include "ship/subsysdamage.h"
 #include "weapon/emp.h"
 #include "weapon/weapon.h"
+#include "debugconsole/console.h"
 
 extern int radar_target_id_flags;
 
 HudGaugeRadarStd::HudGaugeRadarStd():
-HudGaugeRadar(HUD_OBJECT_RADAR_STD, 255, 255, 255)
+HudGaugeRadar(HUD_OBJECT_RADAR_STD, 255, 255, 255), min_segments(3), arc_length(-1.0f)
 {
+	max_radius = -1.0f;
+
+
 	gr_init_alphacolor( &radar_crosshairs, 255, 255, 255, 196);
 }
 
@@ -98,6 +102,61 @@ void HudGaugeRadarStd::blipDrawFlicker(blip *b, int x, int y)
 void HudGaugeRadarStd::blitGauge()
 {
 	renderBitmap(Radar_gauge.first_frame+1, position[0], position[1] );
+}
+
+int n_sides = 3;
+float n_scale = 1.0f;
+DCF_FLOAT(ngon_scale, n_scale, "Adjusts the scale on the radar clamping");
+DCF_INT(ngon_sides, n_sides, "Adjusts number of sides on the ngon radar");
+void HudGaugeRadarStd::clampBlip(float *x, float *y)
+{
+	float hypotenuse;
+	hypotenuse = (float) _hypot(*x, *y);
+
+	float beta_p;
+
+	beta_p = ((n_sides - 2) * PI) / n_sides;
+	beta = beta_p / 2;
+	//arc_length = -1.0f;
+	arc_length = PI - beta_p;
+	r_min = cos(PI / n_sides);
+	gamma = 0;
+	//float scale = 1 / (sin(beta_p) + cos(beta_p));
+	float scale = (cos(beta_p) - sin(beta_p)) / (1 + sin(2 * beta_p));
+
+	if (n_sides < 3) {
+		// Oval radar
+
+		if (hypotenuse >= 1.0f) {
+			*x /= hypotenuse;
+			*y /= hypotenuse;
+		}
+
+	} else {
+		// These values seem to work:
+		// n_sides: {3,4,5,6,7,8,9,10,11,12}
+		// scale: {0.7, 1, 1.15, 1.215, 1.24, 1.26, 1.29, 1.31, 1.33, 1.34}
+		// Ngon radar
+		if (hypotenuse >= r_min) {
+			// Calculate blip radial angle on the plot area
+			float r_angle = atan2(*y, *x);
+			r_angle += gamma;	// Rotate by gamma
+			// Calculate alpha
+			int n = flfloor(r_angle / arc_length);
+			float alpha = r_angle - (n * arc_length);
+
+			// Calculate radial magnitude
+			float theta = alpha + (-(PI / 4) + beta);
+			float r_mag = (n_scale) / (sin(theta) + cos(theta));
+			r_mag /= scale;
+
+			// Clamp if needed
+			if (r_mag < hypotenuse) {
+				*x *= (r_mag / hypotenuse);
+				*y *= (r_mag / hypotenuse);
+			}
+		}
+	}
 }
 void HudGaugeRadarStd::drawBlips(int blip_type, int bright, int distort)
 {
@@ -279,6 +338,11 @@ void HudGaugeRadarStd::drawContactImage( int x, int y, int rad, int idx, int clr
 
 void HudGaugeRadarStd::render(float frametime)
 {
+	// z6455 more hacks...
+	if (max_radius < 0.0f) {
+		max_radius = i2fl(Radar_radius[0] - 5);
+	}
+
 	//WMC - This strikes me as a bit hackish
 	bool g3_yourself = !g3_in_frame();
 	if(g3_yourself)
@@ -373,8 +437,8 @@ void HudGaugeRadarStd::plotBlip(blip *b, int *x, int *y)
 
 	zdist = (float) _hypot(pos->xyz.x, pos->xyz.y);
 
-	float new_x_dist, clipped_x_dist;
-	float new_y_dist, clipped_y_dist;
+	float new_x_dist;
+	float new_y_dist;
 
 	if (zdist < 0.01f)
 	{
@@ -383,26 +447,17 @@ void HudGaugeRadarStd::plotBlip(blip *b, int *x, int *y)
 	}
 	else
 	{
-		// Normalize (x, y), scale it according to its angles, and then scale it to fit the radar
+		// Normalize (x, y), scale it down according to its angles
 		// Point at z=0 is somewhere on a great circle at 0.5 Radar Radius
-		new_x_dist = (pos->xyz.x / zdist) * rscale * (Radar_radius[0]/2.0f);
-		new_y_dist = (pos->xyz.y / zdist) * rscale * (Radar_radius[1]/2.0f);
+		new_x_dist = (pos->xyz.x / zdist) * rscale;
+		new_y_dist = (pos->xyz.y / zdist) * rscale;
 
 		// clamp new_x_dist and new_y_dist to be 5 pixels inside the radar limits
+		clampBlip(&new_x_dist, &new_y_dist);
 
-		float hypotenuse;
-		float max_radius;
-
-		hypotenuse = (float) _hypot(new_x_dist, new_y_dist);
-		max_radius = i2fl(Radar_radius[0] - 5);
-
-		if (hypotenuse >= max_radius)
-		{
-			clipped_x_dist = max_radius * (new_x_dist / hypotenuse);
-			clipped_y_dist = max_radius * (new_y_dist / hypotenuse);
-			new_x_dist = clipped_x_dist;
-			new_y_dist = clipped_y_dist;
-		}
+		// Scale up to fit radar
+		new_x_dist *= (Radar_radius[0] / 2.0f);
+		new_y_dist *= (Radar_radius[1] / 2.0f);
 	}
 
 	*x = fl2i(position[0] + Radar_center_offsets[0] + new_x_dist);

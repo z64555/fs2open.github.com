@@ -46,8 +46,28 @@ class HudGaugeRadarStd: public HudGaugeRadar
 
 	// formerly parts of Current_radar_global
 	float Radar_center_offsets[2];
+
+	float max_radius;	// Maximum radius of the plot area, default is to X-axis size
+
+	// Ngon plot area
+	float arc_length;	// Arc length of a sector (angle)
+	float beta;			// Interrior angle of the radial vectors and the n-gon edges
+	float gamma;		// Counterclockwise offset of the n-gon
+	float r_min;		// Apothem of the polygon, which is the smallest radius
+	int min_segments;
+protected:
+	/**
+	 * @brief Clamps the incoming coordinates to be within the unit circle (or ngon)
+	 *
+	 * @param[in,out] x coord
+	 * @param[in,out] y coord
+	 * @details If the plotted coordinates is outside the plot area, it is radially projected onto the edge
+	 */
+	void clampBlip(float* x, float* y);
+
 public:
 	HudGaugeRadarStd();
+
 	void initCenterOffsets(float x, float y);
 	void initBitmaps(char *fname);
 
