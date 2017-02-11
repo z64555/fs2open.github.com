@@ -14,6 +14,99 @@
 #include "globalincs/pstypes.h"
 
 #define CONTROL_CONFIG_XSTR	507
+#define MAX_BINDINGS 3
+
+class Config_item;
+enum IoActionId;
+
+typedef std::pair<short, short> cid;            // Controller/Button pair. First = Controller ID, Second = Button ID on the controller
+typedef SCP_vector<Config_item> Control_LUT;    // Control Configuration container. Contains control info and Controller->Action mappings (Input index is an IoActionId)
+typedef SCP_vector<IoActionId>  Action_LUT;     // Action container. Containts Action->Controller mappings. (Input index is a button id of the controller this map is for)
+
+class Config_item
+{
+public:
+	cid default_id[MAX_BINDINGS];   //!< default bindings for this action
+	cid c_id[MAX_BINDINGS];     //!< controller ID's currently bound
+	int used;                   //!< has control been used yet in mission?  If so, this is the timestamp
+	char type;                  //!< manner control should be checked in
+	bool disabled;              //!< whether this action should be available at all
+	bool continuous_ongoing;    //!< whether this action is a contiuous one and is currently ongoing
+
+	// GUI members
+	char tab;           //!< what tab (category) this control belongs to
+	bool hasXSTR;       //!< whether we should translate the text with an XSTR
+	const char* text;   //!< describes the action in the config screen
+
+	Config_item()
+		: used(-1), type(0), disabled(true), continuous_ongoing(false), tab(0), hasXSTR(false), text("Non-initialized Control") {
+		default_id[0] = cid(-1, -1);
+		default_id[1] = cid(-1, -1);
+		default_id[2] = cid(-1, -1);
+	};
+
+	Config_item(short default0, short default1, short default2, char type, bool disabled, char tab, bool hasXSTR, const char* text)
+		: used(-1), type(type), disabled(disabled), continuous_ongoing(false), tab(tab), hasXSTR(hasXSTR), text(text) {
+		default_id[0] = cid(CID_KEYBOARD, default0);
+
+		if (default1 != -1)
+			default_id[1] = cid(CID_MOUSE, default1);
+		else
+			default_id[1] = cid(-1, -1);
+
+		if (default2 != -1)
+			default_id[2] = cid(CID_JOY, default2);
+		else
+			default_id[2] = cid(-1, -1);
+	}
+};
+
+
+/**
+* @brief Predicate class used to construct new Config_items
+*/
+class config_item_loader
+{
+public:
+	/**
+	* @brief Loader's constructor. This is how we tell it which container the items will go into!
+	*/
+	config_item_loader(Control_LUT *dest)
+		: dest(dest) {};
+
+	/**
+	* @brief Creates a new instance of Config_item and adds it to the end of dest
+	*
+	* @note Returns a reference to iself, so you can chain calls together in a style similar to array initialization.
+	* @sa Config_item
+	*/
+	config_item_loader& operator()(char tab, const char* text, bool hasXSTR, char type, bool disabled, short default0, short default1, short default2) {
+		dest->emplace_back(Config_item(default0, default1, default2, type, disabled, tab, hasXSTR, text));
+		return *this;
+	};
+
+	/**
+	* @brief Version of operator() which takes in two cid's
+	*
+	* @sa Config_item
+	*/
+	config_item_loader& operator()(char tab, const char* text, bool hasXSTR, char type, bool disabled, short default0, short default1) {
+		return this->operator()(tab, text, hasXSTR, type, disabled, default0, default1, -1);
+	}
+
+	/**
+	* @brief Version of operator() which takes in one cid
+	*
+	* @sa Config_item
+	*/
+	config_item_loader& operator()(char tab, const char* text, bool hasXSTR, char type, bool disabled, short default0) {
+		return this->operator()(tab, text, hasXSTR, type, disabled, default0, -1, -1);
+	};
+
+private:
+	Control_LUT *dest;
+};
+
 
 /*!
  * These are used to index a corresponding joystick axis value from an array.
@@ -46,7 +139,6 @@ enum Joy_axis_action_index {
 };
 
 
-
 /*!
  * Control Configuration Types. Namely differ in how the control is activated
  */
@@ -55,22 +147,6 @@ enum CC_type {
 	CC_TYPE_CONTINUOUS				//!< A continous control that is activated as long as the key or button is held down
 };
 
-/*!
-* Control configuration item type.
-*/
-typedef struct config_item {
-	short key_default;		//!< default key bound to action
-	short joy_default;		//!< default joystick button bound to action
-	char tab;				//!< what tab (category) it belongs in
-	bool hasXSTR;			//!< whether we should translate this with an XSTR
-	const char *text;		//!< describes the action in the config screen
-	char type;				//!< manner control should be checked in
-	short key_id;			//!< actual key bound to action
-	short joy_id;			//!< joystick button bound to action
-	int used;				//!< has control been used yet in mission?  If so, this is the timestamp
-	bool disabled;			//!< whether this action should be available at all
-	bool continuous_ongoing;//!< whether this action is a continuous one and is currently ongoing
-} config_item;
 
 /*!
  * All available actions
@@ -276,6 +352,13 @@ enum IoActionId  {
 	CCFG_MAX                                  //!<  The total number of defined control actions (or last define + 1)
 };
 
+
+// Controller ID's for each binding
+const short CID_KEYBOARD = 0;
+const short CID_MOUSE = 1;
+const short CID_JOY = 2;
+
+
 extern int Failed_key_index;
 extern int Invert_heading;
 extern int Invert_pitch;
@@ -293,9 +376,12 @@ extern int Joy_sensitivity;
 
 extern int Control_config_overlay_id;
 
-extern config_item Control_config[];		//!< Stores the keyboard configuration
-extern SCP_vector<config_item*> Control_config_presets; // tabled control presets; pointers to config_item arrays
-extern SCP_vector<SCP_string> Control_config_preset_names; // names for Control_config_presets (identical order of items)
+extern Action_LUT Mouse_config;                 //!< Reverse LUT for the mouse buttons
+extern SCP_vector< Action_LUT > Joy_configs;    //!< Reverse LUT for the joystick(s) buttons
+
+extern Control_LUT Control_config;                          //!< Forward LUT for keys and buttons that the player is using.
+extern SCP_vector<Control_LUT> Control_config_presets;      //!< tabled control presets; pointers to config_item arrays
+extern SCP_vector<SCP_string> Control_config_preset_names;  //!< names for Control_config_presets (identical order of items)
 extern const char **Scan_code_text;
 extern const char **Joy_button_text;
 
