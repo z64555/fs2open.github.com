@@ -420,6 +420,36 @@ void clear_key_binding(short key);
 void control_config_reset_defaults(int presetnum=-1);
 
 /*!
+* @brief Find the first control that has c_id mapped
+*
+* @param[in] c_id  The cid to check
+* @param[in] begin Optional. Begin iterator of the LUT
+* @param[in] end   Optional. End iterator of the LUT
+*
+* @returns iterator to the first control with the 'c_id', or
+* @returns iterator equal to 'end'
+*
+* @note To find the IoActionId in Control_config from the returned iterator, call std::distance(Control_config.begin(), retval)
+* @note This can return a disabled control
+*/
+Control_LUT::iterator find_control(cid c_id, Control_LUT::iterator begin = Control_config.begin(), const Control_LUT::iterator end = Control_config.end());
+
+/*!
+ * @brief Find the first control that has c_id mapped as a default
+ *
+ * @param[in] c_id  The cid to check
+ * @param[in] begin Optional. Begin iterator of the LUT
+ * @param[in] end   Optional. End iterator of the LUT
+ *
+ * @returns iterator to the first control with the 'c_id', or
+ * @returns iterator equal to 'end'
+ *
+ * @note To find the IoActionId in Control_config from the returned iterator, call std::distance(Control_config.begin(), retval)
+ * @note This can return a disabled control
+ */
+Control_LUT::iterator find_control_default(cid c_id, Control_LUT::iterator begin = Control_config.begin(), Control_LUT::iterator end = Control_config.end());
+
+/*!
  * @brief Translates a keycode into its Control_config index
  * @param[in] key           The keycode to translate
  * @param[in] find_override Should we find the user-overridden control (true), or its default (false)?
@@ -442,6 +472,21 @@ char *translate_key(char *key);
  * @brief Returns the Human-readable string of the given key code
  */
 const char *textify_scancode(int code);
+
+/*!
+ * @brief Returns the Human-reable string of the given mapping
+ */
+SCP_string textify(cid c_id);
+
+/*!
+ * @brief Returns the Human-readable string of the given mouse button
+ */
+SCP_string textify_mouse(int code);
+
+/*!
+ * @brief Returns the Human-readable string of the given joystick control
+ */
+SCP_string textify_joy(cid c_id);
 
 /*!
  * @brief Returns the time a continous control has been active

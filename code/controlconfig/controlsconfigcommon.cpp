@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <string>
 
 #include "cfile/cfile.h"
 #include "controlconfig/controlsconfig.h"
@@ -17,9 +18,11 @@
 #include "globalincs/vmallocator.h"
 #include "io/joy.h"
 #include "io/key.h"
+#include "io/mouse.h"
 #include "localization/localize.h"
 #include "parse/parselo.h"
 
+using namespace io::joystick;
 // z64: These enumerations MUST equal to those in controlsconfig.cpp...
 // z64: Really need a better way than this.
 enum CC_tab {
@@ -260,6 +263,7 @@ SCP_vector<Control_LUT> Control_config_presets;
 SCP_vector<SCP_string> Control_config_preset_names;
 
 SCP_map<SCP_string, int> mKeyNameToVal;
+SCP_map<SCP_string, int> mMouseNameToVal;
 SCP_map<SCP_string, CC_type> mCCTypeNameToVal;
 SCP_map<SCP_string, char> mCCTabNameToVal;
 
@@ -272,6 +276,11 @@ void control_config_common_load_overrides();
  * @brief Helper function to LoadEnumsIntoMaps(), Loads the Keyboard definitions/enumerations into mKeyNameToVal
  */
 void LoadEnumsIntoKeyMap(void);
+
+/*!
+ * @breif Helpfer function to LoadEnumsIntoMaps(), Loads the Mouse definitions/enumarations into mMouseNameToVal
+ */
+void LoadEnumsIntoMouseMap(void);
 
 /*!
  * @brief Helper function to LoadEnumsIntoMaps(), Loads the Control Types enumerations into mCCTypeNameToVal
@@ -332,26 +341,31 @@ int translate_key_to_index(const char *key, bool find_override)
 			index |= KEY_ALTED;
 
 		// convert scancode to Control_config index
+		auto it = Control_config.begin();
+
+		// Find the first active match
 		if (find_override) {
-			for (i=0; i<CCFG_MAX; i++) {
-				if (!Control_config[i].disabled && Control_config[i].key_id == index) {
-					index = i;
+			while (it != Control_config.end()) {
+				it = find_control(cid(CID_KEYBOARD, index), it);
+
+				if (!it->disabled) {
 					break;
 				}
 			}
 		} else {
-			for (i=0; i<CCFG_MAX; i++) {
-				if (!Control_config[i].disabled && Control_config[i].key_default == index) {
-					index = i;
+			while (it != Control_config.end()) {
+				it = find_control_default(cid(CID_KEYBOARD, index), it);
+
+				if (!it->disabled) {
 					break;
 				}
 			}
 		}
 
-		if (i == CCFG_MAX)
+		if (it == Control_config.end())
 			return -1;
 
-		return index;
+		return std::distance(Control_config.begin(), it);
 	}
 
 	return -1;
@@ -363,44 +377,159 @@ char *translate_key(char *key)
 	const char *key_text = NULL;
 	const char *joy_text = NULL;
 
-	static char text[40] = {"None"};
+	static char text[40] = {"None"};	// TODO Replace this with an SCP_string
+	SCP_string temp;
 
 	index = translate_key_to_index(key, false);
 	if (index < 0) {
 		return NULL;
 	}
 
-	key_code = Control_config[index].key_id;
-	joy_code = Control_config[index].joy_id;
+	cid *c_id = Control_config[index].c_id;
+
+	int count = 0;	// Number of bindings for this action
+	for (auto i = 0; i < MAX_BINDINGS; ++i) {
+		if (c_id[i].first != -1)
+			count++;
+	}
+
+	if (count == 1) {
+		temp = textify(c_id[0]);
+
+	} else if (count == 2) {
+		temp = textify(c_id[0]) + " or " + textify(c_id[1]);
+
+	} else if (count > 2) {
+
+		for (auto i = 0; i < MAX_BINDINGS; ++i) {
+			temp += textify(c_id[i]);
+			count -= 1;
+
+			if (count > 1) {
+				temp += ", ";
+
+			} else if (count == 1) {
+				temp += ", or ";
+
+			} else if (count == 0) {
+				break;
+			}
+		}
+	} else {
+		// Nothing bound
+		temp = "None";
+	}
 
 	Failed_key_index = index;
 
-	if (key_code >= 0) {
-		key_text = textify_scancode(key_code);
-	}
-
-	if (joy_code >= 0) {
-		joy_text = Joy_button_text[joy_code];
-	}
-
-	// both key and joystick button are mapped to this control
-	if ((key_code >= 0 ) && (joy_code >= 0) ) {
-		strcpy_s(text, key_text);
-		strcat_s(text, " or ");
-		strcat_s(text, joy_text);
-	}
-	// if we only have one
-	else if (key_code >= 0 ) {
-		strcpy_s(text, key_text);
-	}
-	else if (joy_code >= 0) {
-		strcpy_s(text, joy_text);
-	}
-	else {
-		strcpy_s(text, "None");
-	}
+	strcpy_s(text, temp.c_str());
 
 	return text;
+}
+
+SCP_string textify(cid c_id)
+{
+	SCP_string retval;
+
+	if (c_id.first == CID_KEYBOARD) {
+		retval.assign(textify_scancode(c_id.second));
+
+	} else if (c_id.first == CID_MOUSE) {
+		retval = textify_mouse(c_id.second);
+
+	} else if (c_id.first >= CID_JOY) {
+		retval = textify_joy(c_id);
+	}
+
+	return retval;
+}
+
+SCP_string textify_mouse(int code)
+{
+	SCP_string retval;
+
+	switch (code) {
+	case MOUSE_LEFT_BUTTON:
+		retval = "L MB";
+		break;
+	case MOUSE_RIGHT_BUTTON:
+		retval = "R MB";
+		break;
+	case MOUSE_MIDDLE_BUTTON:
+		retval = "M MB";
+		break;
+	case MOUSE_X1_BUTTON:
+		retval = "X1 MB";
+		break;
+	case MOUSE_X2_BUTTON:
+		retval += "X2 MB";
+		break;
+	case MOUSE_WHEEL_UP:
+		retval += "MW Up";
+		break;
+	case MOUSE_WHEEL_DOWN:
+		retval += "MW Down";
+		break;
+	case MOUSE_WHEEL_LEFT:
+		retval += "MW Left";
+		break;
+	case MOUSE_WHEEL_RIGHT:
+		retval += "MW Right";
+		break;
+	default:
+		// Shouldn't happen
+		Assertion(false, "Unknown mouse button!");
+		retval += "Unknown MB";
+		break;
+	}
+}
+
+SCP_string textify_joy(cid c_id)
+{
+	SCP_string retval;
+
+	// TODO: Get the string name per joystick. For now we'll just use Joy0, Joy1, etc.
+	int joy = c_id.first -= CID_JOY;
+	int button = c_id.second;
+
+	retval = "Joy";
+	retval += std::to_string(c_id.second - CID_JOY);
+
+	if ((button < 0) || (button >= JOY_TOTAL_BUTTONS)) {
+		// Shouldn't happen
+		Assertion(false, "textify_joy: Unknown joystick button id.");
+		retval += "Button Unknown";
+
+	} else if (button >= JOY_NUM_BUTTONS) {
+		// Is hat
+		retval += " Hat ";
+		switch (button) {
+		case JOY_NUM_BUTTONS + HAT_UP:
+			retval += "Up";
+			break;
+		case JOY_NUM_BUTTONS + HAT_DOWN:
+			retval += "Down";
+			break;
+		case JOY_NUM_BUTTONS + HAT_LEFT:
+			retval += "Left";
+			break;
+		case JOY_NUM_BUTTONS + HAT_RIGHT:
+			retval += "Right";
+			break;
+		default:
+			// Shouldn't happen
+			Assertion(false, "textify_joy: Unknown hat position.");
+			retval += "Unknown";
+			break;
+		}
+
+	} else {
+		// (button >= 0) && (button < JOY_NUM_BUTTONS)
+		// Is button
+		retval += std::to_string(button);
+	}
+	
+	return retval;
 }
 
 const char *textify_scancode(int code)
@@ -611,9 +740,46 @@ void control_config_common_init()
 void control_config_common_close()
 {
 	// only need to worry control presets for now
-	for (auto ii = Control_config_presets.cbegin(); ii != Control_config_presets.cend(); ++ii) {
-		delete[] * ii;
+	// z64555: Don't need to worry about control presets anymore, they've been classified. D:
+}
+
+Control_LUT::iterator find_control(cid c_id, Control_LUT::iterator begin, Control_LUT::iterator end)
+{
+	auto it = begin;
+	for (; it != end; ++it) {
+		for (size_t i = 0; i < MAX_BINDINGS; ++i) {
+			if (it->c_id[i] == c_id) {
+				// Found ya!
+				return it;
+			}
+
+			if (c_id.first == CID_KEYBOARD) {
+				// Keyabord mappings are always first
+				continue;
+			}
+		}
 	}
+
+	return end;
+}
+
+Control_LUT::iterator find_control_default(cid c_id, Control_LUT::iterator begin, Control_LUT::iterator end) {
+	auto it = begin;
+	for (; it != end; ++it) {
+		for (size_t i = 0; i < MAX_BINDINGS; ++i) {
+			if (it->default_id[i] == c_id) {
+				// Found ya!
+				return it;
+			}
+
+			if (c_id.first == CID_KEYBOARD) {
+				// Keyabord mappings are always first
+				continue;
+			}
+		}
+	}
+
+	return end;
 }
 
 void LoadEnumsIntoKeyMap(void) {
@@ -750,6 +916,22 @@ void LoadEnumsIntoKeyMap(void) {
 #undef ADD_ENUM_TO_KEY_MAP
 }
 
+void LoadEnumsIntoMouseMap(void)
+{
+	// Dity macro hack :D
+#define ADD_ENUM_TO_MOUSE_MAP(Enum) mMouseNameToVal[#Enum] = (Enum)
+	ADD_ENUM_TO_MOUSE_MAP(MOUSE_LEFT_BUTTON	);
+	ADD_ENUM_TO_MOUSE_MAP(MOUSE_RIGHT_BUTTON);
+	ADD_ENUM_TO_MOUSE_MAP(MOUSE_MIDDLE_BUTTON);
+	ADD_ENUM_TO_MOUSE_MAP(MOUSE_X1_BUTTON);
+	ADD_ENUM_TO_MOUSE_MAP(MOUSE_X2_BUTTON);
+	ADD_ENUM_TO_MOUSE_MAP(MOUSE_WHEEL_UP);
+	ADD_ENUM_TO_MOUSE_MAP(MOUSE_WHEEL_DOWN);
+	ADD_ENUM_TO_MOUSE_MAP(MOUSE_WHEEL_LEFT);
+	ADD_ENUM_TO_MOUSE_MAP(MOUSE_WHEEL_RIGHT);
+#undef ADD_ENUM_TO_MOUSE_MAP
+}
+
 void LoadEnumsIntoCCTypeMap(void) {
 	// Dirty macro hack :D
 #define ADD_ENUM_TO_CCTYPE_MAP(Enum) mCCTypeNameToVal[#Enum] = (Enum);
@@ -774,6 +956,7 @@ void LoadEnumsIntoCCTabMap(void) {
 
 void LoadEnumsIntoMaps() {
 	LoadEnumsIntoKeyMap();
+	LoadEnumsIntoMouseMap();
 	LoadEnumsIntoCCTypeMap();
 	LoadEnumsIntoCCTabMap();
 }
@@ -794,8 +977,8 @@ void control_config_common_load_overrides()
 		// start parsing
 		// TODO: Split this out into more helps. Too many tabs!
 		while(optional_string("#ControlConfigOverride")) {
-			config_item *cfg_preset = new config_item[CCFG_MAX + 1];
-			std::copy(Control_config, Control_config + CCFG_MAX + 1, cfg_preset);
+			Control_LUT cfg_preset;
+			std::copy(Control_config.begin(), Control_config.end(), cfg_preset.begin());
 			Control_config_presets.push_back(cfg_preset);
 
 			SCP_string preset_name;
@@ -815,7 +998,7 @@ void control_config_common_load_overrides()
 
 				const size_t cCntrlAryLength = sizeof(Control_config) / sizeof(Control_config[0]);
 				for (size_t i = 0; i < cCntrlAryLength; ++i) {
-					config_item& r_ccConfig = cfg_preset[i];
+					Config_item& r_ccConfig = cfg_preset[i];
 
 					if (!strcmp(szTempBuffer, r_ccConfig.text)) {
 						/**
@@ -830,31 +1013,36 @@ void control_config_common_load_overrides()
 
 						if (optional_string("$Key Default:")) {
 							if (optional_string("NONE")) {
-								r_ccConfig.key_default = (short)-1;
+								r_ccConfig.default_id[0] = cid(-1,-1);
 							} else {
 								stuff_string(szTempBuffer, F_NAME, iBufferLength);
-								r_ccConfig.key_default = (short)mKeyNameToVal[szTempBuffer];
+								r_ccConfig.default_id[0] = cid(CID_KEYBOARD, (short) mKeyNameToVal[szTempBuffer]);
 							}
+						}
+
+						if (optional_string("$Mouse Default:")) {
+							stuff_string(szTempBuffer, F_NAME, iBufferLength);
+							r_ccConfig.default_id[1] = cid(CID_MOUSE, (short) mMouseNameToVal[szTempBuffer]);
 						}
 
 						if (optional_string("$Joy Default:")) {
 							stuff_int(&iTemp);
-							r_ccConfig.joy_default = (short)iTemp;
+							r_ccConfig.default_id[2] = cid(CID_JOY, (short)iTemp);
 						}
 
 						if (optional_string("$Key Mod Shift:")) {
 							stuff_int(&iTemp);
-							r_ccConfig.key_default |= (iTemp == 1) ? KEY_SHIFTED : 0;
+							r_ccConfig.default_id[0].second |= (iTemp == 1) ? KEY_SHIFTED : 0;
 						}
 
 						if (optional_string("$Key Mod Alt:")) {
 							stuff_int(&iTemp);
-							r_ccConfig.key_default |= (iTemp == 1) ? KEY_ALTED : 0;
+							r_ccConfig.default_id[0].second |= (iTemp == 1) ? KEY_ALTED : 0;
 						}
 
 						if (optional_string("$Key Mod Ctrl:")) {
 							stuff_int(&iTemp);
-							r_ccConfig.key_default |= (iTemp == 1) ? KEY_CTRLED : 0;
+							r_ccConfig.default_id[0].second |= (iTemp == 1) ? KEY_CTRLED : 0;
 						}
 
 						if (optional_string("$Category:")) {
@@ -901,6 +1089,6 @@ void control_config_common_load_overrides()
 
 	// Overwrite the control config with the first preset that was found
 	if (!Control_config_presets.empty()) {
-		std::copy(Control_config_presets[0], Control_config_presets[0] + CCFG_MAX + 1, Control_config);
+		std::copy(Control_config_presets[0].begin(), Control_config_presets[0].end(), Control_config);
 	}
 }
