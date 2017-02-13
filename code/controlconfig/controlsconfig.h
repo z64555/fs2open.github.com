@@ -56,8 +56,8 @@ enum CC_type {
 };
 
 /*!
- * Control configuration item type.
- */
+* Control configuration item type.
+*/
 typedef struct config_item {
 	short key_default;		//!< default key bound to action
 	short joy_default;		//!< default joystick button bound to action
@@ -299,28 +299,120 @@ extern SCP_vector<SCP_string> Control_config_preset_names; // names for Control_
 extern const char **Scan_code_text;
 extern const char **Joy_button_text;
 
-void control_config_common_init();			//!< initialize common control config stuff - call at game startup after localization has been initialized
-void control_config_common_close();			//!< close common control config stuff - call at game shutdown
+/*!
+ * @brief Initializes the controls configuration module. Call this at game startup.
+ */
+void control_config_common_init();
 
-void control_config_init();
-void control_config_do_frame(float frametime);
-void control_config_close();
+/*!
+ * @brief Closes the controls configuration module. Call this at game shutdown
+ */
+void control_config_common_close();
 
-void control_config_cancel_exit();
-
-void control_config_reset_defaults(int presetnum=-1);
-int translate_key_to_index(const char *key, bool find_override=true);
-char *translate_key(char *key);
-const char *textify_scancode(int code);
-float check_control_timef(int id);
-int check_control(int id, int key = -1);
-void control_get_axes_readings(int *h, int *p, int *b, int *ta, int *tr);
+/*!
+* @brief Marks the control with the given Control_config index as used, and updates its timestamp
+*/
 void control_used(int id);
+
+/*!
+* @brief Clears all bindings set by the user. (Resets every control to their defaults)
+*/
 void control_config_clear();
+
+/*!
+ * @brief Clears the given key combo from any and all controls it may be bound to
+ */
 void clear_key_binding(short key);
+
+/*!
+ * @brief Sets all controls to default values in the given preset
+ *
+ * @param[in] presetnum The index in Control_config_presets[] of which preset to use
+ *
+ * @details If presetnum is -1 or not given, the hard-coded values are used.
+ */
+void control_config_reset_defaults(int presetnum=-1);
+
+/*!
+ * @brief Translates a keycode into its Control_config index
+ * @param[in] key           The keycode to translate
+ * @param[in] find_override Should we find the user-overridden control (true), or its default (false)?
+ *
+ * @returns Index in Control_config of the control that has this keycode
+ */
+int translate_key_to_index(const char *key, bool find_override=true);
+
+/*!
+ * @brief Translates a system default action (via key) to the key that's currently bound to it.
+ *
+ * @param[in] key Human-readable string of the default system keycode
+ * 
+ * @returns Human-readable string of the key assigned to the action, or
+ * @returns '\0' If no key is bound to the action
+ */
+char *translate_key(char *key);
+
+/*!
+ * @brief Returns the Human-readable string of the given key code
+ */
+const char *textify_scancode(int code);
+
+/*!
+ * @brief Returns the time a continous control has been active
+ *
+ * @param[in] Index in Control_config of the control to check
+ *
+ * @returns Time, in seconds, the control has been active, or
+ * @returns 0.0f if inactive
+ */
+float check_control_timef(int id);
+
+/*!
+* @brief DEBUG: Displays the number of controls checked per frame
+*/
 void control_check_indicate();
+
+/*!
+ * @brief Wrapper for check_control_used. Allows the game to ignore the key if told to do so by the 'ignore-key' SEXP
+ */
+int check_control(int id, int key = -1);
+
+/*!
+ * @brief Get values for all axis actions
+ */
+void control_get_axes_readings(int *h, int *p, int *b, int *ta, int *tr);
+
+/*!
+ * @brief Clears the used status (timestamps) of all controls
+ */
 void control_config_clear_used_status();
 
+/*!
+ * @brief Applies sensitivity and deadzone curve to a reading that's directly from a joystick
+ */
 int joy_get_scaled_reading(int raw);
+
+//  Menu stuff below
+// vvvvvvvvvvvvvvvvvv
+
+/*!
+* @brief Inits the controls menu
+*/
+void control_config_init();
+
+/**
+* @brief Processes a frame of the controls menu
+*/
+void control_config_do_frame(float frametime);
+
+/*!
+* @brief Closes the controls menu, saving any changes
+*/
+void control_config_close();
+
+/*!
+* @brief Closes the controls menu, rejecting any changes
+*/
+void control_config_cancel_exit();
 
 #endif

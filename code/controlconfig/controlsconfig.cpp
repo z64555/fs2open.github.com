@@ -985,8 +985,6 @@ int control_config_do_reset()
 	return 0;
 }
 
-// This sets all the controls to the default values in the given preset
-// If no preset is given, the hardcoded defaults of Control_config are used
 void control_config_reset_defaults(int presetnum)
 {
 	int i;
@@ -2325,9 +2323,6 @@ int check_control_used(int id, int key)
 	return 0;
 }
 
-/**
-* Wrapper for check_control_used. Allows the game to ignore the key if told to do so by the ignore-key SEXP.
-*/
 int check_control(int id, int key) 
 {
 	if (check_control_used(id, key)) {
@@ -2354,7 +2349,6 @@ int check_control(int id, int key)
 	return 0;
 }
 
-// get heading, pitch, bank, throttle abs. and throttle rel. values.
 void control_get_axes_readings(int *h, int *p, int *b, int *ta, int *tr)
 {
 	int axes_values[JOY_NUM_AXES];

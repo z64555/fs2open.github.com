@@ -14,6 +14,7 @@
 #include "controlconfig/controlsconfig.h"
 #include "def_files/def_files.h"
 #include "globalincs/systemvars.h"
+#include "globalincs/vmallocator.h"
 #include "io/joy.h"
 #include "io/key.h"
 #include "localization/localize.h"
@@ -410,34 +411,40 @@ const char **Joy_button_text = Joy_button_text_english;
 SCP_vector<config_item*> Control_config_presets;
 SCP_vector<SCP_string> Control_config_preset_names;
 
-void set_modifier_status()
-{
-	int i;
+SCP_map<SCP_string, int> mKeyNameToVal;
+SCP_map<SCP_string, CC_type> mCCTypeNameToVal;
+SCP_map<SCP_string, char> mCCTabNameToVal;
 
-	Alt_is_modifier = 0;
-	Shift_is_modifier = 0;
-	Ctrl_is_modifier = 0;
+/*!
+ * @brief Parses controlconfigdefault.tbl, and overrides the default control configuration for each valid entry in the .tbl
+ */
+void control_config_common_load_overrides();
 
-	for (i=0; i<CCFG_MAX; i++) {
-		if (Control_config[i].key_id < 0)
-			continue;
+/*!
+ * @brief Helper function to LoadEnumsIntoMaps(), Loads the Keyboard definitions/enumerations into mKeyNameToVal
+ */
+void LoadEnumsIntoKeyMap(void);
 
-		if (Control_config[i].key_id & KEY_ALTED)
-			Alt_is_modifier = 1;
+/*!
+ * @brief Helper function to LoadEnumsIntoMaps(), Loads the Control Types enumerations into mCCTypeNameToVal
+ */
+void LoadEnumsIntoCCTypeMap(void);
 
-		if (Control_config[i].key_id & KEY_SHIFTED)
-			Shift_is_modifier = 1;
+/*! 
+ * @brief Helper function to LoadEnumsIntoMaps(), Loads the Control Tabs enumerations into mCCTabNameToVal
+ */
+void LoadEnumsIntoCCTabMap(void);
 
-		if (Control_config[i].key_id & KEY_CTRLED) {
-			Assert(0);  // get Alan
-			Ctrl_is_modifier = 1;
-		}
-	}
-}
+/*!
+ * @brief Loads the various control configuration maps.
+ *
+ * @details This allows the parsing functions to appropriately map string tokns to their associated enumerations. The
+ *   string tokens in the controlconfigdefaults.tbl match directly to their names in the C++ code, such as "KEY_5" in 
+ *   the .tbl mapping to the #define KEY_5 value
+ */
+void LoadEnumsIntoMaps();
 
-// If find_override is set to true, then this returns the index of the action
-// which has been bound to the given key. Otherwise, the index of the action
-// which has the given key as its default key will be returned.
+
 int translate_key_to_index(const char *key, bool find_override)
 {
 	int i, index = -1, alt = 0, shift = 0, max_scan_codes;
@@ -502,11 +509,6 @@ int translate_key_to_index(const char *key, bool find_override)
 	return -1;
 }
 
-/*! Given the system default key 'key', return the current key that is bound to that function.
-* Both are 'key' and the return value are descriptive strings that can be displayed
-* directly to the user.  If 'key' isn't a real key, is not normally bound to anything,
-* or there is no key currently bound to the function, NULL is returned.
-*/
 char *translate_key(char *key)
 {
 	int index = -1, key_code = -1, joy_code = -1;
@@ -586,11 +588,7 @@ const char *textify_scancode(int code)
 	strcat_s(text, Scan_code_text[keycode]);
 	return text;
 }
-//XSTR:ON
 
-void control_config_common_load_overrides();
-
-// initialize common control config stuff - call at game startup after localization has been initialized
 void control_config_common_init()
 {
 	for (int i=0; i<CCFG_MAX; i++) {
@@ -614,9 +612,6 @@ void control_config_common_init()
 	}
 }
 
-/*
- * @brief close any common control config stuff, called at game_shutdown()
- */
 void control_config_common_close()
 {
 	// only need to worry control presets for now
@@ -625,15 +620,6 @@ void control_config_common_close()
 	}
 }
 
-
-#include <map>
-#include <string>
-SCP_map<SCP_string, int> mKeyNameToVal;
-SCP_map<SCP_string, CC_type> mCCTypeNameToVal;
-SCP_map<SCP_string, char> mCCTabNameToVal;
-
-/*! Helper function to LoadEnumsIntoMaps(), Loads the Keyboard definitions/enumerations into mKeyNameToVal
-*/
 void LoadEnumsIntoKeyMap(void) {
 	// Dirty macro hack :D
 #define ADD_ENUM_TO_KEY_MAP(Enum) mKeyNameToVal[#Enum] = (Enum);
@@ -768,8 +754,6 @@ void LoadEnumsIntoKeyMap(void) {
 #undef ADD_ENUM_TO_KEY_MAP
 }
 
-/*! Helper function to LoadEnumsIntoMaps(), Loads the Control Types enumerations into mCCTypeNameToVal
- */
 void LoadEnumsIntoCCTypeMap(void) {
 	// Dirty macro hack :D
 #define ADD_ENUM_TO_CCTYPE_MAP(Enum) mCCTypeNameToVal[#Enum] = (Enum);
@@ -780,8 +764,6 @@ void LoadEnumsIntoCCTypeMap(void) {
 #undef ADD_ENUM_TO_CCTYPE_MAP
 }
 
-/*! Helper function to LoadEnumsIntoMaps(), Loads the Control Tabs enumerations into mCCTabNameToVal
- */
 void LoadEnumsIntoCCTabMap(void) {
 	// Dirty macro hack :D
 #define ADD_ENUM_TO_CCTAB_MAP(Enum) mCCTabNameToVal[#Enum] = (Enum);
@@ -794,19 +776,12 @@ void LoadEnumsIntoCCTabMap(void) {
 #undef ADD_ENUM_TO_CCTAB_MAP
 }
 
-/*! Loads the various control configuration maps to allow the parsing functions to appropriately map string tokns to
-* their associated enumerations. The string tokens in the controlconfigdefaults.tbl match directly to their names in
-* the C++ code, such as "KEY_5" in the .tbl mapping to the #define KEY_5 value
-*/
 void LoadEnumsIntoMaps() {
 	LoadEnumsIntoKeyMap();
 	LoadEnumsIntoCCTypeMap();
 	LoadEnumsIntoCCTabMap();
 }
 
-/**
- * @brief Parses controlconfigdefault.tbl, and overrides the default control configuration for each valid entry in the .tbl
- */
 void control_config_common_load_overrides()
 {
 	LoadEnumsIntoMaps();
