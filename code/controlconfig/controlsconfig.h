@@ -38,27 +38,9 @@ public:
 	bool hasXSTR;       //!< whether we should translate the text with an XSTR
 	const char* text;   //!< describes the action in the config screen
 
-	Config_item()
-		: used(-1), type(0), disabled(true), continuous_ongoing(false), tab(0), hasXSTR(false), text("Non-initialized Control") {
-		default_id[0] = cid(-1, -1);
-		default_id[1] = cid(-1, -1);
-		default_id[2] = cid(-1, -1);
-	};
+	Config_item();
 
-	Config_item(short default0, short default1, short default2, char type, bool disabled, char tab, bool hasXSTR, const char* text)
-		: used(-1), type(type), disabled(disabled), continuous_ongoing(false), tab(tab), hasXSTR(hasXSTR), text(text) {
-		default_id[0] = cid(CID_KEYBOARD, default0);
-
-		if (default1 != -1)
-			default_id[1] = cid(CID_MOUSE, default1);
-		else
-			default_id[1] = cid(-1, -1);
-
-		if (default2 != -1)
-			default_id[2] = cid(CID_JOY, default2);
-		else
-			default_id[2] = cid(-1, -1);
-	}
+	Config_item(short default0, short default1, short default2, char type, bool disabled, char tab, bool hasXSTR, const char* text);
 };
 
 
@@ -71,8 +53,7 @@ public:
 	/**
 	* @brief Loader's constructor. This is how we tell it which container the items will go into!
 	*/
-	config_item_loader(Control_LUT *dest)
-		: dest(dest) {};
+	config_item_loader(Control_LUT *dest);
 
 	/**
 	* @brief Creates a new instance of Config_item and adds it to the end of dest
@@ -80,30 +61,25 @@ public:
 	* @note Returns a reference to iself, so you can chain calls together in a style similar to array initialization.
 	* @sa Config_item
 	*/
-	config_item_loader& operator()(char tab, const char* text, bool hasXSTR, char type, bool disabled, short default0, short default1, short default2) {
-		dest->emplace_back(Config_item(default0, default1, default2, type, disabled, tab, hasXSTR, text));
-		return *this;
-	};
+	config_item_loader& operator()(char tab, const char* text, bool hasXSTR, char type, bool disabled, short default0, short default1, short default2);
 
 	/**
 	* @brief Version of operator() which takes in two cid's
 	*
 	* @sa Config_item
 	*/
-	config_item_loader& operator()(char tab, const char* text, bool hasXSTR, char type, bool disabled, short default0, short default1) {
-		return this->operator()(tab, text, hasXSTR, type, disabled, default0, default1, -1);
-	}
+	config_item_loader& operator()(char tab, const char* text, bool hasXSTR, char type, bool disabled, short default0, short default1);
 
 	/**
 	* @brief Version of operator() which takes in one cid
 	*
 	* @sa Config_item
 	*/
-	config_item_loader& operator()(char tab, const char* text, bool hasXSTR, char type, bool disabled, short default0) {
-		return this->operator()(tab, text, hasXSTR, type, disabled, default0, -1, -1);
-	};
+	config_item_loader& operator()(char tab, const char* text, bool hasXSTR, char type, bool disabled, short default0);
 
 private:
+	config_item_loader();
+
 	Control_LUT *dest;
 };
 
