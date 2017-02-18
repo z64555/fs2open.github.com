@@ -31,12 +31,13 @@
 #include "ui/ui.h"
 #include "ui/uidefs.h"
 
+#include <algorithm>
 
 #ifndef NDEBUG
 #include "hud/hud.h"
 #endif
 
-
+using namespace std;
 
 #define NUM_SYSTEM_KEYS			14
 #define NUM_BUTTONS				19
@@ -181,11 +182,35 @@ static unsigned int Defaults_cycle_pos; // the controls preset that was last sel
 
 int Control_config_overlay_id;
 
-static struct {
-	int key;  // index of other control in conflict with this one
-	int joy;  // index of other control in conflict with this one
-} Conflicts[CCFG_MAX];
+struct Conflict_Action {
+	int other_id[MAX_BINDINGS];	// Array of Control_LUT indices that this IoAction has a conflict with
 
+	Conflict_Action() {
+		clear();
+	}
+
+	/*!
+	 * Clears this entry
+	 */
+	void clear() {
+		fill(other_id, other_id + MAX_BINDINGS, -1);
+	}
+
+	/*!
+	 * @brief Checks if any conflicts exist for this IoAction 
+	 */
+	bool has_conflict() {
+		for (int i = 0; i < MAX_BINDINGS; ++i) {
+			if (other_id[i] != -1) {
+				return true;
+			}
+		}
+		return false;
+	}
+};
+
+
+static SCP_vector<Conflict_Action> Conflicts(CCFG_MAX);
 int Conflicts_axes[NUM_JOY_AXIS_ACTIONS];
 
 #define TARGET_TAB				0
@@ -450,53 +475,69 @@ int control_config_detect_axis()
 	return axis;
 }
 
+
 void control_config_conflict_check()
 {
-	int i, j;
-	
-	for (i=0; i<CCFG_MAX; i++) {
-		Conflicts[i].key = Conflicts[i].joy = -1;
+	int i;	// Index of the first conflicted action.
+	int j;	// Index of the second conflicted action
+	int k;	// Index of the first conflicted binding
+	int l;	// Index of the second conflicted binding
+
+	for (auto it = Conflicts.begin(); it != Conflicts.end(); ++it) {
+		it->clear();
 	}
 
 	for (i=0; i<NUM_TABS; i++) {
 		Conflicts_tabs[i] = 0;
 	}
 
-	for (i=0; i<CCFG_MAX-1; i++) {
-		for (j=i+1; j<CCFG_MAX; j++) {
-			if ((Control_config[i].key_id >= 0) && (Control_config[i].key_id == Control_config[j].key_id)) {
-				// If one of the conflicting keys is disabled, then this silently clears
-				// the disabled key to prevent the conflict; a conflict is recorded only
-				// if both keys are enabled
+	for (i = 0; i < Control_config.size() - 1; ++i) {
+		// Skip first if disabled
+		if (Control_config[i].disabled) {
+			continue;
+		}
 
-				if (Control_config[i].disabled)
-					Control_config[i].key_id = (short) -1;
-				else if (Control_config[j].disabled)
-					Control_config[j].key_id = (short) -1;
-				else {
-					Conflicts[i].key = j;
-					Conflicts[j].key = i;
-					Conflicts_tabs[ Control_config[i].tab ] = 1;
-					Conflicts_tabs[ Control_config[j].tab ] = 1;
-				}
+		for (j = i + 1; j < Control_config.size(); ++j) {
+			// Skip second if disabled
+			if (Control_config[j].disabled) {
+				continue;
 			}
 
-			if ((Control_config[i].joy_id >= 0) && (Control_config[i].joy_id == Control_config[j].joy_id)) {
-				// Same as above
+			auto &first = Control_config[i].c_id;
+			auto &second = Control_config[j].c_id;
 
-				if (Control_config[i].disabled)
-					Control_config[i].joy_id = (short) -1;
-				else if (Control_config[j].disabled)
-					Control_config[j].joy_id = (short) -1;
-				else {
-					Conflicts[i].joy = j;
-					Conflicts[j].joy = i;
-					Conflicts_tabs[ Control_config[i].tab ] = 1;
-					Conflicts_tabs[ Control_config[j].tab ] = 1;
+			// z64: Disabled binds are skipped now, so we don't have to worry about any "false" conflicts anymore
+			// TODO: Refactor this crap, z64!
+			for (k = 0; k < MAX_BINDINGS; ++k) {
+				// Find shared bindings
+				if (first[k].first < 0) {
+					// check next one
+					continue;
+				}
+
+				for (l = 0; l < MAX_BINDINGS; ++l) {
+					if (second[l].first < 0) {
+						// check next one
+						continue;
+					}
+
+					if (first[k] != second[l]) {
+						// No conflict, check next one
+						continue;
+					} // Else, Conflict found!
+
+					Conflicts[i].other_id[k] = j;
+					Conflicts[j].other_id[l] = i;
+
+					auto &first_tab = Control_config[i].tab;
+					auto &second_tab = Control_config[j].tab;
+					Conflicts_tabs[first_tab] = 1;
+					Conflicts_tabs[second_tab] = 1;
 				}
 			}
 		}
 	}
+		
 
 	for (i=0; i<NUM_JOY_AXIS_ACTIONS; i++) {
 		Conflicts_axes[i] = -1;
@@ -1975,11 +2016,18 @@ void control_config_do_frame(float frametime)
 			gr_printf_menu(x - w / 2, y - font_height / 2, XSTR( "?", 208));
 		}
 
-	} else if (!(z & JOY_AXIS) && ((Conflicts[z].key >= 0) || (Conflicts[z].joy >= 0))) {
-		i = Conflicts[z].key;
-		if (i < 0) {
-			i = Conflicts[z].joy;
+	} else if (!(z & JOY_AXIS) && Conflicts[z].has_conflict()) {
+		i = 0;
+		for (int i = 0; i < MAX_BINDINGS; ++i) {
+			if (Conflicts[z].other_id[i] >= 0) {
+				break;
+			}
 		}
+		Assert(i != MAX_BINDINGS);
+
+		// Reuse i to index the action we're conflicting with
+		// TODO: z64! refactor this entire function!
+		i = Conflicts[z].other_id[i];
 
 		gr_set_color_fast(&Color_text_normal);
 		str = XSTR( "Control conflicts with:", 209);
