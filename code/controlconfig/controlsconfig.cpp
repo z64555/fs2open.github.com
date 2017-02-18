@@ -2483,11 +2483,12 @@ void control_config_clear_used_status()
 
 void control_config_clear()
 {
-	int i;
+	int i, j;
 
-	// Reset keyboard defaults
 	for (i=0; i<CCFG_MAX; i++) {
-		Control_config[i].key_id = Control_config[i].joy_id = -1;
+		for (j = 0; j < MAX_BINDINGS; ++j) {
+			Control_config[i].c_id[j] = std::pair<short, short>(-1, -1);
+		}
 	}
 }
 

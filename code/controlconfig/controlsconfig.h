@@ -377,7 +377,7 @@ void control_config_common_close();
 void control_used(int id);
 
 /*!
-* @brief Clears all bindings set by the user. (Resets every control to their defaults)
+* @brief Clears all bindings set by the user.
 */
 void control_config_clear();
 
