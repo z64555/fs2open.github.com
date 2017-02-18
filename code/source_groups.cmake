@@ -261,6 +261,8 @@ set (file_root_globalincs
 	globalincs/systemvars.cpp
 	globalincs/systemvars.h
 	globalincs/toolchain.h
+	globalincs/undosys.cpp
+	globalincs/undosys.h
 	globalincs/version.cpp
 	globalincs/version.h
 	globalincs/vmallocator.h
