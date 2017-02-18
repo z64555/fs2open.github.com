@@ -2315,17 +2315,22 @@ int check_control_used(int id, int key)
 		return 0;
 	}
 
-	if (Control_config[id].disabled)
+	auto &Control = Control_config[id];
+
+	if (Control.disabled)
 		return 0;
 
-	if (Control_config[id].type == CC_TYPE_CONTINUOUS) {
-		if (joy_down(Control_config[id].joy_id) || joy_down_count(Control_config[id].joy_id, 1)) {
-			control_used(id);
-			return 1;
-		}
+	switch (Control.type) {
+	case CC_TYPE_CONTINUOUS:
+		for (int i = 0; i < MAX_BINDINGS; ++i) {
+			auto &c_id = Control.c_id[i];
 
-		if ((Control_config[id].joy_id >= 0) && (Control_config[id].joy_id < MOUSE_NUM_BUTTONS)) {
-			if (mouse_down(1 << Control_config[id].joy_id) || mouse_down_count(1 << Control_config[id].joy_id)) {
+			if (c_id.first == -1) {
+				continue;
+			}
+			
+			if (((c_id.first == CID_MOUSE) && (mouse_down(c_id.second) || mouse_down_count(c_id.second))) ||
+				((c_id.first == CID_JOY) && (joy_down(c_id.second) || joy_down_count(c_id.second, 1)))) {
 				control_used(id);
 				return 1;
 			}
@@ -2341,9 +2346,9 @@ int check_control_used(int id, int key)
 			mask |= KEY_ALTED;
 		}
 
-		z = Control_config[id].key_id;
+		z = Control.key_id;
 		if (z >= 0) {
-			if ( (z != KEY_LALT) && (z != KEY_RALT) && (z != KEY_LSHIFT) && (z != KEY_RSHIFT) ) {
+			if ((z != KEY_LALT) && (z != KEY_RALT) && (z != KEY_LSHIFT) && (z != KEY_RSHIFT)) {
 				// if current modifiers don't match action's modifiers, don't register control active.
 				if ((z & (KEY_SHIFTED | KEY_ALTED)) != mask) {
 					return 0;
@@ -2357,15 +2362,29 @@ int check_control_used(int id, int key)
 				return 1;
 			}
 		}
+		break;
 
-		return 0;
-	}
+	case CC_TYPE_TRIGGER:
+		for (int i = 0; i < MAX_BINDINGS; ++i) {
+			auto &c_id = Control.c_id[i];
 
-	if ((Control_config[id].key_id == key) || joy_down_count(Control_config[id].joy_id, 1) ||
-			((Control_config[id].joy_id >= 0) && (Control_config[id].joy_id < MOUSE_NUM_BUTTONS) && mouse_down_count(1 << Control_config[id].joy_id))) {
-		//mprintf(("Key used %d", key));
-		control_used(id);
-		return 1;
+			if (c_id.first == -1) {
+				continue;
+			}
+
+			if ((c_id.first == CID_KEYBOARD) && (c_id.second == key) ||
+				((c_id.first == CID_MOUSE) && mouse_down_count(c_id.second)) ||
+				((c_id.first == CID_JOY) && joy_down_count(c_id.second, 1))) {
+				control_used(id);
+				return 1;
+			}
+		}
+		break;
+
+	default:
+		// Can't happen
+		Int3();
+		break;
 	}
 
 	return 0;
