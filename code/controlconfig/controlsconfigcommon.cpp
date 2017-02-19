@@ -338,6 +338,10 @@ void Config_item::cleanup(bool defaults) {
 	}
 }
 
+void Config_item::clear() {
+	std::fill(c_id, c_id + MAX_BINDINGS, cid(-1, -1));
+}
+
 Config_item::Config_item()
 	: used(-1), type(0), disabled(true), continuous_ongoing(false), tab(0), hasXSTR(false), text("Non-initialized Control")
 {
@@ -367,6 +371,40 @@ Config_item::Config_item(short default0, short default1, short default2, char ty
 
 	cleanup(true);
 	std::copy(default_id, default_id + MAX_BINDINGS, c_id);
+}
+
+bool Config_item::empty() {
+	for (uint i = 0; i < MAX_BINDINGS; ++i) {
+		if (c_id[i].first != -1) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool Config_item::unbind(cid &control) {
+	for (uint i = 0; i < MAX_BINDINGS; ++i) {
+		if ((c_id[i].first == control.first) &&
+			((c_id[i].second == control.second) || (control.second == -1))) {
+			c_id[i] = cid(-1, -1);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Config_item::unbind(uint id) {
+	Assert((MAX_BINDINGS > id) && (id >= 0));
+
+	if (c_id[id].first == -1) {
+		return false;
+
+	} else {
+		c_id[id] = cid(-1, -1);
+		return true;
+	}
 }
 
 

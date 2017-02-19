@@ -46,6 +46,36 @@ public:
 	bool bind(cid &control);
 
 	/*!
+	 * @brief Trys to clear the given cid to this action.
+	 *
+	 * @param[in] control Control to unbind. Should ::second be -1, Unbind any match with ::first
+	 *
+	 * @returns true  if successful, or
+	 * @returns false otherwise.
+	 */
+	bool unbind(cid &control);
+
+	/*!
+	 * @brief Trys to clear the bind with the given c_id index (c_id[id])
+	 * 
+	 * @param[in] id  Index in c_id of the binding to clear
+	 *
+	 * @returns true  if successful, or
+	 * @returns false if the bind was already clear
+	 */
+	bool unbind(uint id);
+
+	/*!
+	 * @brief Clears all bindings (c_id) from this action.
+	 */
+	void clear();
+
+	/*!
+	 * @brief Returns true if this action is not currently bound to anything
+	 */
+	bool empty();
+
+	/*!
 	 * @brief Sorts the binds in c_id for faster lookup
 	 *
 	 * @param[in] defaults If true, cleanup the default_id's. If false, cleanup the c_id's
