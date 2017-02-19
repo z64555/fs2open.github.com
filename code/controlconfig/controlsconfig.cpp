@@ -17,6 +17,7 @@
 #include "gamesequence/gamesequence.h"
 #include "gamesnd/gamesnd.h"
 #include "globalincs/alphacolors.h"
+#include "globalincs/undosys.h"
 #include "graphics/font.h"
 #include "hud/hudsquadmsg.h"
 #include "io/joy.h"
@@ -133,16 +134,9 @@ static struct {
 	int kx, kw, jx, jw;  // x start and width of keyboard and joystick bound text
 } Cc_lines[CCFG_MAX];
 
-// struct to hold backup config_item elements so we can undo them
-struct config_item_undo {
-	int size;
-	int *index;  // array (size) of Control_config indices of replaced elements
-	config_item *list;  // array (size) of original elements
-	int reset_to_preset; // if >=0, then we ignore the above list and simply reset to the given preset instead
-	config_item_undo *next;
-};
+Undo_system Undo_controls;
 
-config_item Control_config_backup[CCFG_MAX];
+Control_LUT Control_config_backup;
 
 int Axis_map_to[] = { JOY_X_AXIS, JOY_Y_AXIS, JOY_RX_AXIS, -1, -1 };
 int Axis_map_to_defaults[] = { JOY_X_AXIS, JOY_Y_AXIS, JOY_RX_AXIS, -1, -1 };
@@ -327,8 +321,6 @@ UI_XSTR CC_text[GR_NUM_RESOLUTIONS][CC_NUM_TEXT] = {
 	}
 };
 
-// linked list head of undo items
-config_item_undo *Config_item_undo;
 
 // same indices as Scan_code_text[].  Indicates if a scancode is allowed to be bound.
 int Config_allowed[] = {
@@ -603,151 +595,55 @@ int cc_line_query_visible(int n)
 	return 1;
 }
 
-// allocates the required space for one undo block and put it in the beginning of the linked list (top of a stack).
-// Returns a pointer to this newly allocated block
-config_item_undo *get_undo_block(int size)
-{
-	config_item_undo *ptr;
-
-	ptr = (config_item_undo *) vm_malloc( sizeof(config_item_undo) );
-	Assert(ptr);
-	ptr->next = Config_item_undo;
-	Config_item_undo = ptr;
-
-	ptr->size = size;
-	if (size) {
-		ptr->index = (int *) vm_malloc( sizeof(int) * size );
-		Assert(ptr->index);
-		ptr->list = (config_item *) vm_malloc( sizeof(config_item) * size );
-		Assert(ptr->list);
-
-	} else {
-		ptr->index = NULL;
-		ptr->list = NULL;
-	}
-
-	ptr->reset_to_preset = -1;
-
-	return ptr;
-}
-
-// frees one undo block.  The first one in the list (top of the stack) to be precise.
-void free_undo_block()
-{
-	config_item_undo *ptr;
-
-	ptr = Config_item_undo;
-	if (!ptr) {
-		return;
-	}
-
-	Config_item_undo = ptr->next;
-	if (ptr->size) {
-		vm_free(ptr->list);
-		vm_free(ptr->index);
-	}
-
-	vm_free(ptr);
-}
 
 // undo the most recent binding changes
 int control_config_undo_last()
 {
-	int i, z, tab;
-
-	if (!Config_item_undo) {
+	if (Undo_controls.size() == 0) {
 		gamesnd_play_iface(SND_GENERAL_FAIL);
 		return -1;
 	}
 
-	if (Config_item_undo->reset_to_preset > -1) {
-		control_config_reset_defaults(Config_item_undo->reset_to_preset);
+	pair<const void*, const void*> _item = Undo_controls.undo();
+
+	if (_item.second == &Control_config[0]) {
+		// Is a button
+		const Config_item* item = static_cast<const Config_item*>(_item.second);
+
+		Tab = item->tab;
+		// TODO: Find the selected line and item this op is for
+	} else if (_item.second == &Axis_map_to[0]) {
+		// Is an axis
+
+		Tab = SHIP_TAB;
+		// TODO: Find the selected line and item this op is for
 	} else {
-		if (Config_item_undo->index[0] & JOY_AXIS) {
-			tab = SHIP_TAB;
-		} else {
-			tab = Control_config[Config_item_undo->index[0]].tab;
-		}
-
-		for (i=1; i<Config_item_undo->size; i++) {
-			if (Config_item_undo->index[i] & JOY_AXIS) {
-				if (tab != SHIP_TAB) {
-					tab = -1;
-				}
-
-			} else {
-				if (Control_config[Config_item_undo->index[i]].tab != tab) {
-					tab = -1;
-				}
-			}
-		}
-
-		if (tab >= 0) {
-			Tab = tab;
-		}
-
-		for (i=0; i<Config_item_undo->size; i++) {
-			z = Config_item_undo->index[i];
-			if (z & JOY_AXIS) {
-				config_item *ptr;
-
-				z &= ~JOY_AXIS;
-				ptr = &Config_item_undo->list[i];
-				Axis_map_to[z] = ptr->joy_id;
-				Invert_axis[z] = ptr->used;
-
-			} else {
-				Control_config[z] = Config_item_undo->list[i];
-			}
-		}
+		// Can't happen!
+		Int3();
 	}
 
-	free_undo_block();
 	control_config_conflict_check();
 	control_config_list_prepare();
 	gamesnd_play_iface(SND_USER_SELECT);
 	return 0;
 }
 
-void control_config_save_axis_undo(int axis)
+void control_config_bind_axis(int a, int axis)
 {
-	config_item_undo *ptr;
-	config_item item;
-
-	memset( &item, 0, sizeof(config_item) );
-
-	item.joy_id = (short) Axis_map_to[axis];
-	item.used = Invert_axis[axis];
-
-	ptr = get_undo_block(1);
-	ptr->index[0] = axis | JOY_AXIS;
-	ptr->list[0] = item;
+	Undo_controls.save(a, &Axis_map_to[0]);
+	Axis_map_to[a] = axis;
 }
 
 void control_config_bind_key(int i, int key)
 {
-	config_item_undo *ptr;
-
-	ptr = get_undo_block(1);
-	ptr->index[0] = i;
-	ptr->list[0] = Control_config[i];
-	Control_config[i].key_id = (short) key;
+	Undo_controls.save(Control_config[i], &Control_config[0]);
+	Control_config[i].bind(cid(CID_KEYBOARD, key));
 }
 
 void control_config_bind_joy(int i, int joy)
 {
-	config_item_undo *ptr;
-
-	ptr = get_undo_block(1);
-	ptr->index[0] = i;
-	ptr->list[0] = Control_config[i];
-	Control_config[i].joy_id = (short) joy;
-}
-
-void control_config_bind_axis(int i, int axis)
-{
-	control_config_save_axis_undo(i);
-	Axis_map_to[i] = axis;
+	Undo_controls.save(Control_config[i], &Control_config[0]);
+	Control_config[i].bind(cid(CID_JOY, joy));
 }
 
 int control_config_remove_binding()
