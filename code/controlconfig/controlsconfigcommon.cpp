@@ -383,6 +383,16 @@ bool Config_item::empty() {
 	return true;
 }
 
+int Config_item::find_bind(cid &control) {
+	for (int i = 0; i < MAX_BINDINGS; ++i) {
+		if (c_id[i] == control) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
 bool Config_item::unbind(cid &control) {
 	for (uint i = 0; i < MAX_BINDINGS; ++i) {
 		if ((c_id[i].first == control.first) &&

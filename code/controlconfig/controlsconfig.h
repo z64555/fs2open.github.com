@@ -66,6 +66,14 @@ public:
 	bool unbind(uint id);
 
 	/*!
+	 * @brief Tries to find the c_id index for the given control
+	 *
+	 * @returns The index in c_id of the control, or
+	 * @returns -1 if not found
+	 */
+	int find_bind(cid &control);
+
+	/*!
 	 * @brief Clears all bindings (c_id) from this action.
 	 */
 	void clear();
