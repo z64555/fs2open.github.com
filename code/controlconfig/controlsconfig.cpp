@@ -649,7 +649,6 @@ void control_config_bind_joy(int i, int joy)
 int control_config_remove_binding()
 {
 	int z;
-	config_item_undo *ptr;
 
 	if (Selected_line < 0) {
 		gamesnd_play_iface(SND_GENERAL_FAIL);
@@ -664,7 +663,7 @@ int control_config_remove_binding()
 			return -1;
 		}
 
-		control_config_save_axis_undo(z);
+		Undo_controls.save(Axis_map_to[z], Axis_map_to);
 		Axis_map_to[z] = -1;
 		control_config_conflict_check();
 		control_config_list_prepare();
@@ -673,22 +672,13 @@ int control_config_remove_binding()
 		return 0;
 	}
 
-	if ((Control_config[z].joy_id < 0) && (Control_config[z].key_id < 0)) {
+	if (Control_config[z].empty()) {
 		gamesnd_play_iface(SND_GENERAL_FAIL);
 		return -1;
 	}
 
-	ptr = get_undo_block(1);
-	ptr->index[0] = z;
-	ptr->list[0] = Control_config[z];
-
-	if (Selected_item && (Control_config[z].joy_id >= 0)) {  // if not just key selected (which would be 0)
-		Control_config[z].joy_id = (short) -1;
-	}
-
-	if ((Selected_item != 1) && (Control_config[z].key_id >= 0)) {  // if not just joy button selected (1)
-		Control_config[z].key_id = (short) -1;
-	}
+	Undo_controls.save(Control_config[z], &Control_config[0]);
+	Control_config[z].unbind(Selected_item);
 
 	control_config_conflict_check();
 	control_config_list_prepare();
