@@ -690,7 +690,6 @@ int control_config_remove_binding()
 int control_config_clear_other()
 {
 	int z, i, j, total = 0;
-	config_item_undo *ptr;
 
 	if (Selected_line < 0) {
 		gamesnd_play_iface(SND_GENERAL_FAIL);
@@ -699,14 +698,14 @@ int control_config_clear_other()
 
 	z = Cc_lines[Selected_line].cc_index;
 	if (z & JOY_AXIS) {
-		config_item item;
-
 		z &= ~JOY_AXIS;
 		if (Axis_map_to[z] < 0) {
+			// Nothing to work on!
 			gamesnd_play_iface(SND_GENERAL_FAIL);
 			return -1;
 		}
 
+		// Count number of 'others'
 		for (i=0; i<NUM_JOY_AXIS_ACTIONS; i++) {
 			if ((Axis_map_to[i] == Axis_map_to[z]) && (i != z)) {
 				total++;
@@ -714,67 +713,74 @@ int control_config_clear_other()
 		}
 
 		if (!total) {
+			// There are no others!
 			gamesnd_play_iface(SND_GENERAL_FAIL);
 			return -1;
 		}
 
-		ptr = get_undo_block(total);
-		for (i=j=0; i<NUM_JOY_AXIS_ACTIONS; i++) {
+		Undo_stack Stack;
+		for (i = 0; i < NUM_JOY_AXIS_ACTIONS; i++) {
 			if ((Axis_map_to[i] == Axis_map_to[z]) && (i != z)) {
-				memset( &item, 0, sizeof(config_item) );
-
-				item.joy_id = (short) Axis_map_to[i];
-				item.used = Invert_axis[i];
-
-				ptr->index[j] = i | JOY_AXIS;
-				ptr->list[j] = item;
-				j++;
-
+				Stack.save(Axis_map_to[i], Axis_map_to);
 				Axis_map_to[i] = -1;
 			}
 		}
-		control_config_conflict_check();
-		control_config_list_prepare();
-		gamesnd_play_iface(SND_USER_SELECT);
-		return 0;
-	}
+		Undo_controls.save_stack(Stack);
 
-	for (i=0; i<CCFG_MAX; i++) {
-		if ( (Control_config[i].key_id == Control_config[z].key_id) || (Control_config[i].joy_id == Control_config[z].joy_id) ) {
-			if (i != z) {
-				total++;
-			}
+	} else {
+
+		if (Control_config[z].empty()) {
+			// Nothing to work on!
+			gamesnd_play_iface(SND_GENERAL_FAIL);
+			return -1;
 		}
-	}
-	if (!total) {
-		gamesnd_play_iface(SND_GENERAL_FAIL);
-		return -1;
-	}
 
-	if ((Control_config[z].joy_id < 0) && (Control_config[z].key_id < 0)) {
-		gamesnd_play_iface(SND_GENERAL_FAIL);
-		return -1;
-	}
+		// Count number of 'others'
+		for (i = 0; i < CCFG_MAX; i++) {
+			if (i == z) {
+				continue;
+			}
 
-	// now, back up the old bindings so we can undo if we want to
-	ptr = get_undo_block(total);
-	for (i=j=0; i<CCFG_MAX; i++) {
-		if ( (Control_config[i].key_id == Control_config[z].key_id) || (Control_config[i].joy_id == Control_config[z].joy_id) ) {
-			if (i != z) {
-				ptr->index[j] = i;
-				ptr->list[j] = Control_config[i];
-				j++;
-
-				if (Control_config[i].key_id == Control_config[z].key_id) {
-					Control_config[i].key_id = (short) -1;
-				}
-
-				if (Control_config[i].joy_id == Control_config[z].joy_id) {
-					Control_config[i].joy_id = (short) -1;
+			for (j = 0; j < MAX_BINDINGS; ++j) {
+				if (Control_config[i].find_bind(Control_config[z].c_id[j]) >= 0) {
+					total++;
 				}
 			}
 		}
+
+		if (!total) {
+			// There are no others!
+			gamesnd_play_iface(SND_GENERAL_FAIL);
+			return -1;
+		}
+
+		Undo_stack Stack;
+		for (i = 0; i < CCFG_MAX; ++i) {
+			int id = -1;
+
+			// First, check if this action has any common bindings
+			for (j = 0; j < MAX_BINDINGS; ++j) {
+				id = Control_config[i].find_bind(Control_config[z].c_id[j]);
+
+				if (id >= 0) {
+					// Found a binding!
+					break;
+				}
+			}
+
+			// If it does, then save its current state, and unbind all matches
+			if (id >= 0) {
+				Stack.save(Control_config[i], &Control_config[0]);
+
+				for (j = 0; j < MAX_BINDINGS; ++j) {
+					Control_config[i].unbind(Control_config[z].c_id[j]);
+				}
+				Control_config[i].cleanup();
+			}
+		}
+		Undo_controls.save_stack(Stack);
 	}
+
 	control_config_conflict_check();
 	control_config_list_prepare();
 	gamesnd_play_iface(SND_USER_SELECT);
@@ -784,34 +790,29 @@ int control_config_clear_other()
 int control_config_clear_all()
 {
 	int i, j, total = 0;
-	config_item_undo *ptr;
 
-	// first, determine how many bindings need to be changed
-	for (i=0; i<CCFG_MAX; i++) {
-		if ((Control_config[i].key_id >= 0) || (Control_config[i].joy_id >= 0)) {
+	// First, determine if anything needs to be cleared
+	for (i = 0; i < CCFG_MAX; ++i) {
+		if (!Control_config[i].empty()) {
 			total++;
 		}
 	}
 
 	if (!total) {
+		// Nothing to clear...
 		gamesnd_play_iface(SND_GENERAL_FAIL);
 		return -1;
 	}
 
-	// now, back up the old bindings so we can undo if we want to
-	ptr = get_undo_block(total);
-	for (i=j=0; i<CCFG_MAX; i++) {
-		if ((Control_config[i].key_id >= 0) || (Control_config[i].joy_id >= 0)) {
-			ptr->index[j] = i;
-			ptr->list[j] = Control_config[i];
-			j++;
+	// Save non-empty actions to the undo system, and clear them
+	Undo_stack Stack;
+	for (i = 0; i < CCFG_MAX; ++i) {
+		if (!Control_config[i].empty()) {
+			Stack.save(Control_config[i], &Control_config[0]);
+			Control_config[i].clear();
 		}
 	}
-
-	Assert(j == total);
-	for (i=0; i<CCFG_MAX; i++) {
-		Control_config[i].key_id = Control_config[i].joy_id = -1;
-	}
+	Undo_controls.save_stack(Stack);
 
 	control_config_conflict_check();
 	control_config_list_prepare();
