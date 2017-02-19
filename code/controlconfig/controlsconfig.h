@@ -38,6 +38,20 @@ public:
 	bool hasXSTR;       //!< whether we should translate the text with an XSTR
 	const char* text;   //!< describes the action in the config screen
 
+	/*!
+	 * @brief Trys to bind the given cid to this action.
+	 * @returns true  if successful, or
+	 * @returns false otherwise. (Usually means it can't bind anymore mappings)
+	 */
+	bool bind(cid &control);
+
+	/*!
+	 * @brief Sorts the binds in c_id for faster lookup
+	 *
+	 * @param[in] defaults If true, cleanup the default_id's. If false, cleanup the c_id's
+	 */
+	void cleanup(bool defaults = false);
+
 	Config_item();
 
 	Config_item(short default0, short default1, short default2, char type, bool disabled, char tab, bool hasXSTR, const char* text);

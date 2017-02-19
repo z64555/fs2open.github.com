@@ -301,6 +301,42 @@ void LoadEnumsIntoCCTabMap(void);
  */
 void LoadEnumsIntoMaps();
 
+/*!
+ * @brief Function used to sort bindings within Config_item's
+ */
+bool compare_binds(cid &left, cid &right);
+
+bool  Config_item::bind(cid &control) {
+	if (control == cid(-1, -1)) {
+		return false;
+	}
+
+	for (uint i = 0; i < MAX_BINDINGS; ++i) {
+		if (control.first == c_id[i].first) {
+			// Ok, we have a controller already bound. Map to the new button
+			c_id[i].second = control.second;
+			return true;
+
+		} else if (c_id[i].first == -1) {
+			// Found an empty slot, use it
+			c_id[i] = control;
+			cleanup();
+			return true;
+		} // Else, check the next slot
+	}
+
+	// Could not find an available slot
+	return false;
+}
+
+void Config_item::cleanup(bool defaults) {
+	if (defaults) {
+		std::sort(default_id, default_id + MAX_BINDINGS, compare_binds);
+
+	} else {
+		std::sort(c_id, c_id + MAX_BINDINGS, compare_binds);
+	}
+}
 
 Config_item::Config_item()
 	: used(-1), type(0), disabled(true), continuous_ongoing(false), tab(0), hasXSTR(false), text("Non-initialized Control")
@@ -308,6 +344,8 @@ Config_item::Config_item()
 	default_id[0] = cid(-1, -1);
 	default_id[1] = cid(-1, -1);
 	default_id[2] = cid(-1, -1);
+
+	std::copy(default_id, default_id + MAX_BINDINGS, c_id);
 }
 
 Config_item::Config_item(short default0, short default1, short default2, char type, bool disabled, char tab, bool hasXSTR, const char* text)
@@ -315,15 +353,20 @@ Config_item::Config_item(short default0, short default1, short default2, char ty
 {
 	default_id[0] = cid(CID_KEYBOARD, default0);
 
-	if (default1 != -1)
+	if (default1 != -1) {
 		default_id[1] = cid(CID_MOUSE, default1);
-	else
+	} else {
 		default_id[1] = cid(-1, -1);
+	}
 
-	if (default2 != -1)
+	if (default2 != -1) {
 		default_id[2] = cid(CID_JOY, default2);
-	else
+	} else {
 		default_id[2] = cid(-1, -1);
+	}
+
+	cleanup(true);
+	std::copy(default_id, default_id + MAX_BINDINGS, c_id);
 }
 
 
@@ -347,6 +390,22 @@ config_item_loader& config_item_loader::operator()(char tab, const char* text, b
 	return this->operator()(tab, text, hasXSTR, type, disabled, default0, -1, -1);
 }
 
+bool compare_binds(cid &left, cid &right) {
+	if (left.first == -1) {
+		return false;
+
+	} else if (right.first == -1) {
+		return true;
+
+	} else if (left.first < right.first) {
+		return true;
+
+	} else if ((left.first == right.first) && (left.second < right.second)) {
+		return true;
+	}
+
+	return false;
+}
 
 int translate_key_to_index(const char *key, bool find_override)
 {
