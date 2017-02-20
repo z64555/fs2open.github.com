@@ -755,6 +755,7 @@ int control_config_clear_other()
 		}
 
 		Undo_stack Stack;
+		Stack.reserve(total);
 		for (i = 0; i < CCFG_MAX; ++i) {
 			int id = -1;
 
@@ -806,6 +807,7 @@ int control_config_clear_all()
 
 	// Save non-empty actions to the undo system, and clear them
 	Undo_stack Stack;
+	Stack.reserve(total);
 	for (i = 0; i < CCFG_MAX; ++i) {
 		if (!Control_config[i].empty()) {
 			Stack.save(Control_config[i], &Control_config[0]);
@@ -841,9 +843,7 @@ int control_config_axis_default(int axis)
 int control_config_do_reset()
 {
 	int i, j, total = 0;
-	config_item_undo *ptr;
-	config_item item;
-	config_item *preset;
+	Control_LUT* preset;
 	bool cycling_presets = false;
 	
 	// If there are presets, then we'll cycle to the next preset and reset to that
@@ -853,19 +853,23 @@ int control_config_do_reset()
 		if (++Defaults_cycle_pos >= Control_config_presets.size())
 			Defaults_cycle_pos = 0;
 		
-		preset = Control_config_presets[Defaults_cycle_pos];
+		preset = &Control_config_presets[Defaults_cycle_pos];
 	} else {
 		// If there are no presets, then we'll always reset to the hardcoded defaults
-		preset = Control_config;
+		preset = &Control_config;
 	}
 	
 	// first, determine how many bindings need to be changed
-	for (i=0; i<CCFG_MAX; i++) {
-		if ((Control_config[i].key_id != preset[i].key_default) || (Control_config[i].joy_id != preset[i].joy_default)) {
-			total++;
+	for (i = 0; i < CCFG_MAX; ++i) {
+		for (j = 0; j < MAX_BINDINGS; ++j) {
+			if (Control_config[i].c_id[j] != (*preset)[i].default_id[j]) {
+				total++;
+				break;
+			}
 		}
 	}
 
+	// TODO: Axes only have one preset, ever!
 	for (i=0; i<NUM_JOY_AXIS_ACTIONS; i++) {
 		if ((Axis_map_to[i] != control_config_axis_default(i)) || (Invert_axis[i] != Invert_axis_defaults[i])) {
 			total++;
@@ -873,35 +877,37 @@ int control_config_do_reset()
 	}
 
 	if (!total && !cycling_presets) {
+		// Fail if there's nothing to change, and we're not cycling presets
 		gamesnd_play_iface(SND_GENERAL_FAIL);
 		return -1;
 	}
 
 	// now, back up the old bindings so we can undo if we want to
-	ptr = get_undo_block(total);
-	for (i=j=0; i<CCFG_MAX; i++) {
-		if ((Control_config[i].key_id != preset[i].key_default) || (Control_config[i].joy_id != preset[i].joy_default)) {
-			ptr->index[j] = i;
-			ptr->list[j] = Control_config[i];
-			j++;
+	Undo_stack Stack;
+	Stack.reserve(total);
+	for (i = 0; i < CCFG_MAX; ++i) {
+		for (j = 0; j < MAX_BINDINGS; ++j) {
+			if (Control_config[i].c_id[j] != (*preset)[i].default_id[j]) {
+				Stack.save(Control_config[i], &Control_config[0]);
+				break;
+			}
 		}
 	}
 
 	for (i=0; i<NUM_JOY_AXIS_ACTIONS; i++) {
-		if ((Axis_map_to[i] != control_config_axis_default(i)) || (Invert_axis[i] != Invert_axis_defaults[i])) {
-			memset( &item, 0, sizeof(config_item) );
+		if (Axis_map_to[i] != control_config_axis_default(i)) {
+			Stack.save(Axis_map_to[i], Axis_map_to);
+		}
 
-			item.joy_id = (short) Axis_map_to[i];
-			item.used = Invert_axis[i];
-
-			ptr->index[j] = i | JOY_AXIS;
-			ptr->list[j] = item;
-			j++;
+		if (Invert_axis[i] != Invert_axis_defaults[i]) {
+			Stack.save(Invert_axis[i], Invert_axis);
 		}
 	}
+	Undo_controls.save_stack(Stack);
 
 	Assert(j == total);
 
+	// Now, actually do the resetting
 	if (cycling_presets)
 		control_config_reset_defaults(Defaults_cycle_pos);
 	else
