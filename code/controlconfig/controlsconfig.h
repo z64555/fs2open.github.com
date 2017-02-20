@@ -84,6 +84,11 @@ public:
 	bool empty();
 
 	/*!
+	 * @brief Returns true if the action is bound to all of its defaults
+	 */
+	bool defaults();
+
+	/*!
 	 * @brief Sorts the binds in c_id for faster lookup
 	 *
 	 * @param[in] defaults If true, cleanup the default_id's. If false, cleanup the c_id's

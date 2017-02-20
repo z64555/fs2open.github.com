@@ -383,6 +383,16 @@ bool Config_item::empty() {
 	return true;
 }
 
+bool Config_item::defaults() {
+	for (uint i = 0; i < MAX_BINDINGS; ++i) {
+		if (c_id[i] != default_id[i]) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 int Config_item::find_bind(cid &control) {
 	for (int i = 0; i < MAX_BINDINGS; ++i) {
 		if (c_id[i] == control) {
