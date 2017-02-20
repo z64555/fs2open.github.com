@@ -79,6 +79,11 @@ public:
 	void clear();
 
 	/*!
+	 * @brief Resets all bindings (c_id) to thier default values
+	 */
+	void reset();
+
+	/*!
 	 * @brief Returns true if this action is not currently bound to anything
 	 */
 	bool empty();
