@@ -1356,9 +1356,7 @@ void control_config_close()
 {
 	int idx;
 	
-	while (Config_item_undo){
-		free_undo_block();
-	}
+	Undo_controls.clear();
 	
 	if (Background_bitmap){
 		bm_release(Background_bitmap);
