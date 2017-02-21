@@ -2136,9 +2136,7 @@ void clear_key_binding(short key)
 	int i;
 
 	for (i=0; i<CCFG_MAX; i++) {
-		if (Control_config[i].key_id == key) {
-			Control_config[i].key_id = -1;
-		}
+		Control_config[i].unbind(cid(CID_KEYBOARD, key));
 	}
 }
 
@@ -2156,12 +2154,14 @@ float check_control_timef(int id)
 		return 0.0f;
 	}
 
-	t1 = key_down_timef(Control_config[id].key_id);
+	t1 = key_down_timef(Control_config[id].get_bind(CID_KEYBOARD));
 	if (t1) {
 		control_used(id);
 	}
 
-	t2 = joy_down_time(Control_config[id].joy_id);
+	// TODO: Work on multipley joy's
+	// TODO: include mouse support
+	t2 = joy_down_time(Control_config[id].get_bind(CID_JOY));
 	if (t2) {
 		control_used(id);
 	}
@@ -2238,7 +2238,7 @@ int check_control_used(int id, int key)
 			mask |= KEY_ALTED;
 		}
 
-		z = Control.key_id;
+		z = Control.get_bind(CID_KEYBOARD);
 		if (z >= 0) {
 			if ((z != KEY_LALT) && (z != KEY_RALT) && (z != KEY_LSHIFT) && (z != KEY_RSHIFT)) {
 				// if current modifiers don't match action's modifiers, don't register control active.
