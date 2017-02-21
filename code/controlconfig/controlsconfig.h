@@ -100,6 +100,16 @@ public:
 	int find_bind(cid &control);
 
 	/*!
+	 * @brief Tries to find the button/key binding for the given controller ID (Such as CID_KEYBOARD)
+	 *
+	 * @returns The button or key mapped to this action, or
+	 * @returns -1 if there isn't a mapping with the given controller ID
+	 *
+	 * @details Essentially, you give a cid::first and it returns cid::second, if it is mapped to this action
+	 */
+	short get_bind(short control);
+
+	/*!
 	 * @brief Clears all bindings (c_id) from this action.
 	 */
 	void clear();

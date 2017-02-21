@@ -416,6 +416,16 @@ int Config_item::find_bind(cid &control) {
 	return -1;
 }
 
+short Config_item::get_bind(short control) {
+	for (int i = 0; i < MAX_BINDINGS; ++i) {
+		if (c_id[i].first == control) {
+			return c_id[i].second;
+		}
+	}
+
+	return -1;
+}
+
 void Config_item::reset() {
 	std::copy(default_id, default_id + MAX_BINDINGS, c_id);
 }
