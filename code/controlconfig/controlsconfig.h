@@ -17,16 +17,40 @@
 #define MAX_BINDINGS 3
 
 class Config_item;
+class Config_item_preset;
 enum IoActionId;
 
 typedef std::pair<short, short> cid;            // Controller/Button pair. First = Controller ID, Second = Button ID on the controller
 typedef SCP_vector<Config_item> Control_LUT;    // Control Configuration container. Contains control info and Controller->Action mappings (Input index is an IoActionId)
 typedef SCP_vector<IoActionId>  Action_LUT;     // Action container. Containts Action->Controller mappings. (Input index is a button id of the controller this map is for)
 
-class Config_item
+/*!
+* @brief Contains default bindings for a config item
+*/
+class Config_item_preset
 {
 public:
-	cid default_id[MAX_BINDINGS];   //!< default bindings for this action
+	cid default_id[MAX_BINDINGS];
+};
+
+
+/*!
+ * @brief Contains alternative bindings for Config_items.
+ * @details The user can select from a number of presets within the Control Config menu. The "hard-coded" defaults are within each Config_item already.
+ */
+class Preset_table
+{
+public:
+	SCP_string name;                        // Name of this preset
+	SCP_vector<Config_item_preset> action;  // The action LUT. Is at least CCFG_MAX size and garaunteed to match the IoActionId indexes of the Config_items
+
+	Preset_table(SCP_string &_name, Control_LUT &preset);	// Generates a table from a Control_LUT with the given name
+};
+
+
+class Config_item : public Config_item_preset
+{
+public:
 	cid c_id[MAX_BINDINGS];     //!< controller ID's currently bound
 	int used;                   //!< has control been used yet in mission?  If so, this is the timestamp
 	char type;                  //!< manner control should be checked in
@@ -418,8 +442,7 @@ extern Action_LUT Mouse_config;                 //!< Reverse LUT for the mouse b
 extern SCP_vector< Action_LUT > Joy_configs;    //!< Reverse LUT for the joystick(s) buttons
 
 extern Control_LUT Control_config;                          //!< Forward LUT for keys and buttons that the player is using.
-extern SCP_vector<Control_LUT> Control_config_presets;      //!< tabled control presets; pointers to config_item arrays
-extern SCP_vector<SCP_string> Control_config_preset_names;  //!< names for Control_config_presets (identical order of items)
+extern SCP_vector<Preset_table> Control_config_presets;     //!< tabled control presets;
 extern const char **Scan_code_text;
 extern const char **Joy_button_text;
 

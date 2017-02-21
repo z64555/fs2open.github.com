@@ -259,8 +259,7 @@ const char *Joy_button_text_english[] = {
 const char **Scan_code_text = Scan_code_text_english;
 const char **Joy_button_text = Joy_button_text_english;
 
-SCP_vector<Control_LUT> Control_config_presets;
-SCP_vector<SCP_string> Control_config_preset_names;
+SCP_vector<Preset_table> Control_config_presets;
 
 SCP_map<SCP_string, int> mKeyNameToVal;
 SCP_map<SCP_string, int> mMouseNameToVal;
@@ -305,6 +304,19 @@ void LoadEnumsIntoMaps();
  * @brief Function used to sort bindings within Config_item's
  */
 bool compare_binds(cid &left, cid &right);
+
+
+Preset_table::Preset_table(SCP_string &_name, Control_LUT& preset)
+	: name(_name)
+{
+	size_t size = preset.size();
+	Assert(size >= CCFG_MAX);
+
+	action.resize(size);
+
+	std::copy(preset.begin(), preset.end(), action.begin());
+}
+
 
 bool  Config_item::bind(cid &control) {
 	if (control == cid(-1, -1)) {
@@ -1143,10 +1155,11 @@ void control_config_common_load_overrides()
 
 		// start parsing
 		// TODO: Split this out into more helps. Too many tabs!
+		bool first = true;
 		while(optional_string("#ControlConfigOverride")) {
 			Control_LUT cfg_preset;
 			std::copy(Control_config.begin(), Control_config.end(), cfg_preset.begin());
-			Control_config_presets.push_back(cfg_preset);
+			
 
 			SCP_string preset_name;
 			if (optional_string("$Name:")) {
@@ -1154,7 +1167,6 @@ void control_config_common_load_overrides()
 			} else {
 				preset_name = "<unnamed preset>";
 			}
-			Control_config_preset_names.push_back(preset_name);
 
 			while (required_string_either("#End","$Bind Name:")) {
 				const int iBufferLength = 64;
@@ -1168,14 +1180,6 @@ void control_config_common_load_overrides()
 					Config_item& r_ccConfig = cfg_preset[i];
 
 					if (!strcmp(szTempBuffer, r_ccConfig.text)) {
-						/**
-                        * short key_default;
-                        * short joy_default;
-                        * char tab;
-                        * bool hasXSTR;
-                        * char type;
-                        */
-
 						int iTemp;
 
 						if (optional_string("$Key Default:")) {
@@ -1213,24 +1217,42 @@ void control_config_common_load_overrides()
 						}
 
 						if (optional_string("$Category:")) {
+							if (!first) {
+								Warning("controlconfigdefaults.tbl", get_line_num(), "Ignoring $Category: entry, only the first override block may use this!");
+							}
 							stuff_string(szTempBuffer, F_NAME, iBufferLength);
 							r_ccConfig.tab = (char)mCCTabNameToVal[szTempBuffer];
 						}
 
 						if (optional_string("$Has XStr:")) {
+							if (!first) {
+								Warning("controlconfigdefaults.tbl", get_line_num(), "Ignoring $Has XStr: entry, only the first override block may use this!");
+							}
 							stuff_int(&iTemp);
 							r_ccConfig.hasXSTR = (iTemp == 1);
 						}
 
 						if (optional_string("$Type:")) {
+							if (!first) {
+								Warning("controlconfigdefaults.tbl", get_line_num(), "Ignoring $Type: entry, only the first override block may use this!");
+							}
 							stuff_string(szTempBuffer, F_NAME, iBufferLength);
 							r_ccConfig.type = (char)mCCTypeNameToVal[szTempBuffer];
 						}
 
+						// Deprecated
 						if (optional_string("+Disable")) {
+							Warning("controlconfigdefaults.tbl", get_line_num(), "Found deprecated entry '+Disable,' Please use '$Disable: true' instead.");
+							if (!first) {
+								Warning("controlconfigdefaults.tbl", get_line_num(), "Ignoring +Disable entry, only the first override block may use this!");
+							}
 							r_ccConfig.disabled = true;
 						}
+
 						if (optional_string("$Disable:")) {
+							if (!first) {
+								Warning("controlconfigdefaults.tbl", get_line_num(), "Ignoring $Disable: entry, only the first override block may use this!");
+							}
 							stuff_boolean(&r_ccConfig.disabled);
 						}
 
@@ -1245,6 +1267,13 @@ void control_config_common_load_overrides()
 				}
 			}
 
+			// Overwrite the control config with the first preset that was found
+			if (first) {
+				std::copy(cfg_preset.begin(), cfg_preset.end(), Control_config);
+				first = false;
+			}
+
+			Control_config_presets.push_back(Preset_table(preset_name, cfg_preset));
 			required_string("#End");
 		}
 	}
@@ -1252,10 +1281,5 @@ void control_config_common_load_overrides()
 	{
 		mprintf(("TABLES: Unable to parse 'controlconfigdefaults.tbl'!  Error message = %s.\n", e.what()));
 		return;
-	}
-
-	// Overwrite the control config with the first preset that was found
-	if (!Control_config_presets.empty()) {
-		std::copy(Control_config_presets[0].begin(), Control_config_presets[0].end(), Control_config);
 	}
 }
