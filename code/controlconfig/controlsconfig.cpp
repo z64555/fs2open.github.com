@@ -177,7 +177,7 @@ static unsigned int Defaults_cycle_pos; // the controls preset that was last sel
 int Control_config_overlay_id;
 
 struct Conflict_Action {
-	int other_id[MAX_BINDINGS];	// Array of Control_LUT indices that this IoAction has a conflict with
+	pair<int, short> other_id[MAX_BINDINGS];	// Array of Control_LUT indices that this IoAction has a conflict with, and the controller Id (CID_KEYBOARD etc)
 
 	Conflict_Action() {
 		clear();
@@ -187,16 +187,20 @@ struct Conflict_Action {
 	 * Clears this entry
 	 */
 	void clear() {
-		fill(other_id, other_id + MAX_BINDINGS, -1);
+		fill(other_id, other_id + MAX_BINDINGS, pair<int, short>(-1, -1));
 	}
 
 	/*!
 	 * @brief Checks if any conflicts exist for this IoAction 
+	 *
+	 * @param[in] cr_id Optional. If provided, check for conflicts with this controller id (CID_KEYBOARD etc)
 	 */
-	bool has_conflict() {
+	bool has_conflict(short cr_id = -1) {
 		for (int i = 0; i < MAX_BINDINGS; ++i) {
-			if (other_id[i] != -1) {
-				return true;
+			if (other_id[i].first != -1) {
+				if ((cr_id == -1) || (cr_id == other_id[i].second)) {
+					return true;
+				}
 			}
 		}
 		return false;
@@ -518,8 +522,8 @@ void control_config_conflict_check()
 						continue;
 					} // Else, Conflict found!
 
-					Conflicts[i].other_id[k] = j;
-					Conflicts[j].other_id[l] = i;
+					Conflicts[i].other_id[k] = pair<int, short>(j, first[k].first);
+					Conflicts[j].other_id[l] = pair<int, short>(i, second[k].first);	// Technically the same thing as first[k].first. Hopefully this is less confusing.
 
 					auto &first_tab = Control_config[i].tab;
 					auto &second_tab = Control_config[j].tab;
@@ -1612,7 +1616,7 @@ void control_config_do_frame(float frametime)
 			z = -1;
 			if (k > 0) {
 				for (i=0; i<CCFG_MAX; i++) {
-					if (Control_config[i].key_id == k) {
+					if (Control_config[i].get_bind(CID_KEYBOARD) >= 0) {
 						z = i;
 						break;
 					}
@@ -1623,7 +1627,7 @@ void control_config_do_frame(float frametime)
 				if (joy_down_count(i, 1)) {
 					j = i;
 					for (i=0; i<CCFG_MAX; i++) { //-V535
-						if (Control_config[i].joy_id == j) {
+						if (Control_config[i].get_bind(CID_JOY) >= 0) {
 							z = i;
 							break;
 						}
@@ -1643,7 +1647,7 @@ void control_config_do_frame(float frametime)
 				for (j=0; j<MOUSE_NUM_BUTTONS; j++) {
 					if (mouse_down(1 << j)) {
 						for (i=0; i<CCFG_MAX; i++) {
-							if (Control_config[i].joy_id == j) {
+							if (Control_config[i].get_bind(CID_MOUSE) >= 0) {
 								z = i;
 								for (size_t buttonid=0; buttonid<NUM_BUTTONS; buttonid++){
 									CC_Buttons[gr_screen.res][buttonid].button.reset();
@@ -1681,14 +1685,14 @@ void control_config_do_frame(float frametime)
 
 		if (!z) {
 			z = Cc_lines[Selected_line].cc_index;
-			k = Control_config[z].key_id;
+			k = Control_config[z].get_bind(CID_KEYBOARD);
 			if ( (k == KEY_LALT) || (k == KEY_RALT) || (k == KEY_LSHIFT) || (k == KEY_RSHIFT) ) {
 				CC_Buttons[gr_screen.res][ALT_TOGGLE].button.enable(0);
 				CC_Buttons[gr_screen.res][SHIFT_TOGGLE].button.enable(0);
 			}
 		}
 
-		CC_Buttons[gr_screen.res][UNDO_BUTTON].button.enable(Config_item_undo != NULL);
+		CC_Buttons[gr_screen.res][UNDO_BUTTON].button.enable(Undo_controls.size() > 0);
 
 		if ( help_overlay_active(Control_config_overlay_id) ) {
 			CC_Buttons[gr_screen.res][HELP_BUTTON].button.reset_status();
@@ -1875,7 +1879,7 @@ void control_config_do_frame(float frametime)
 			}
 
 		} else {
-			z = Control_config[z].key_id;
+			z = Control_config[Selected_line].get_bind(CID_KEYBOARD);
 			if (z >= 0) {
 				if (z & KEY_SHIFTED) {
 					CC_Buttons[gr_screen.res][SHIFT_TOGGLE].button.draw_forced(2);
@@ -1907,7 +1911,7 @@ void control_config_do_frame(float frametime)
 	} else if (!(z & JOY_AXIS) && Conflicts[z].has_conflict()) {
 		i = 0;
 		for (int i = 0; i < MAX_BINDINGS; ++i) {
-			if (Conflicts[z].other_id[i] >= 0) {
+			if (Conflicts[z].other_id[i].first >= 0) {
 				break;
 			}
 		}
@@ -1915,7 +1919,7 @@ void control_config_do_frame(float frametime)
 
 		// Reuse i to index the action we're conflicting with
 		// TODO: z64! refactor this entire function!
-		i = Conflicts[z].other_id[i];
+		i = Conflicts[z].other_id[i].first;
 
 		gr_set_color_fast(&Color_text_normal);
 		str = XSTR( "Control conflicts with:", 209);
@@ -1973,8 +1977,8 @@ void control_config_do_frame(float frametime)
 		}
 
 		if (!(z & JOY_AXIS)) {
-			k = Control_config[z].key_id;
-			j = Control_config[z].joy_id;
+			k = Control_config[z].get_bind(CID_KEYBOARD);
+			j = Control_config[z].get_bind(CID_JOY);
 			x = Control_list_key_x[gr_screen.res];
 			*buf = 0;
 
