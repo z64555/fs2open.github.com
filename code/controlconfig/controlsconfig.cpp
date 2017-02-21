@@ -1324,7 +1324,7 @@ void control_config_init()
 	Background_bitmap = bm_load(Conflict_background_bitmap_fname[gr_screen.res]);	
 
 	Scroll_offset = Selected_line = 0;
-	Config_item_undo = NULL;
+	Undo_controls.clear();
 	control_config_conflict_check();
 
 	// setup strings					
