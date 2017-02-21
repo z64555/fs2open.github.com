@@ -563,9 +563,7 @@ int translate_key_to_index(const char *key, bool find_override)
 
 char *translate_key(char *key)
 {
-	int index = -1, key_code = -1, joy_code = -1;
-	const char *key_text = NULL;
-	const char *joy_text = NULL;
+	int index = -1;
 
 	static char text[40] = {"None"};	// TODO Replace this with an SCP_string
 	SCP_string temp;
@@ -679,11 +677,12 @@ SCP_string textify_joy(cid c_id)
 	SCP_string retval;
 
 	// TODO: Get the string name per joystick. For now we'll just use Joy0, Joy1, etc.
-	int joy = c_id.first -= CID_JOY;
+	int joy = c_id.first - CID_JOY;
 	int button = c_id.second;
 
 	retval = "Joy";
-	retval += std::to_string(c_id.second - CID_JOY);
+	retval += std::to_string(joy);
+	retval += " ";
 
 	if ((button < 0) || (button >= JOY_TOTAL_BUTTONS)) {
 		// Shouldn't happen
@@ -692,7 +691,7 @@ SCP_string textify_joy(cid c_id)
 
 	} else if (button >= JOY_NUM_BUTTONS) {
 		// Is hat
-		retval += " Hat ";
+		retval += "Hat ";
 		switch (button) {
 		case JOY_NUM_BUTTONS + HAT_UP:
 			retval += "Up";

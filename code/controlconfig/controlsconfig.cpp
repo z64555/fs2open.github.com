@@ -1910,7 +1910,7 @@ void control_config_do_frame(float frametime)
 
 	} else if (!(z & JOY_AXIS) && Conflicts[z].has_conflict()) {
 		i = 0;
-		for (int i = 0; i < MAX_BINDINGS; ++i) {
+		for (i = 0; i < MAX_BINDINGS; ++i) {
 			if (Conflicts[z].other_id[i].first >= 0) {
 				break;
 			}
@@ -1989,7 +1989,7 @@ void control_config_do_frame(float frametime)
 			} else {
 				if (k >= 0) {
 					strcpy_s(buf, textify_scancode(k));
-					if (Conflicts[z].has_conflict(CID_KEYBOARD) >= 0) {
+					if (Conflicts[z].has_conflict(CID_KEYBOARD)) {
 						if (c == &Color_text_normal)
 							gr_set_color_fast(&Color_text_error);
 						else {
@@ -2021,7 +2021,7 @@ void control_config_do_frame(float frametime)
 
 				if (j >= 0) {
 					strcpy_s(buf, Joy_button_text[j]);
-					if (Conflicts[z].has_conflict(CID_JOY) >= 0) {
+					if (Conflicts[z].has_conflict(CID_JOY)) {
 						if (c == &Color_text_normal) {
 							gr_set_color_fast(&Color_text_error);
 						} else {
