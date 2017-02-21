@@ -407,7 +407,8 @@ bool Config_item::defaults() {
 
 int Config_item::find_bind(cid &control) {
 	for (int i = 0; i < MAX_BINDINGS; ++i) {
-		if (c_id[i] == control) {
+		if ((c_id[i] == control) ||
+			((control.second == -1) && (c_id[i].first == control.first))) {
 			return i;
 		}
 	}

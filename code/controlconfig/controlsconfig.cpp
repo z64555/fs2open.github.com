@@ -1018,13 +1018,13 @@ void control_config_toggle_modifier(int bit)
 
 	z = Cc_lines[Selected_line].cc_index;
 	Assert(!(z & JOY_AXIS));
-	k = Control_config[z].key_id;
+	k = Control_config[z].find_bind(cid(CID_KEYBOARD, -1));
 	if (k < 0) {
 		gamesnd_play_iface(SND_GENERAL_FAIL);
 		return;
 	}
 
-	control_config_bind_key(z, k ^ bit);
+	control_config_bind_key(z, Control_config[z].c_id[k].second ^ bit);
 	control_config_conflict_check();
 	gamesnd_play_iface(SND_USER_SELECT);
 }

@@ -94,6 +94,8 @@ public:
 	 *
 	 * @returns The index in c_id of the control, or
 	 * @returns -1 if not found
+	 *
+	 * @details, if control.second == -1, then find the binding by jsut the controller ID (such as CID_KEYBOARD)
 	 */
 	int find_bind(cid &control);
 
