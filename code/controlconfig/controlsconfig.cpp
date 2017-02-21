@@ -1989,7 +1989,7 @@ void control_config_do_frame(float frametime)
 			} else {
 				if (k >= 0) {
 					strcpy_s(buf, textify_scancode(k));
-					if (Conflicts[z].key >= 0) {
+					if (Conflicts[z].has_conflict(CID_KEYBOARD) >= 0) {
 						if (c == &Color_text_normal)
 							gr_set_color_fast(&Color_text_error);
 						else {
@@ -2021,7 +2021,7 @@ void control_config_do_frame(float frametime)
 
 				if (j >= 0) {
 					strcpy_s(buf, Joy_button_text[j]);
-					if (Conflicts[z].joy >= 0) {
+					if (Conflicts[z].has_conflict(CID_JOY) >= 0) {
 						if (c == &Color_text_normal) {
 							gr_set_color_fast(&Color_text_error);
 						} else {
@@ -2093,23 +2093,35 @@ void control_config_do_frame(float frametime)
 
 		for (i=0; i<(int)Control_config_presets.size(); i++) {
 			bool this_preset_matches = true;
-			config_item *this_preset = Control_config_presets[i];
+			Preset_table &this_preset = Control_config_presets[i];
+			Config_item_preset* this_preset_item = &this_preset.action[0];
 
+			// Compare all bindings within Control_config with this preset's default bindings
+			// Bail on finding the first binding that doesn't match, so we can check the next preset
 			for (j=0; j<CCFG_MAX; j++) {
-				if (!Control_config[j].disabled && Control_config[j].key_id != this_preset[j].key_default) {
-					this_preset_matches = false;
-					break;
+				Config_item& Control = Control_config[j];
+				if (Control.disabled) {
+					// Disabled control. check the next one
+					continue;
+				}
+
+				for (k = 0; k < MAX_BINDINGS; ++k) {
+					if (Control.c_id[k] != this_preset_item[j].default_id[k]) {
+						// c_id doesn't match preset
+						this_preset_matches = false;
+						break;
+					}
 				}
 			}
 
 			if (this_preset_matches) {
 				matching_preset = i;
 				break;
-			}
+			} // Else, check the next preset
 		}
 
 		if (matching_preset >= 0) {
-			sprintf(preset_str, "Controls: %s", Control_config_preset_names[matching_preset].c_str());
+			sprintf(preset_str, "Controls: %s", Control_config_presets[matching_preset].name.c_str());
 		} else {
 			sprintf(preset_str, "Controls: custom");
 			
