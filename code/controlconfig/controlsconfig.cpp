@@ -843,7 +843,7 @@ int control_config_axis_default(int axis)
 int control_config_do_reset()
 {
 	int i, j, total = 0;
-	Control_LUT* preset;
+	Config_item_preset* preset;
 	bool cycling_presets = false;
 	
 	// If there are presets, then we'll cycle to the next preset and reset to that
@@ -853,16 +853,16 @@ int control_config_do_reset()
 		if (++Defaults_cycle_pos >= Control_config_presets.size())
 			Defaults_cycle_pos = 0;
 		
-		preset = &Control_config_presets[Defaults_cycle_pos];
+		preset = &Control_config_presets[Defaults_cycle_pos].action[0];
 	} else {
 		// If there are no presets, then we'll always reset to the hardcoded defaults
-		preset = &Control_config;
+		preset = &Control_config[0];
 	}
 	
 	// first, determine how many bindings need to be changed
 	for (i = 0; i < CCFG_MAX; ++i) {
 		for (j = 0; j < MAX_BINDINGS; ++j) {
-			if (Control_config[i].c_id[j] != (*preset)[i].default_id[j]) {
+			if (Control_config[i].c_id[j] != preset[i].default_id[j]) {
 				total++;
 				break;
 			}
@@ -887,7 +887,7 @@ int control_config_do_reset()
 	Stack.reserve(total);
 	for (i = 0; i < CCFG_MAX; ++i) {
 		for (j = 0; j < MAX_BINDINGS; ++j) {
-			if (Control_config[i].c_id[j] != (*preset)[i].default_id[j]) {
+			if (Control_config[i].c_id[j] != preset[i].default_id[j]) {
 				Stack.save(Control_config[i], &Control_config[0]);
 				break;
 			}
@@ -922,20 +922,21 @@ int control_config_do_reset()
 void control_config_reset_defaults(int presetnum)
 {
 	int i;
-	config_item *preset;
+	Config_item_preset *preset;
 
 	if (presetnum >= 0)
-		preset = Control_config_presets[presetnum];
+		preset = &Control_config_presets[presetnum].action[0];
 	else
-		preset = Control_config;
+		preset = &Control_config[0];
 
 	// Reset keyboard defaults
 	for (i=0; i<CCFG_MAX; i++) {
 		// Note that key_default and joy_default are NOT overwritten here;
 		// they should retain the values of the first preset because
 		// for example the key-pressed SEXP works off the defaults of the first preset
-		Control_config[i].key_id = preset[i].key_default;
-		Control_config[i].joy_id = preset[i].joy_default;
+		Control_config[i].c_id[0] = preset[i].default_id[0];
+		Control_config[i].c_id[1] = preset[i].default_id[1];
+		Control_config[i].c_id[2] = preset[i].default_id[2];
 	}
 
 	for (i=0; i<NUM_JOY_AXIS_ACTIONS; i++) {
