@@ -936,10 +936,6 @@ void control_config_reset_defaults(int presetnum)
 		// for example the key-pressed SEXP works off the defaults of the first preset
 		Control_config[i].key_id = preset[i].key_default;
 		Control_config[i].joy_id = preset[i].joy_default;
-		Control_config[i].tab = preset[i].tab;
-		Control_config[i].hasXSTR = preset[i].hasXSTR;
-		Control_config[i].type = preset[i].type;
-		Control_config[i].disabled = preset[i].disabled;
 	}
 
 	for (i=0; i<NUM_JOY_AXIS_ACTIONS; i++) {
