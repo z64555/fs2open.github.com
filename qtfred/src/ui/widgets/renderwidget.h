@@ -5,6 +5,7 @@
 
 #include <QWindow>
 #include <QWidget>
+#include <mission/FredRenderer.h>
 
 #include "osapi/osapi.h"
 
@@ -19,9 +20,7 @@ class RenderWindow: public QWindow {
 	explicit RenderWindow(QWidget* parent = 0);
 	~RenderWindow();
 
-	void setEditor(Editor* editor) {
-		fred = editor;
-	}
+	void setEditor(Editor* editor, FredRenderer* renderer);
 
 	void initializeGL(const QSurfaceFormat& surfaceFmt);
 
@@ -45,7 +44,8 @@ class RenderWindow: public QWindow {
 
  private:
 	std::unordered_map<int, int> qt2fsKeys;
-	Editor* fred;
+	Editor* fred = nullptr;
+	FredRenderer* _renderer = nullptr;
 	bool _isRendering = false;
 };
 
@@ -55,7 +55,7 @@ class RenderWidget: public QWidget {
  Q_OBJECT
 
  public:
-	RenderWidget(QWidget* parent);
+	explicit RenderWidget(QWidget* parent);
 
 	RenderWindow* getWindow() const;
 };
