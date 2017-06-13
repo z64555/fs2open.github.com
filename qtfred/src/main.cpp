@@ -8,6 +8,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QSplashScreen>
+#include <QtCore/QLoggingCategory>
 
 #ifdef _WIN32
 #include "globalincs/mspdb_callstack.h"
@@ -15,11 +16,14 @@
 
 #include "globalincs/globals.h" // MAX_SHIPS, NAME_LENGTH
 
-#include "mission/editor.h"
+#include "mission/Editor.h"
+#include "mission/management.h"
 
 #include "ui/FredView.h"
 #include "FredApplication.h"
 #include "FredApplication.h"
+
+#include <signal.h>
 
 // Globals needed by the engine when built in 'FRED' mode.
 int Fred_running = 1;
@@ -52,7 +56,7 @@ void fsoMessageOutput(QtMsgType type, const QMessageLogContext &context, const Q
 		fprintf(stderr, "Qt Critical: %s\n", errorMsg.constData());
 		break;
 	case QtFatalMsg:
-		Error(context.file, context.line, "Qt Critical: %s", errorMsg.constData());
+		Error(context.file == nullptr ? "Unknown" : context.file, context.line, "Qt Critical: %s", errorMsg.constData());
 		break;
 	}
 }
@@ -62,7 +66,16 @@ void fsoMessageOutput(QtMsgType type, const QMessageLogContext &context, const Q
 #undef main
 #endif
 
+void handler(int signal) {
+	auto stacktrace = dump_stacktrace();
+
+	fprintf(stderr, "Stack: %s\n", stacktrace.c_str());
+	exit( signal );
+}
+
 int main(int argc, char* argv[]) {
+	signal( SIGSEGV, handler );
+
 	using namespace fso::fred;
 
 #ifdef WIN32
@@ -79,6 +92,13 @@ int main(int argc, char* argv[]) {
 	QCoreApplication::setApplicationName("qtFRED");
 
 	QApplication app(argc, argv);
+
+#ifndef NDEBUG
+	QLoggingCategory::defaultCategory()->setEnabled(QtDebugMsg, true);
+	QLoggingCategory::defaultCategory()->setEnabled(QtInfoMsg, true);
+#endif
+
+	QGuiApplication::setWindowIcon(QIcon(":/images/V_fred.ico"));
 
 	// This will be available as the global instance
 	FredApplication localFredApp;
