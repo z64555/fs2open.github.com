@@ -354,6 +354,81 @@ namespace parse
 		ParseException(const std::string& msg) : std::runtime_error(msg) {}
 		~ParseException() throw() {}
 	};
+
+	/**
+	 * @brief Single Entry in the parsing index
+	 */
+	class IndexEntry
+	{
+	public:
+		size_t id;				// The id number of this entry. Used by the Index
+		SCP_string header;		// The header string of the parsing entry.
+		SCP_string filename;	// The file this entry is in
+		char* Mp;				// Pointer to the entry
+		bool parsed;			// True if this entry has already been fully parsed, False otherwise
+	};
+
+	class Index
+	{
+	public:
+		/**
+		 * @brief Adds an entry to the index
+		 *
+		 * @param[in] entry  Pointer to entry to add
+		 *
+		 * @returns The id number of the entry (and also the current size of the index)
+		 */
+		size_t add_entry(IndexEntry *entry);
+
+		/**
+		 * @brief Find entries by header
+		 *
+		 * @param[out] entry  Pointer to one or more IndexEntries with the matching criteria
+		 * @param[in]  str    The search criteria
+		 *
+		 * @returns The number of entries found.
+		 */
+		size_t find_header(IndexEntry* entry, SCP_string *str);
+
+		/**
+		 * @brief Find entries by filename
+		 *
+		 * @param[out] entry  Pointer to one or more IndexEntries with the matching criteria
+		 * @param[in]  str    The search criteria
+		 *
+		 * @returns The number of entries found.
+		 */
+		size_t find_filename(IndexEntry* entry, SCP_string *str);
+		
+		/**
+		 * @brief Find entries by completion state
+		 *
+		 * @param[out] entry    Pointer to one or more IndexEntries with the matching criteria
+		 * @param[in]  complete The search criteria.
+		 *
+		 * @returns The number of entries found.
+		 */
+		size_t find_completed(IndexEntry* entry, bool complete = true);
+		
+		/**
+		 * @brief Finds a single entry by id number.
+		 *
+		 * @param[out] entry  If found, pointer to the IndexEntries with the matching criteria
+		 * @param[in]  id     Id number of the entry
+		 *
+		 * @returns 0 if not found, or 1 if the entry was found
+		 */
+		size_t find_id(IndexEntry* entry, size_t id);
+	
+	protected:
+		void sort_header();		// Sorts the index by header
+		void sort_filename();	// Sorts the index by filename
+		void sort_completed();	// Sorts the index by completion
+		void sort_id();			// Sorts the index by id number
+	
+	private:
+		SCP_list<IndexEntry> data;
+	};
 }
 
 #endif
