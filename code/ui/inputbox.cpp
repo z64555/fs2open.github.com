@@ -333,7 +333,7 @@ void UI_INPUTBOX::process(int focus)
 
 	if (focus) {
 		key = my_wnd->keypress;
-			switch (key) {
+		switch (key) {
 			case 0:
 				break;
 

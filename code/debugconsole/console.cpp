@@ -490,12 +490,11 @@ void dc_putc(char c)
 
 bool handle_textInputEvent(const SDL_Event& event) {
 	if (event.text.text[0] != '\0' && event.text.text[0] != '\1') {
-		int key_used = 0;
 		for (char c : event.text.text) {
 			if (c < 32)
 				break;
 
-			if ((c != 255) && (dc_command_buf.size() < MAX_CLI_LEN)) {
+			if (dc_command_buf.size() < MAX_CLI_LEN) {
 				dc_command_buf.push_back(c);
 			}
 		}
