@@ -1356,7 +1356,13 @@ void control_config_common_read_tbl() {
 template<class FILETYPE>
 int control_config_common_write_tbl_segment(FILETYPE* cfile, int preset, int (* puts)(const char *, FILETYPE*) ) {
 
-	puts("#ControlConfigOverride\n", cfile);
+	if (preset == 0) {
+		puts("#ControlConfigOverride\n", cfile);
+
+	} else {
+		puts("#ControlConfigPreset", cfile);
+	}
+	
 	puts(("$Name: " + Control_config_presets[preset].name + "\n").c_str(), cfile);
 
 	// Write bindings for all controls
