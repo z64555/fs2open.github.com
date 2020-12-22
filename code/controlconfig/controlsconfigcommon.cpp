@@ -1158,7 +1158,8 @@ size_t find_control_by_text(SCP_string& text) {
  *
  * @param[in] s Value of a call to optional_string_either(); 0 = "ControlConfigOverride" 1 = "ControlConfigPreset"
  *
- * @details ControlConfigPresets are read in the exact same manner as ControlConfigOverrides, however only the bindings are available for modification
+ * @details ControlConfigPresets are read in the exact same manner as ControlConfigOverrides, however only the bindings are available for modification.
+ *  There may be only one #Override section, since it is in charge of non-binding members of the Control_config items
  */
 void control_config_common_read_section(int s) {
 	CC_preset new_preset;
@@ -1182,6 +1183,7 @@ void control_config_common_read_section(int s) {
 	
 
 	// Assign name to the preset
+	// note: #Override section's name is ignored
 	if (optional_string("$Name:")) {
 		SCP_string name;
 		stuff_string_line(name);
@@ -1296,8 +1298,8 @@ void control_config_common_read_section(int s) {
 
 	required_string("#End");
 
-	if ((s == 0) && (new_preset.name == default_preset.name)) {
-		// If this is an override section, and the preset name is the same as the hardcoded defaults, override the defaults
+	if (s == 0) {
+		// If this is an override section, override the defaults
 		auto& new_bindings = new_preset.bindings;
 		std::copy(new_bindings.begin(), new_bindings.end(), default_bindings.begin());
 
@@ -1386,11 +1388,13 @@ int control_config_common_write_tbl_segment(FILETYPE* cfile, int preset, int (* 
 		puts(("    $Flags: " + ValToCCF(second.flags) + "\n").c_str(), cfile);
 		puts(("    $Input: " + ValToInput(second) + "\n").c_str(), cfile);
 
-		// Config menu options
-		puts(("  $Category: " + ValToCCTab(item.tab) + "\n").c_str(), cfile);
-		puts(("  $Text: " + item.text + "\n").c_str(), cfile);
-		puts(("  $Has XStr: " + std::to_string(item.indexXSTR) + "\n").c_str(), cfile);
-		puts(("  $Type: " + ValToCCType(item.type) + "\n").c_str(), cfile);
+		// Config menu options (default #Override Only)
+		if (preset == 0) {
+			puts(("  $Category: " + ValToCCTab(item.tab) + "\n").c_str(), cfile);
+			puts(("  $Text: " + item.text + "\n").c_str(), cfile);
+			puts(("  $Has XStr: " + std::to_string(item.indexXSTR) + "\n").c_str(), cfile);
+			puts(("  $Type: " + ValToCCType(item.type) + "\n").c_str(), cfile);
+		}
 	}
 
 	puts("#End\n", cfile);
