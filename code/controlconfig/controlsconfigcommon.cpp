@@ -1363,68 +1363,28 @@ int control_config_common_write_tbl_segment(FILETYPE* cfile, int preset, int (* 
 	for (size_t i = 0; i < Control_config.size(); ++i) {
 		auto& item = Control_config[i];
 		auto& bindings = Control_config_presets[preset].bindings[i];
+		auto& first = bindings.first;
+		auto& second = bindings.second;
 
-		short key = -1;
-		int key_shift = 0;
-		int key_alt = 0;
-		int key_ctrl = 0;
-
-		short btn = bindings.second.btn;
-
-		SCP_string buf_str;
+		puts(("$Bind: " + SCP_string(ValToAction(static_cast<int>(i))) + "\n").c_str(), cfile);
 		
-		if (bindings.first.btn != -1) {
-			// Translate the key into string form
-			key = bindings.first.btn & KEY_MASK;
-			key_shift = (bindings.first.btn & KEY_SHIFTED) ? 1 : 0;
-			key_alt = (bindings.first.btn & KEY_ALTED) ? 1 : 0;
-			key_ctrl = (bindings.first.btn & KEY_CTRLED) ? 1 : 0;
+		// Primary binding
+		puts("  $Primary:\n", cfile);
+		puts(("    $Controller: " + ValToCID(first.cid) + "\n").c_str(), cfile);
+		puts(("    $Flags: " + ValToCCF(first.flags) + "\n").c_str(), cfile);
+		puts(("    $Input: " + ValToInput(first) + "\n").c_str(), cfile);
 
-			for (const auto& pair : mKeyNameToVal) {
-				if (pair.second == key) {
-					buf_str = pair.first;
-					break;
-				}
-			}
-			Assert(!buf_str.empty());
-		} else {
-			// Not bound
-			buf_str = "NONE";
-		}
-
-		puts(("$Bind Name: " + item.text + "\n").c_str(), cfile);
-		
-		puts(("  $Key Default: " + buf_str + "\n").c_str(), cfile);
-		puts(("  $Key Mod Shift: " + std::to_string(key_shift) + "\n").c_str(), cfile);
-		puts(("  $Key Mod Alt: " + std::to_string(key_alt) + "\n").c_str(), cfile);
-		puts(("  $Key Mod Ctrl: " + std::to_string(key_ctrl) + "\n").c_str(), cfile);
-
-		puts(("  $Joy Default: " + std::to_string(btn) + "\n").c_str(), cfile);
+		// Secondary binding
+		puts("  $Secondary:\n", cfile);
+		puts(("    $Controller: " + ValToCID(second.cid) + "\n").c_str(), cfile);
+		puts(("    $Flags: " + ValToCCF(second.flags) + "\n").c_str(), cfile);
+		puts(("    $Input: " + ValToInput(second) + "\n").c_str(), cfile);
 
 		// Config menu options
-		buf_str = "";
-		for (const auto& pair : mCCTabNameToVal) {
-			if (pair.second == item.tab) {
-				buf_str = pair.first;
-				break;
-			}
-		}
-		Assert(!buf_str.empty());
-		puts(("  $Category: " + buf_str + "\n").c_str(), cfile);
-
+		puts(("  $Category: " + ValToCCTab(item.tab) + "\n").c_str(), cfile);
 		puts(("  $Text: " + item.text + "\n").c_str(), cfile);
-		
 		puts(("  $Has XStr: " + std::to_string(item.indexXSTR) + "\n").c_str(), cfile);
-		
-		buf_str = "";
-		for (const auto& pair : mCCTypeNameToVal) {
-			if (pair.second == item.type) {
-				buf_str = pair.first;
-				break;
-			}
-		}
-		Assert(!buf_str.empty());
-		puts(("  $Type: " + buf_str + "\n").c_str(), cfile);
+		puts(("  $Type: " + ValToCCType(item.type) + "\n").c_str(), cfile);
 	}
 
 	puts("#End\n", cfile);
@@ -1562,6 +1522,29 @@ char CCFToVal(const char * str) {
 	}
 
 	return val;
+}
+
+char CCTabToVal(const char *str) {
+	Assert(str != nullptr);
+	auto it = mCCTabNameToVal.find(str);
+
+	if (it == mCCTabNameToVal.end()) {
+		return CC_tab::NO_TAB;
+	} // else
+
+	// TODO: make the CCTabToVal map use the CC_tab enum instead of chars.
+	return static_cast<CC_tab>(it->second);
+}
+
+CC_type CCTypeToVal(const char *str) {
+	Assert(str != nullptr);
+	auto it = mCCTypeNameToVal.find(str);
+
+	if (it == mCCTypeNameToVal.end()) {
+		return CC_type::CC_TYPE_TRIGGER;
+	} // else
+
+	return it->second;
 }
 
 CID CIDToVal(const char * str) {
@@ -1779,13 +1762,41 @@ SCP_string ValToCCF(char id) {
 	return str;
 }
 
-const char * ValToCID(CID id) {
+SCP_string ValToCCTab(char tab) {
+	auto it = std::find_if(mCCTabNameToVal.cbegin(), mCCTabNameToVal.cend(),
+		[tab](const std::pair<SCP_string, char>& pair) {return pair.second == static_cast<char>(tab); });
+
+	if (it == mCCTabNameToVal.cend()) {
+		// Shouldn't happen
+		UNREACHABLE("Unknown Tab value %i", static_cast<int>(tab));
+		return "NONE";
+
+	} else {
+		return it->first;
+	}
+}
+
+SCP_string ValToCCType(CC_type type) {
+	auto it = std::find_if(mCCTypeNameToVal.cbegin(), mCCTypeNameToVal.cend(),
+						   [type](const std::pair<SCP_string, char>& pair) {return pair.second == type; });
+
+	if (it == mCCTypeNameToVal.cend()) {
+		// Shouldn't happen
+		UNREACHABLE("Unknown CC_type value %i", static_cast<int>(type));
+		return "NONE";
+
+	} else {
+		return it->first;
+	}
+}
+
+SCP_string ValToCID(CID id) {
 	auto it = std::find_if(mCIDNameToVal.cbegin(), mCIDNameToVal.cend(),
 		[id](const std::pair<SCP_string, CID>& pair) {return pair.second == id; });
 
 	if (it == mCIDNameToVal.cend()) {
 		// Shouldn't happen
-		Error(LOCATION, "Unknown CID value %i", id);
+		UNREACHABLE("Unknown CID value %i", id);
 		return "NONE";
 
 	} else {
@@ -1793,7 +1804,7 @@ const char * ValToCID(CID id) {
 	}
 }
 
-const char * ValToCID(int id) {
+SCP_string ValToCID(int id) {
 	if ((id < 0) || (id >= CID_JOY_MAX)) {
 		return "NONE";
 	}

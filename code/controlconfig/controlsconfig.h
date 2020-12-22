@@ -807,17 +807,17 @@ CID CIDToVal(const char * str);
 
 /**
  * Reverse lookups the CID to get its stringified name
- * @return  Pointer to the stringified name of the CID, or
- * @return  nullptr if not found
+ * @return  The stringified name of the CID, or
+ * @return  "NONE" if not found
  */
-const char * ValToCID(CID id);
+SCP_string ValToCID(CID id);
 
 /**
  * Reverse lookups the CID to get its stringified name
- * @return Pointer to the stringified name of the CID, or
- * @return nullptr if not found, or invalid id
+ * @return The stringified name of the CID, or
+ * @return "NONE" if not found, or invalid id
  */
-const char * ValToCID(int id);
+SCP_string ValToCID(int id);
 
 /**
  * Lookups the given stringified enum to find its value
@@ -826,8 +826,8 @@ char CCFToVal(const char * str);
 
 /**
  * Constructs a enum string from the CCF_FLAGS
- * @return Pointer to the stringified name of the CCF, or
- * @return nullptr if not found, or invalid id
+ * @return The stringified name of the CCF, or
+ * @return "NONE" if not found, or invalid id
  */
 SCP_string ValToCCF(char id);
 
@@ -839,8 +839,8 @@ short InputToVal(CID cid, const char * str);
 /**
  * Constructs a enumstring from the input binding, depending on the CID
  *
- * @return Pointer to the stringified name of the input, or
- * @return nullptr if not found, or invalid CC_bind
+ * @return The stringified name of the input, or
+ * @return "NONE" if not found, or invalid CC_bind
  *
  * @note This requires a CCB due to the way things are encoded
  */
@@ -854,8 +854,8 @@ short MouseToVal(const char * str);
 /**
  * Constructs a enum string from the mouse input
  *
- * @return Pointer to the stringified name of the input, or
- * @return nullptr if not found, or invalid CC_bind
+ * @return The stringified name of the input, or
+ * @return "NONE" if not found, or invalid CC_bind
  * TODO XSTR
  *
  * @note This requires a CCB due to the way things are encoded
@@ -870,8 +870,8 @@ short KeyboardToVal(const char * str);
 /**
  * Constructs an enum string from the key binding
  *
- * @return Pointer to the stringified name of the input, or
- * @return nullptr if not found, or invalid CC_bind
+ * @return The stringified name of the input, or
+ * @return "NONE" f not found, or invalid CC_bind
  *
  * @note This requires a CCB due to the way things are encoded
  * TODO XSTR
@@ -886,11 +886,38 @@ short JoyToVal(const char * str);
 /**
  * Constructs a enum string from the Joystick input
  *
- * @return Pointer to the stringified name of the input, or
- * @return nullptr if not found, or invalid CC_bind
+ * @return The stringified name of the input, or
+ * @return "NONE" if not found, or invalid CC_bind
  *
  * @note This requires a CCB due to the way things are encoded
  * TODO XSTR
  */
 SCP_string ValToJoy(const CC_bind &bind);
+
+/**
+ * Lookups the given string to find its tab value
+ */
+char CCTabToVal(const char *str);
+
+/**
+ * Reverse lookups the given tab in mCCTabToVal to retrieve the string name
+ *
+ * @return The stringified name of the input, or
+ * @return nullptr if not found, or invalid tab
+ *
+ */
+SCP_string ValToCCTab(char tab);
+
+/**
+ * Lookups the given string to find its CC_type value. =
+ */
+CC_type CCTypeToVal(const char *str);
+
+/**
+ * Reverse lookups the given CC_type to retrieve the string name
+
+ */
+SCP_string ValToCCType(CC_type type);
+
+
 #endif
