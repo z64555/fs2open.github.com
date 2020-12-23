@@ -1189,7 +1189,7 @@ void stuff_CCF(char& flags, size_t item_id) {
 	case CC_TYPE_CONTINUOUS:
 		// Digital control. May not have:
 		if ((flags & (CCF_AXIS | CCF_BALL)) != 0) {
-			error_display(0, "Illegal analog flags passed to digital config item %i, ignoring...", item_id);
+			error_display(0, "Illegal analog flags passed to digital config item %i, ignoring...", static_cast<int>(item_id));
 			flags &= ~(CCF_AXIS | CCF_BALL);
 		}
 		break;
@@ -1197,12 +1197,12 @@ void stuff_CCF(char& flags, size_t item_id) {
 	case CC_TYPE_AXIS_ABS:
 		// Absolute Analog control. Must not have:
 		if ((flags & (CCF_AXIS_BTN | CCF_HAT)) != 0) {
-			error_display(0, "Illegal digital flags passed to analog config item %i, ignoring...", item_id);
+			error_display(0, "Illegal digital flags passed to analog config item %i, ignoring...", static_cast<int>(item_id));
 			flags &= ~(CCF_AXIS_BTN | CCF_HAT);
 		}
 
 		if ((flags & CCF_RELATIVE) != 0) {
-			error_display(0, "Illegal RELATIVE flag passed to absolute analog config item %i, ignoring...", item_id);
+			error_display(0, "Illegal RELATIVE flag passed to absolute analog config item %i, ignoring...", static_cast<int>(item_id));
 			flags &= ~CCF_RELATIVE;
 		}
 
@@ -1216,7 +1216,7 @@ void stuff_CCF(char& flags, size_t item_id) {
 	case CC_TYPE_AXIS_REL:
 		// Relative Analog control. Must not have:
 		if ((flags & (CCF_AXIS_BTN | CCF_HAT)) != 0) {
-			error_display(0, "Illegal digital flags passed to analog config item %i, ignoring...", item_id);
+			error_display(0, "Illegal digital flags passed to analog config item %i, ignoring...", static_cast<int>(item_id));
 			flags &= ~(CCF_AXIS_BTN | CCF_HAT);
 		}
 
@@ -1227,7 +1227,7 @@ void stuff_CCF(char& flags, size_t item_id) {
 		}
 
 		if ((flags & CCF_RELATIVE) == 0) {
-			error_display(0, "Missing RELATIVE flag for relative analog config item %i, adding...", item_id);
+			error_display(0, "Missing RELATIVE flag for relative analog config item %i, adding...", static_cast<int>(item_id));
 			flags |= CCF_RELATIVE;
 		}
 		break;
@@ -1259,7 +1259,6 @@ size_t read_bind_0(CC_preset &new_preset) {
 	// Assign the various attributes to this control
 	int iTemp;
 	short key = 0;
-	auto  item = &Control_config[item_id];
 	auto& new_binding = new_preset.bindings[item_id];
 
 	// Key assignment and modifiers
@@ -1408,7 +1407,6 @@ void control_config_common_read_section(int s) {
 
 	// Read the section
 	while (required_string_one_of(3, "#End", "$Bind Name:", "$Bind")) {
-		int version = required_string_either("$Bind Name:", "$Bind:");
 		size_t item_id;
 
 		switch (required_string_either("$Bind Name:", "$Bind:")) {
