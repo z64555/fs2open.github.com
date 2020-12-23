@@ -1130,7 +1130,7 @@ void LoadEnumsIntoMaps() {
  * by controlconfigdefaults.tbl, any references to the new hardcoded names may fail after they've been changed in the
  * default preset
  */
-size_t find_control_by_text(SCP_string& text) {
+size_t find_control_by_text(SCP_string &text) {
 	size_t item_id;
 
 	// Search the current ::text
@@ -1154,6 +1154,214 @@ size_t find_control_by_text(SCP_string& text) {
 }
 
 /**
+ * Stuffs the CCF flags into the given char.  Needs item_id for validation
+ */
+void stuff_CCF(char& flags, size_t item_id) {
+	Assert(item_id < Control_config.size());
+
+	SCP_string szTempBuffer;
+	flags = 0;
+	stuff_string(szTempBuffer, F_NAME);
+	if (szTempBuffer.find(ValToCCF(CCF_AXIS_BTN)) != SCP_string::npos)
+		flags |= CCF_AXIS_BTN;
+
+	if (szTempBuffer.find(ValToCCF(CCF_RELATIVE)) != SCP_string::npos)
+		flags |= CCF_RELATIVE;
+
+	if (szTempBuffer.find(ValToCCF(CCF_INVERTED)) != SCP_string::npos)
+		flags |= CCF_INVERTED;
+
+	if (szTempBuffer.find(ValToCCF(CCF_AXIS)) != SCP_string::npos)
+		flags |= CCF_AXIS;
+
+	if (szTempBuffer.find(ValToCCF(CCF_HAT)) != SCP_string::npos)
+		flags |= CCF_HAT;
+
+	if (szTempBuffer.find(ValToCCF(CCF_BALL)) != SCP_string::npos)
+		flags |= CCF_BALL;
+
+
+	// Validate Flags
+	// This should all be recoverable, but complaining to the modder enforces the good practice of
+	// associating the binding with the input type (digital or analog)
+	switch (Control_config[item_id].type) {
+	case CC_TYPE_TRIGGER:
+	case CC_TYPE_CONTINUOUS:
+		// Digital control. May not have:
+		if ((flags & (CCF_AXIS | CCF_BALL)) != 0) {
+			error_display(0, "Illegal analog flags passed to digital config item %i, ignoring...", item_id);
+			flags &= ~(CCF_AXIS | CCF_BALL);
+		}
+		break;
+
+	case CC_TYPE_AXIS_ABS:
+		// Absolute Analog control. Must not have:
+		if ((flags & (CCF_AXIS_BTN | CCF_HAT)) != 0) {
+			error_display(0, "Illegal digital flags passed to analog config item %i, ignoring...", item_id);
+			flags &= ~(CCF_AXIS_BTN | CCF_HAT);
+		}
+
+		if ((flags & CCF_RELATIVE) != 0) {
+			error_display(0, "Illegal RELATIVE flag passed to absolute analog config item %i, ignoring...", item_id);
+			flags &= ~CCF_RELATIVE;
+		}
+
+		// Must have
+		if ((flags & (CCF_AXIS | CCF_BALL)) == 0) {
+			error_display(0, "Missing analog flag 'AXIS' or 'BALL'! Assuming it is an axis...");
+			flags |= CCF_AXIS;
+		}
+		break;
+
+	case CC_TYPE_AXIS_REL:
+		// Relative Analog control. Must not have:
+		if ((flags & (CCF_AXIS_BTN | CCF_HAT)) != 0) {
+			error_display(0, "Illegal digital flags passed to analog config item %i, ignoring...", item_id);
+			flags &= ~(CCF_AXIS_BTN | CCF_HAT);
+		}
+
+		// Must have
+		if ((flags & (CCF_AXIS | CCF_BALL)) == 0) {
+			error_display(0, "Missing analog flag 'AXIS' or 'BALL'! Assuming it is an axis...");
+			flags |= CCF_AXIS;
+		}
+
+		if ((flags & CCF_RELATIVE) == 0) {
+			error_display(0, "Missing RELATIVE flag for relative analog config item %i, adding...", item_id);
+			flags |= CCF_RELATIVE;
+		}
+		break;
+
+	case CC_TYPE_AXIS_BTN_NEG:
+	case CC_TYPE_AXIS_BTN_POS:
+		// Not implemented yet, just ignore
+		break;
+	}
+}
+
+// Legacy reading method for parsing keyboard and joystick/mouse bindings
+size_t read_bind_0(CC_preset &new_preset) {
+	SCP_string szTempBuffer;
+
+	stuff_string(szTempBuffer, F_NAME);
+
+	// Find the control
+	size_t item_id = find_control_by_text(szTempBuffer);
+
+	if (item_id == Control_config.size()) {
+		// Control wasn't found
+		// Warning: Not Found
+		error_display(0, "Unknown Bind Name: %s\n", szTempBuffer.c_str());
+
+		return item_id;
+	}
+
+	// Assign the various attributes to this control
+	int iTemp;
+	short key = 0;
+	auto  item = &Control_config[item_id];
+	auto& new_binding = new_preset.bindings[item_id];
+
+	// Key assignment and modifiers
+	if (optional_string("$Key Default:")) {
+		if (optional_string("NONE")) {
+			new_binding.take(CC_bind(CID_KEYBOARD, -1), -1);
+		} else {
+			stuff_string(szTempBuffer, F_NAME);
+			key = mKeyNameToVal[szTempBuffer];
+		}
+	}
+
+	if (optional_string("$Key Mod Shift:")) {
+		stuff_int(&iTemp);
+		key |= (iTemp == 1) ? KEY_SHIFTED : 0;
+	}
+
+	if (optional_string("$Key Mod Alt:")) {
+		stuff_int(&iTemp);
+		key |= (iTemp == 1) ? KEY_ALTED : 0;
+	}
+
+	if (optional_string("$Key Mod Ctrl:")) {
+		stuff_int(&iTemp);
+		key |= (iTemp == 1) ? KEY_CTRLED : 0;
+	}
+
+	new_binding.take(CC_bind(CID_KEYBOARD, key), 0);
+
+	// Joy btn assignment
+	if (optional_string("$Joy Default:")) {
+		stuff_int(&iTemp);
+		new_binding.take(CC_bind(CID_JOY0, static_cast<short>(iTemp)), 1);
+	}
+
+	return item_id;
+}
+
+// Reading method for parsing keyboard, mouse, and multi-joy bindings
+// TODO: override, or clean slate
+size_t read_bind_1(CC_preset &preset) {
+	auto &item = preset.bindings[0];
+	SCP_string szTempBuffer;
+	int item_id = 0;
+
+	// $Bind:
+	stuff_string(szTempBuffer, F_NAME);
+	item_id = ActionToVal(szTempBuffer.c_str());
+
+	if (item_id >= 0) {
+		item = preset.bindings[item_id];
+
+	} else {
+		// Control wasn't found
+		error_display(0, "Unknown Bind: %s\n", szTempBuffer.c_str());
+
+		return item_id;
+	}
+	
+	if (optional_string("$Primary:")) {
+		if (required_string("$Controller:")) {
+			stuff_string(szTempBuffer, F_NAME);
+			item.first.cid = CIDToVal(szTempBuffer.c_str());
+		}
+		
+		if (required_string("$Flags:")) {
+			stuff_CCF(item.first.flags, item_id);
+		}
+
+		if (required_string("$Input:")) {
+			stuff_string(szTempBuffer, F_NAME);
+
+			item.first.btn = InputToVal(item.first.cid, szTempBuffer.c_str());
+		}
+
+		item.first.validate();
+	}
+
+	// Second verse, same as the first
+	if (optional_string("Secondary:")) {
+		if (required_string("$Controller:")) {
+			stuff_string(szTempBuffer, F_NAME);
+			item.first.cid = CIDToVal(szTempBuffer.c_str());
+		}
+
+		if (required_string("$Flags:")) {
+			stuff_CCF(item.first.flags, item_id);
+		}
+
+		if (required_string("$Input:")) {
+			stuff_string(szTempBuffer, F_NAME);
+
+			item.first.btn = InputToVal(item.first.cid, szTempBuffer.c_str());
+		}
+
+		item.first.validate();
+	}
+
+	return static_cast<size_t>(item_id);
+}
+
+/**
  * @brief Reads a section in controlconfigdefaults.tbl.
  *
  * @param[in] s Value of a call to optional_string_either(); 0 = "ControlConfigOverride" 1 = "ControlConfigPreset"
@@ -1164,23 +1372,22 @@ size_t find_control_by_text(SCP_string& text) {
 void control_config_common_read_section(int s) {
 	CC_preset new_preset;
 
-	// Init the new preset with the default (which is the 0th element Control_config_preset vector
+	// Set references to the default preset and bindings
 	auto& default_preset = Control_config_presets[0];
 	auto& default_bindings = default_preset.bindings;
 
 	new_preset.bindings.clear();
 
 	if (s == 0) {
-		// ControlConfigOverride
+		// #ControlConfigOverride
 		// Copy in defaults to have them overridden
 		std::copy(default_bindings.begin(), default_bindings.end(), std::back_inserter(new_preset.bindings));
 
 	} else {
-		// ControlConfigPreset
+		// #ControlConfigPreset
 		// Start with clean slate
 		new_preset.bindings.resize(default_bindings.size());
 	}
-	
 
 	// Assign name to the preset
 	// note: #Override section's name is ignored
@@ -1200,70 +1407,41 @@ void control_config_common_read_section(int s) {
 	}
 
 	// Read the section
-	while (required_string_either("#End", "$Bind Name:")) {
-		SCP_string szTempBuffer;
+	while (required_string_one_of(3, "#End", "$Bind Name:", "$Bind")) {
+		int version = required_string_either("$Bind Name:", "$Bind:");
+		size_t item_id;
 
-		required_string("$Bind Name:");
-		stuff_string(szTempBuffer, F_NAME);
+		switch (required_string_either("$Bind Name:", "$Bind:")) {
+		case 0:
+			// Old bindings
+			item_id = read_bind_0(new_preset);
+			break;
 
-		// Find the control
-		size_t item_id = find_control_by_text(szTempBuffer);
+		case 1:
+			// New bindings
+			item_id = read_bind_1(new_preset);
+			break;
+
+		default:
+			UNREACHABLE("[controlconfigdefaults.tbl] required_string_either passed something other than 0 or 1!");
+		}
 
 		if (item_id == Control_config.size()) {
-			// Control wasn't found
-			// Warning: Not Found
-			error_display(0, "Unknown Bind Name: %s\n", szTempBuffer.c_str());
-
+			// Bind not found.
 			// Try to resume
 			if (!skip_to_start_of_string_either("#End", "$Bind Name:")) {
 				// Couldn't find next binding or end. Fail
 				throw parse::ParseException("Could not find #End or $Bind Name");
 
-			}; // Found next binding or end, continue loop
+			} // Found next binding or end, continue loop
 			continue;
 		}
-
-		// Assign the various attributes to this control
-		int iTemp;
-		short key = 0;
-		auto  item = &Control_config[item_id];
-		auto& new_binding = new_preset.bindings[item_id];
-
-		// Key assignment and modifiers
-		if (optional_string("$Key Default:")) {
-			if (optional_string("NONE")) {
-				new_binding.take(CC_bind(CID_KEYBOARD, -1), -1);
-			} else {
-				stuff_string(szTempBuffer, F_NAME);
-				key = mKeyNameToVal[szTempBuffer];
-			}
-		}
-
-		if (optional_string("$Key Mod Shift:")) {
-			stuff_int(&iTemp);
-			key |= (iTemp == 1) ? KEY_SHIFTED : 0;
-		}
-
-		if (optional_string("$Key Mod Alt:")) {
-			stuff_int(&iTemp);
-			key |= (iTemp == 1) ? KEY_ALTED : 0;
-		}
-
-		if (optional_string("$Key Mod Ctrl:")) {
-			stuff_int(&iTemp);
-			key |= (iTemp == 1) ? KEY_CTRLED : 0;
-		}
-
-		new_binding.take(CC_bind(CID_KEYBOARD, key), 0);
-
-		// Joy btn assignment
-		if (optional_string("$Joy Default:")) {
-			stuff_int(&iTemp);
-			new_binding.take(CC_bind(CID_JOY0, static_cast<short>(iTemp)), 1);
-		}
+		auto item = &Control_config[item_id];
+		SCP_string szTempBuffer;
+		int iTemp = 0;
 
 		// Section is #ControlConfigOverride
-		// If the section is #ControlConfigPreset, then any of these options will throw an error
+		// If the section is #ControlConfigPreset, then any of these options would cause problems
 		if (s == 0) {
 			// Config menu options
 			if (optional_string("$Category:")) {
