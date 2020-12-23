@@ -1338,7 +1338,7 @@ size_t read_bind_1(CC_preset &preset) {
 	}
 
 	// Second verse, same as the first
-	if (optional_string("Secondary:")) {
+	if (optional_string("$Secondary:")) {
 		if (required_string("$Controller:")) {
 			stuff_string(szTempBuffer, F_NAME);
 			item.first.cid = CIDToVal(szTempBuffer.c_str());
@@ -1406,17 +1406,20 @@ void control_config_common_read_section(int s) {
 	}
 
 	// Read the section
-	while (required_string_one_of(3, "#End", "$Bind Name:", "$Bind")) {
+	// Break if -1 (error) or 0 (#End found)
+	while (required_string_one_of(3, "#End", "$Bind Name:", "$Bind") > 0) {
 		size_t item_id;
 
 		switch (required_string_either("$Bind Name:", "$Bind:")) {
 		case 0:
 			// Old bindings
+			required_string("$Bind Name:");
 			item_id = read_bind_0(new_preset);
 			break;
 
 		case 1:
 			// New bindings
+			required_string("$Bind:");
 			item_id = read_bind_1(new_preset);
 			break;
 
@@ -2493,16 +2496,40 @@ void CCI_builder::end() {};
 CCI_builder& CCI_builder::operator()(IoActionId action_id, short primary, short secondary, char tab, int indexXSTR, const char *text, CC_type type, bool disabled) {
 	Assert(action_id < CCFG_MAX);
 	CCI& item = ControlConfig[action_id];
+	char flags = 0;
 
 	// Initialize the current bindings to defaults. Defaults will be saved to a preset after Control_config is built
 	// Current bindings will be overwritten once the player's bindings is read in.
-	if ((type == CC_TYPE_AXIS_ABS) ||
-		(type == CC_TYPE_AXIS_REL) ||
-		(type == CC_TYPE_AXIS_BTN_POS) ||
-		(type == CC_TYPE_AXIS_BTN_NEG)) {
+	
+	switch (type) {
+	case CC_TYPE_AXIS_ABS:
+		flags = CCF_AXIS;
+		break;
+
+	case CC_TYPE_AXIS_REL:
+		flags = CCF_AXIS | CCF_RELATIVE;
+		break;
+
+	case CC_TYPE_AXIS_BTN_POS:
+		flags = CCF_AXIS | CCF_AXIS_BTN;
+		break;
+
+	case CC_TYPE_AXIS_BTN_NEG:
+		flags = CCF_AXIS | CCF_AXIS_BTN | CCF_INVERTED;
+		break;
+
+	case CC_TYPE_TRIGGER:
+	case CC_TYPE_CONTINUOUS:
+		break;
+
+	default:
+		UNREACHABLE("Unknown type passed to CCI_builder::operator()");
+	}
+
+	if (flags != CCF_BUTTON) {
 		// This is an analog control
-		item.take(CC_bind(CID_JOY0, primary, CCF_AXIS), 0);
-		item.take(CC_bind(CID_MOUSE, secondary, CCF_AXIS), 1);
+		item.take(CC_bind(CID_JOY0, primary, flags), 0);
+		item.take(CC_bind(CID_MOUSE, secondary, flags), 1);
 
 	} else {
 		// This is a digital control
