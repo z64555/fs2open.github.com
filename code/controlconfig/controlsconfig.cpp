@@ -723,8 +723,7 @@ void control_config_bind(int i, const CC_bind &new_bind, selItem order)
 			break;
 
 		default:
-			// Ignore and complain
-			mprintf(("Notice: Unknown order (%i) passed to control_config_bind_btn. Ignoring.", static_cast<int>(order)));
+			UNREACHABLE("Notice: Unknown order (%i) passed to control_config_bind_btn. Ignoring.\n", static_cast<int>(order));
 			return;
 	}
 
@@ -1089,8 +1088,7 @@ void control_config_toggle_invert()
 		item.second.invert_toggle();
 		break;
 	default:
-		// unhandled
-		mprintf(("Unhandled selItem in control_config_toggle_invert(): %i", static_cast<int>(Selected_item)));
+		UNREACHABLE("Unhandled selItem in control_config_toggle_invert(): %i\n", static_cast<int>(Selected_item));
 	}
 }
 
@@ -1642,8 +1640,7 @@ int set_item_color(int line, int select_tease_line, selItem item, bool empty) {
 		conflict_id = Conflicts[z].second;
 		break;
 	default:
-		mprintf(("Invalid selItem passed to set_item_color: %i", static_cast<int>(item)));
-		Int3();
+		UNREACHABLE("Invalid selItem passed to set_item_color: %i", static_cast<int>(item));
 	}
 
 	if (conflict_id >= 0) {

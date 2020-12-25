@@ -1504,7 +1504,7 @@ void control_config_common_read_section(int s) {
 		if (unique) {
 			Control_config_presets.push_back(new_preset);
 		} else if (!running_unittests) {
-			Warning(LOCATION, "Preset '%s' found in 'controlconfigdefaults.tbl' is a duplicate of existing preset '%s', ignoring", new_preset.name.c_str(), it->name.c_str());
+			Warning(LOCATION, "Preset '%s' found in 'controlconfigdefaults.tbl' is a duplicate of existing preset '%s', ignoring\n", new_preset.name.c_str(), it->name.c_str());
 		}
 	}
 };
@@ -1680,7 +1680,7 @@ void control_config_common_load_overrides()
 	}
 	catch (const parse::ParseException& e)
 	{
-		mprintf(("TABLES: Unable to parse 'controlconfigdefaults.tbl'!  Error message = %s.\n", e.what()));
+		mprintf(("TABLES: Unable to parse 'controlconfigdefaults.tbl'!  Error message = '%s'.\n", e.what()));
 		return;
 	}
 }
@@ -2555,7 +2555,7 @@ CCI_builder& CCI_builder::operator()(IoActionId action_id, short primary, short 
 	item.type = type;
 
 	if (tab == NO_TAB) {
-		mprintf(("Control item defined without a valid tab. Disabling: %s", item.text.c_str()));
+		mprintf(("CCI_builder::operator(): Control item defined without a valid tab. Disabling: '%s'\n", item.text.c_str()));
 	}
 
 	// Enable if it has a valid tab and if caller wants it enabled
