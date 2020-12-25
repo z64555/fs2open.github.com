@@ -199,7 +199,7 @@ void control_config_common_init_bindings() {
 
 	(RADAR_RANGE_CYCLE,                            KEY_RAPOSTRO, -1, COMPUTER_TAB, 1, "Cycle Radar Range",                 CC_TYPE_TRIGGER)
 	(SQUADMSG_MENU,                                       KEY_C, -1, COMPUTER_TAB, 1, "Communications Menu",               CC_TYPE_TRIGGER)
-	(SHOW_GOALS,                                             -1, -1, NO_TAB,       1, "Show Objectives",                   CC_TYPE_TRIGGER)
+	(SHOW_GOALS,                                             -1, -1, NO_TAB,       1, "Show Objectives",                   CC_TYPE_TRIGGER, true)
 	(END_MISSION,                             KEY_ALTED | KEY_J, -1, COMPUTER_TAB, 1, "Enter Subspace (End Mission)",      CC_TYPE_TRIGGER)
 
 	(INCREASE_WEAPON,                                KEY_INSERT, -1, COMPUTER_TAB, 1, "Weapon Energy Increase",            CC_TYPE_TRIGGER)
@@ -219,7 +219,7 @@ void control_config_common_init_bindings() {
 	(XFER_LASER,                    KEY_SHIFTED | KEY_SCROLLOCK, -1, COMPUTER_TAB, 1, "Transfer Energy Shield->Laser",     CC_TYPE_TRIGGER)
 
 	// Navigation and Autopilot
-	(SHOW_NAVMAP,                                            -1, -1, NO_TAB,       1, "Show Nav Map",       CC_TYPE_TRIGGER)
+	(SHOW_NAVMAP,                                            -1, -1, NO_TAB,       1, "Show Nav Map",       CC_TYPE_TRIGGER, true)
 	(AUTO_PILOT_TOGGLE,                       KEY_ALTED | KEY_A, -1, COMPUTER_TAB, 0, "Toggle Auto Pilot",  CC_TYPE_TRIGGER, true)
 	(NAV_CYCLE,                               KEY_ALTED | KEY_N, -1, COMPUTER_TAB, 0, "Cycle Nav Points",   CC_TYPE_TRIGGER, true)
 
