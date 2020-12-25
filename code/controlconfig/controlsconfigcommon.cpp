@@ -1324,14 +1324,16 @@ size_t read_bind_1(CC_preset &preset) {
 			item.first.cid = CIDToVal(szTempBuffer.c_str());
 		}
 		
-		if (required_string("$Flags:")) {
-			stuff_CCF(item.first.flags, item_id);
-		}
+		// These items are required if the controller is defined
+		if (item.first.cid != CID_NONE) {
+			if (required_string("$Flags:")) {
+				stuff_CCF(item.first.flags, item_id);
+			}
 
-		if (required_string("$Input:")) {
-			stuff_string(szTempBuffer, F_NAME);
-
-			item.first.btn = InputToVal(item.first.cid, szTempBuffer.c_str());
+			if (required_string("$Input:")) {
+				stuff_string(szTempBuffer, F_NAME);
+				item.first.btn = InputToVal(item.first.cid, szTempBuffer.c_str());
+			}
 		}
 
 		item.first.validate();
@@ -1341,20 +1343,22 @@ size_t read_bind_1(CC_preset &preset) {
 	if (optional_string("$Secondary:")) {
 		if (required_string("$Controller:")) {
 			stuff_string(szTempBuffer, F_NAME);
-			item.first.cid = CIDToVal(szTempBuffer.c_str());
+			item.second.cid = CIDToVal(szTempBuffer.c_str());
 		}
 
-		if (required_string("$Flags:")) {
-			stuff_CCF(item.first.flags, item_id);
+		// These items are required if the controller is defined
+		if (item.second.cid != CID_NONE) {
+			if (required_string("$Flags:")) {
+				stuff_CCF(item.second.flags, item_id);
+			}
+
+			if (required_string("$Input:")) {
+				stuff_string(szTempBuffer, F_NAME);
+				item.second.btn = InputToVal(item.second.cid, szTempBuffer.c_str());
+			}
 		}
 
-		if (required_string("$Input:")) {
-			stuff_string(szTempBuffer, F_NAME);
-
-			item.first.btn = InputToVal(item.first.cid, szTempBuffer.c_str());
-		}
-
-		item.first.validate();
+		item.second.validate();
 	}
 
 	return static_cast<size_t>(item_id);
@@ -1425,6 +1429,7 @@ void control_config_common_read_section(int s) {
 
 		default:
 			UNREACHABLE("[controlconfigdefaults.tbl] required_string_either passed something other than 0 or 1!");
+			item_id = Control_config.size();
 		}
 
 		if (item_id == Control_config.size()) {
@@ -1558,14 +1563,18 @@ int control_config_common_write_tbl_segment(FILETYPE* cfile, int preset, int (* 
 		// Primary binding
 		puts("  $Primary:\n", cfile);
 		puts(("    $Controller: " + ValToCID(first.cid) + "\n").c_str(), cfile);
-		puts(("    $Flags: " + ValToCCF(first.flags) + "\n").c_str(), cfile);
-		puts(("    $Input: " + ValToInput(first) + "\n").c_str(), cfile);
+		if (first.cid != CID_NONE) {
+			puts(("    $Flags: " + ValToCCF(first.flags) + "\n").c_str(), cfile);
+			puts(("    $Input: " + ValToInput(first) + "\n").c_str(), cfile);
+		}
 
 		// Secondary binding
 		puts("  $Secondary:\n", cfile);
 		puts(("    $Controller: " + ValToCID(second.cid) + "\n").c_str(), cfile);
-		puts(("    $Flags: " + ValToCCF(second.flags) + "\n").c_str(), cfile);
-		puts(("    $Input: " + ValToInput(second) + "\n").c_str(), cfile);
+		if (second.cid != CID_NONE) {
+			puts(("    $Flags: " + ValToCCF(second.flags) + "\n").c_str(), cfile);
+			puts(("    $Input: " + ValToInput(second) + "\n").c_str(), cfile);
+		}
 
 		// Config menu options (default #Override Only)
 		if (preset == 0) {
@@ -1643,15 +1652,15 @@ DCF(save_ccd, "Save the current Control Configuration Defaults to .tbl") {
 	}
 
 	if (!control_config_common_write_tbl(true, createAll)) {
-		dc_printf("Default bindings saved to controlconfigdefaults.tbl");
+		dc_printf("Default bindings saved to controlconfigdefaults.tbl\n");
 	} else {
-		dc_printf("Error: Unable to save Control Configuration Defaults.");
+		dc_printf("Error: Unable to save Control Configuration Defaults.\n");
 	}
 }
 
 DCF(load_ccd, "Reloads Control Configuration Defaults and Presets from .tbl") {
 	control_config_common_read_tbl();
-	dc_printf("Default bindings and presets loaded.");
+	dc_printf("Default bindings and presets loaded.\n");
 }
 
 /**
