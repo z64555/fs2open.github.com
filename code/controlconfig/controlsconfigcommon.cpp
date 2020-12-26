@@ -1300,7 +1300,7 @@ size_t read_bind_0(CC_preset &new_preset) {
 // Reading method for parsing keyboard, mouse, and multi-joy bindings
 // TODO: override, or clean slate
 size_t read_bind_1(CC_preset &preset) {
-	auto &item = preset.bindings[0];
+	CCB* item = nullptr;
 	SCP_string szTempBuffer;
 	int item_id = 0;
 
@@ -1309,7 +1309,7 @@ size_t read_bind_1(CC_preset &preset) {
 	item_id = ActionToVal(szTempBuffer.c_str());
 
 	if (item_id >= 0) {
-		item = preset.bindings[item_id];
+		item = &preset.bindings[item_id];
 
 	} else {
 		// Control wasn't found
@@ -1321,44 +1321,44 @@ size_t read_bind_1(CC_preset &preset) {
 	if (optional_string("$Primary:")) {
 		if (required_string("$Controller:")) {
 			stuff_string(szTempBuffer, F_NAME);
-			item.first.cid = CIDToVal(szTempBuffer.c_str());
+			item->first.cid = CIDToVal(szTempBuffer.c_str());
 		}
 		
 		// These items are required if the controller is defined
-		if (item.first.cid != CID_NONE) {
+		if (item->first.cid != CID_NONE) {
 			if (required_string("$Flags:")) {
-				stuff_CCF(item.first.flags, item_id);
+				stuff_CCF(item->first.flags, item_id);
 			}
 
 			if (required_string("$Input:")) {
 				stuff_string(szTempBuffer, F_NAME);
-				item.first.btn = InputToVal(item.first.cid, szTempBuffer.c_str());
+				item->first.btn = InputToVal(item->first.cid, szTempBuffer.c_str());
 			}
 		}
 
-		item.first.validate();
+		item->first.validate();
 	}
 
 	// Second verse, same as the first
 	if (optional_string("$Secondary:")) {
 		if (required_string("$Controller:")) {
 			stuff_string(szTempBuffer, F_NAME);
-			item.second.cid = CIDToVal(szTempBuffer.c_str());
+			item->second.cid = CIDToVal(szTempBuffer.c_str());
 		}
 
 		// These items are required if the controller is defined
-		if (item.second.cid != CID_NONE) {
+		if (item->second.cid != CID_NONE) {
 			if (required_string("$Flags:")) {
-				stuff_CCF(item.second.flags, item_id);
+				stuff_CCF(item->second.flags, item_id);
 			}
 
 			if (required_string("$Input:")) {
 				stuff_string(szTempBuffer, F_NAME);
-				item.second.btn = InputToVal(item.second.cid, szTempBuffer.c_str());
+				item->second.btn = InputToVal(item->second.cid, szTempBuffer.c_str());
 			}
 		}
 
-		item.second.validate();
+		item->second.validate();
 	}
 
 	return static_cast<size_t>(item_id);
