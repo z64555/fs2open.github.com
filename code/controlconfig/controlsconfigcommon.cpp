@@ -1492,14 +1492,20 @@ void control_config_common_read_section(int s) {
 		bool unique = true;
 		auto it = Control_config_presets.begin();
 		for (; it != Control_config_presets.end(); ++it) {
-			for (size_t i = 0; i < it->bindings.size(); ++i) {
-				if (new_preset.bindings[i] == it->bindings[i]) {
-					unique = false;
-					goto not_unique;
+			size_t i;
+			for (i = 0; i < it->bindings.size(); ++i) {
+				if (new_preset.bindings[i] != it->bindings[i]) {
+					// These two differ, check the next in the vector
+					break;
 				}
 			}
+
+			if (i == it->bindings.size()) {
+				// These two are equal
+				unique = false;
+				break;
+			}
 		}
-		not_unique:;
 
 		if (unique) {
 			Control_config_presets.push_back(new_preset);
@@ -1546,7 +1552,7 @@ int control_config_common_write_tbl_segment(FILETYPE* cfile, int preset, int (* 
 		puts("#ControlConfigOverride\n", cfile);
 
 	} else {
-		puts("#ControlConfigPreset", cfile);
+		puts("#ControlConfigPreset\n", cfile);
 	}
 	
 	puts(("$Name: " + Control_config_presets[preset].name + "\n").c_str(), cfile);
