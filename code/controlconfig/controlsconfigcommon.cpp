@@ -1966,7 +1966,7 @@ SCP_string ValToCCTab(char tab) {
 
 SCP_string ValToCCType(CC_type type) {
 	auto it = std::find_if(mCCTypeNameToVal.cbegin(), mCCTypeNameToVal.cend(),
-						   [type](const std::pair<SCP_string, char>& pair) {return pair.second == type; });
+						   [type](const std::pair<SCP_string, CC_type>& pair) { return pair.second == type; });
 
 	if (it == mCCTypeNameToVal.cend()) {
 		// Shouldn't happen
