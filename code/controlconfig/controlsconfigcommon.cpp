@@ -1396,7 +1396,7 @@ void control_config_common_read_section(int s) {
 	// note: #Override section's name is ignored
 	if (optional_string("$Name:")) {
 		SCP_string name;
-		stuff_string_line(name);
+		stuff_string(name, F_NAME);
 		new_preset.name = name;
 
 		auto it = std::find_if(Control_config_presets.begin(), Control_config_presets.end(), [&name](CC_preset& S) {return S.name == name;});
