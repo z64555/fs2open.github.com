@@ -452,12 +452,12 @@ public:
 	/*!
 	 * Checks if the given CCB is exactly equal to this
 	 */
-	bool operator==(const CCB&);
+	bool operator==(const CCB&) const;
 
 	/*!
 	 * Checks if the given CCB differs from this
 	 */
-	bool operator!=(const CCB&);
+	bool operator!=(const CCB&) const;
 
 	/*!
 	 * Returns True if this CCB's first isn't empty and the given CCB has a binding equal to it

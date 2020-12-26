@@ -122,22 +122,12 @@ void load_preset_files() {
 		handler->endArrayRead(); // Actions
 
 		// Done with the file
-		bool unique = false;
-		auto it = Control_config_presets.begin();
-		for (; it != Control_config_presets.end(); ++it) {
-			for (size_t i = 0; i < it->bindings.size(); ++i) {
-				if (preset.bindings[i] != it->bindings[i]) {
-					unique = true;
-					goto is_unique;
-				}
-			}
-		}
-		is_unique:;
+		bool unique = preset_is_unique(preset);
 
 		if (unique) {
 			Control_config_presets.push_back(preset);
 		} else {
-			Warning(LOCATION, "Preset '%s' is a duplicate of '%s', ignoring", preset.name.c_str(), it->name.c_str());
+			Warning(LOCATION, "PST => Preset '%s' is a duplicate of an existing preset, ignoring", preset.name.c_str());
 		}
 		
 	}
@@ -209,6 +199,26 @@ bool save_preset_file(CC_preset preset, bool overwrite) {
 	handler->endArrayWrite(); // Actions
 
 	handler->flush();
+
+	return true;
+}
+
+bool preset_is_unique(const CC_preset& new_preset) {
+	auto it = Control_config_presets.begin();
+	for (; it != Control_config_presets.end(); ++it) {
+		size_t i;
+		for (i = 0; i < it->bindings.size(); ++i) {
+			if (new_preset.bindings[i] != it->bindings[i]) {
+				// These two differ, check the next in the vector
+				break;
+			}
+		}
+
+		if (i == it->bindings.size()) {
+			// These two are equal
+			return false;
+		}
+	}
 
 	return true;
 }

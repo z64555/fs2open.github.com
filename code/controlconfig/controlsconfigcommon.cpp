@@ -1489,28 +1489,12 @@ void control_config_common_read_section(int s) {
 
 	} else {
 		// Add new preset, if it is unique
-		bool unique = true;
-		auto it = Control_config_presets.begin();
-		for (; it != Control_config_presets.end(); ++it) {
-			size_t i;
-			for (i = 0; i < it->bindings.size(); ++i) {
-				if (new_preset.bindings[i] != it->bindings[i]) {
-					// These two differ, check the next in the vector
-					break;
-				}
-			}
-
-			if (i == it->bindings.size()) {
-				// These two are equal
-				unique = false;
-				break;
-			}
-		}
+		bool unique = preset_is_unique(new_preset);
 
 		if (unique) {
 			Control_config_presets.push_back(new_preset);
 		} else if (!running_unittests) {
-			Warning(LOCATION, "Preset '%s' found in 'controlconfigdefaults.tbl' is a duplicate of existing preset '%s', ignoring\n", new_preset.name.c_str(), it->name.c_str());
+			Warning(LOCATION, "TBL => Preset '%s' found in 'controlconfigdefaults.tbl' is a duplicate of an existing preset, ignoring\n", new_preset.name.c_str());
 		}
 	}
 };
@@ -2400,11 +2384,11 @@ short CCB::get_btn(CID cid) const {
 	}
 }
 
-bool CCB::operator==(const CCB& A) {
+bool CCB::operator==(const CCB& A) const {
 	return (first == A.first) && (second == A.second);
 }
 
-bool CCB::operator!=(const CCB& A) {
+bool CCB::operator!=(const CCB& A) const {
 	return !this->operator==(A);
 }
 

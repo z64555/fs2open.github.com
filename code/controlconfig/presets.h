@@ -213,3 +213,10 @@ bool save_preset_file(CC_preset preset, bool overwrite);
  * a preset is a duplicate of another preset, it is ignored, and the player is warned of it
  */
 void load_preset_files();
+
+/**
+ * @brief Checks if the given preset is unique among the currently loaded presets
+ * @returns true    if unique, or
+ * @returns false   otherwise
+ */
+bool preset_is_unique(const CC_preset& new_preset);
