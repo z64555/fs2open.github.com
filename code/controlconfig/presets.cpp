@@ -47,7 +47,7 @@ void load_preset_files() {
 						   CF_LOCATION_ROOT_USER | CF_LOCATION_ROOT_GAME | CF_LOCATION_TYPE_ROOT);
 
 		if (!fp) {
-			mprintf(("PLR => Unable to open '%s' for loading!\n", file.c_str()));
+			mprintf(("PST => Unable to open '%s' for loading!\n", file.c_str()));
 			// try next
 			continue;
 		}
@@ -55,7 +55,7 @@ void load_preset_files() {
 		try {
 			handler.reset(new PresetFileHandler(fp, true));
 		} catch (const std::exception& e) {
-			mprintf(("PLR => Failed to open JSON: `%s`\n", e.what()));
+			mprintf(("PST => Failed to open JSON: `%s`\n", e.what()));
 			continue;
 		}
 
