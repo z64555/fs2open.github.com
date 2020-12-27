@@ -1321,7 +1321,7 @@ size_t read_bind_1(CC_preset &preset) {
 		// Control wasn't found
 		error_display(0, "Unknown Bind: %s\n", szTempBuffer.c_str());
 
-		return item_id;
+		return Control_config.size();
 	}
 	
 	if (optional_string("$Primary:")) {
