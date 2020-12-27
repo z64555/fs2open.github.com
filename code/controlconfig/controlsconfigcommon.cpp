@@ -1478,6 +1478,8 @@ void control_config_common_read_section(int s) {
 			// Gameplay options
 			if (optional_string("+Disable")) {
 				item->disabled = true;
+			} else {
+				item->disabled = false;
 			}
 
 			if (optional_string("$Disable:")) {
