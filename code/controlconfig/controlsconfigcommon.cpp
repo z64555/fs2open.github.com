@@ -1442,7 +1442,7 @@ void control_config_common_read_section(int s) {
 			// Bind not found.
 			// Try to resume
 			if (!skip_to_start_of_string_either("$Bind Name:", "$Bind", "#End")) {
-				Warning(LOCATION, "Could not find next binding in section %i, canceling read of section.", s);
+				Warning(LOCATION, "Could not find next binding in section `%s`, canceling read of section.", new_preset.name.c_str());
 				return;
 			} // Found next binding or end, continue loop
 			continue;
