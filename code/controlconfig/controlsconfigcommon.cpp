@@ -1441,10 +1441,9 @@ void control_config_common_read_section(int s) {
 		if (item_id == Control_config.size()) {
 			// Bind not found.
 			// Try to resume
-			if (!skip_to_start_of_string_either("#End", "$Bind Name:")) {
-				// Couldn't find next binding or end. Fail
-				throw parse::ParseException("Could not find #End or $Bind Name");
-
+			if (!skip_to_start_of_string_either("$Bind Name:", "$Bind", "#End")) {
+				Warning(LOCATION, "Could not find next binding in section %i, canceling read of section.", s);
+				return;
 			} // Found next binding or end, continue loop
 			continue;
 		}
