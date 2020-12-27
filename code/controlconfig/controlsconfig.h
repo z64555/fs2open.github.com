@@ -664,8 +664,8 @@ void control_config_use_preset(CC_preset &preset);
 /**
  * @brief Gets the currently used preset
  *
- * @returns a pointer to the current preset, or
- * @returns nullptr if current bindings are not in a preset
+ * @returns an iterator to the current preset, or
+ * @returns Control_config_presets.end() if current bindings are not in a preset
  */
 SCP_vector<CC_preset>::iterator control_config_get_current_preset();
 
