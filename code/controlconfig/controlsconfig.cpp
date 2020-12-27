@@ -1237,6 +1237,15 @@ int control_config_accept()
 		}
 
 		SCP_string str = cstr;
+		
+		// Check if a hardcoded preset with name already exists. If so, complain to user and force retry
+		auto it = std::find_if(Control_config_presets.begin(), Control_config_presets.end(),
+							  [str](CC_preset& p) { return (p.name == str) && ((p.type == Preset_t::tbl) || (p.type == Preset_t::hardcode)); });
+
+		if (it != Control_config_presets.end()) {
+			popup(flags, 1, POPUP_OK, "You may not overwrite a default preset.  Please choose another name.");
+			goto retry;
+		}
 
 		// Check if a preset file with name already exists.  If so, prompt the user
 		CFILE* fp = cfopen((str + ".json").c_str(), "r", CFILE_NORMAL, CF_TYPE_PLAYER_BINDS, false,

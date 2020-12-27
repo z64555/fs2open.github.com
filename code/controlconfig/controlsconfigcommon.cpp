@@ -259,6 +259,7 @@ void control_config_common_init_bindings() {
 	CC_preset preset;
 	preset.bindings.reserve(Control_config.size());
 	preset.name = "default";
+	preset.type = Preset_t::hardcode;
 
 	for (auto &item : Control_config) {
 		preset.bindings.push_back(CCB(item));
@@ -498,6 +499,8 @@ const char *Joy_button_text_english[] = {
 const char **Joy_button_text = Joy_button_text_english;
 
 bool Generate_controlconfig_table = false;
+
+int sections_read = 0;	// Number of sections read within the controlconfigdefaults.tbl
 
 int translate_key_to_index(const char *key, bool find_override)
 {
@@ -1379,6 +1382,7 @@ size_t read_bind_1(CC_preset &preset) {
  *  There may be only one #Override section, since it is in charge of non-binding members of the Control_config items
  */
 void control_config_common_read_section(int s) {
+	Assert((s == 0) || (s == 1));
 	CC_preset new_preset;
 
 	// Set references to the default preset and bindings
@@ -1386,6 +1390,7 @@ void control_config_common_read_section(int s) {
 	auto& default_bindings = default_preset.bindings;
 
 	new_preset.bindings.clear();
+	new_preset.type = Preset_t::tbl;
 
 	if (s == 0) {
 		// #ControlConfigOverride
@@ -1399,7 +1404,6 @@ void control_config_common_read_section(int s) {
 	}
 
 	// Assign name to the preset
-	// note: #Override section's name is ignored
 	if (optional_string("$Name:")) {
 		SCP_string name;
 		stuff_string(name, F_NAME);
@@ -1489,21 +1493,18 @@ void control_config_common_read_section(int s) {
 
 	required_string("#End");
 
-	if (s == 0) {
-		// If this is an override section, override the defaults
-		auto& new_bindings = new_preset.bindings;
-		std::copy(new_bindings.begin(), new_bindings.end(), default_bindings.begin());
+	auto duplicate = preset_find_duplicate(new_preset);
 
-	} else {
-		// Add new preset, if it is unique
-		bool unique = preset_is_unique(new_preset);
+	if (duplicate == Control_config_presets.end()) {
+		// No duplicate, add new preset
+		Control_config_presets.push_back(new_preset);
 
-		if (unique) {
-			Control_config_presets.push_back(new_preset);
-		} else if (!running_unittests) {
-			Warning(LOCATION, "TBL => Preset '%s' found in 'controlconfigdefaults.tbl' is a duplicate of an existing preset, ignoring\n", new_preset.name.c_str());
-		}
-	}
+	} else if (duplicate->name != new_preset.name) {
+		// Rename the duplicate with the new_preset name
+		// The .tbl takes precedence over any player presets
+		duplicate->name = new_preset.name;
+
+	} // Else, silently ignore the duplicate since it has the same name
 };
 
 /**
@@ -1517,15 +1518,19 @@ void control_config_common_read_tbl() {
 	}
 
 	reset_parse();
+	sections_read = 0;
 
 	// start parsing
 	int s = optional_string_either("#ControlConfigOverride", "#ControlConfigPreset");
 	while (s != -1) {
+		sections_read++;
 		// Found section header, parse it
 		control_config_common_read_section(s);
 
 		s = optional_string_either("#ControlConfigOverride", "#ControlConfigPreset");
 	}
+
+	mprintf(("[controlconfigdefaults.tbl] found %i sections\n", sections_read));
 }
 
 /**

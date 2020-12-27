@@ -320,6 +320,15 @@ enum {
 };
 }
 
+/*!
+ * Where the preset is located in memory
+ */
+enum class Preset_t {
+	hardcode,	// Preset is defined hardcode
+	tbl,		// Preset is defined in controlconfigdefaults.tbl
+	pst			// Preset is defined in a .json
+};
+
 class CCB;
 
 /*!
@@ -507,6 +516,7 @@ class CC_preset {
 public:
 	SCP_vector<CCB> bindings;
 	SCP_string name;
+	Preset_t type;
 };
 
 /*!
@@ -666,6 +676,8 @@ void control_config_use_preset(CC_preset &preset);
  *
  * @returns an iterator to the current preset, or
  * @returns Control_config_presets.end() if current bindings are not in a preset
+ *
+ * @note Similar to preset_find_duplicate, this function has additional logic in its search to ignore disabled controls
  */
 SCP_vector<CC_preset>::iterator control_config_get_current_preset();
 

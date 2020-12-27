@@ -74,6 +74,7 @@ void load_preset_files() {
 		// Start reading in data
 		CC_preset preset;
 		preset.name = file;
+		preset.type = Preset_t::pst;
 		preset.bindings.resize(Control_config.size());
 
 		size_t size;
@@ -122,14 +123,16 @@ void load_preset_files() {
 		handler->endArrayRead(); // Actions
 
 		// Done with the file
-		bool unique = preset_is_unique(preset);
+		auto it = preset_find_duplicate(preset);
 
-		if (unique) {
+		if (it == Control_config_presets.end()) {
 			Control_config_presets.push_back(preset);
-		} else {
+
+		} if ((it->name != preset.name) || (it->type != Preset_t::pst)) {
+			// Complain and ignore if the preset names or the type differs
 			Warning(LOCATION, "PST => Preset '%s' is a duplicate of an existing preset, ignoring", preset.name.c_str());
-		}
 		
+		} // else, silent ignore
 	}
 }
 
@@ -203,8 +206,10 @@ bool save_preset_file(CC_preset preset, bool overwrite) {
 	return true;
 }
 
-bool preset_is_unique(const CC_preset& new_preset) {
-	auto it = Control_config_presets.begin();
+
+SCP_vector<CC_preset>::iterator preset_find_duplicate(const CC_preset& new_preset) {
+	SCP_vector<CC_preset>::iterator it = Control_config_presets.begin();
+
 	for (; it != Control_config_presets.end(); ++it) {
 		size_t i;
 		for (i = 0; i < it->bindings.size(); ++i) {
@@ -216,11 +221,11 @@ bool preset_is_unique(const CC_preset& new_preset) {
 
 		if (i == it->bindings.size()) {
 			// These two are equal
-			return false;
+			break;
 		}
 	}
 
-	return true;
+	return it;
 }
 
 PresetFileHandler::PresetFileHandler(CFILE* cfp, bool reading) : _cfp(cfp) {
