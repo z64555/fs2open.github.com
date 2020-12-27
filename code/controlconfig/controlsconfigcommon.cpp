@@ -1240,6 +1240,7 @@ void stuff_CCF(char& flags, size_t item_id) {
 }
 
 // Legacy reading method for parsing keyboard and joystick/mouse bindings
+// Will overwrite/override the given preset for all options found within the .tbl section
 size_t read_bind_0(CC_preset &new_preset) {
 	SCP_string szTempBuffer;
 
@@ -1257,14 +1258,14 @@ size_t read_bind_0(CC_preset &new_preset) {
 	}
 
 	// Assign the various attributes to this control
-	int iTemp;
-	short key = 0;
 	auto& new_binding = new_preset.bindings[item_id];
+	int iTemp;
+	short key = new_binding.get_btn(CID_KEYBOARD);
 
 	// Key assignment and modifiers
 	if (optional_string("$Key Default:")) {
 		if (optional_string("NONE")) {
-			new_binding.take(CC_bind(CID_KEYBOARD, -1), -1);
+			key = -1;
 		} else {
 			stuff_string(szTempBuffer, F_NAME);
 			key = mKeyNameToVal[szTempBuffer];
@@ -1286,7 +1287,12 @@ size_t read_bind_0(CC_preset &new_preset) {
 		key |= (iTemp == 1) ? KEY_CTRLED : 0;
 	}
 
-	new_binding.take(CC_bind(CID_KEYBOARD, key), 0);
+	if (key > 0) {
+		new_binding.take(CC_bind(CID_KEYBOARD, key), 0);
+	} else {
+		new_binding.take(CC_bind(CID_KEYBOARD, static_cast<short>(-1)), -1);
+	}
+	
 
 	// Joy btn assignment
 	if (optional_string("$Joy Default:")) {
@@ -1298,7 +1304,7 @@ size_t read_bind_0(CC_preset &new_preset) {
 }
 
 // Reading method for parsing keyboard, mouse, and multi-joy bindings
-// TODO: override, or clean slate
+// Will override/overwrite the given preset for all options found within the .tbl section
 size_t read_bind_1(CC_preset &preset) {
 	CCB* item = nullptr;
 	SCP_string szTempBuffer;
