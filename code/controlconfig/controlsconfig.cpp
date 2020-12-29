@@ -2716,6 +2716,11 @@ void control_get_axes_readings(int *axis_v, float frame_time)
 			case CC_TYPE_AXIS_REL:
 				axis_v[action] = 0;
 				break;
+			case CC_TYPE_TRIGGER:
+			case CC_TYPE_CONTINUOUS:
+			case CC_TYPE_AXIS_BTN_NEG:
+			case CC_TYPE_AXIS_BTN_POS:
+				break;
 			}
 		}
 
