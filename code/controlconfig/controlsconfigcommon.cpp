@@ -23,6 +23,7 @@
 #include "localization/localize.h"
 #include "options/Option.h"
 #include "parse/parselo.h"
+#include "scripting/scripting.h"
 
 #include <map>
 
@@ -72,6 +73,8 @@ SCP_vector<CCI> Control_config;
 
 //! Vector of presets. Each preset is a collection of bindings that can be copied into Control_config's bindings. [0] is the default preset.
 SCP_vector<CC_preset> Control_config_presets;
+
+SCP_map<IoActionId, script_hook> Lua_hooks;
 
 /**
  * Initializes the Control_config vector and the hardcoded defaults preset
@@ -690,7 +693,11 @@ void control_config_common_init()
 	for (int i=0; i<CCFG_MAX; i++) {
 		Control_config[i].continuous_ongoing = false;
 	}
-	
+
+	for (int i = 0; i < Action::NUM_VALUES; i++) {
+		axes_last_value[i] = 32768;
+	}
+
 	// TODO It's not memory efficient to keep the presets loaded into memory all the time, but we do need to know which
 	// preset we're currently using for .plr and .csg
 	// Load controlconfigdefaults.tbl overrides and mod presets
@@ -1153,6 +1160,49 @@ size_t find_control_by_text(SCP_string& text) {
 	return item_id;
 }
 
+SCP_map<IoActionId, bool> Controls_lua_override_cache;
+bool control_run_lua(IoActionId id, int value) {
+
+	auto hook_it = Lua_hooks.find(id);
+
+	if (hook_it == Lua_hooks.end()) {
+		return false;
+	}
+	
+	script_hook& hook = hook_it->second;
+	bool isAxis = Control_config[id].is_axis();
+	bool isContinuous = Control_config[id].type == CC_TYPE_CONTINUOUS;
+
+	if (isContinuous) {
+		auto cache_it = Controls_lua_override_cache.find(id);
+		if (cache_it != Controls_lua_override_cache.end()) {
+			//Found a cached value. Return and stop evaluating
+			return cache_it->second;
+		}
+
+		Script_system.SetHookVar("Pressed", 'b', value != 0);
+	}
+
+	//Load hv.Value if it is an Axis
+	if(isAxis)
+		Script_system.SetHookVar("Value", 'f', f2fl(value));
+
+	//Check Override if it exists
+	bool override = Script_system.IsOverride(hook);
+	//Run Main Hook
+	Script_system.RunBytecode(hook.hook_function);
+
+	if(isAxis)
+		Script_system.RemHookVars({ "Value" });
+
+	if (isContinuous) {
+		Script_system.RemHookVars({ "Pressed" });
+		Controls_lua_override_cache.emplace(id, override);
+	}
+
+	return override;
+}
+
 /**
  * @brief Reads a section in controlconfigdefaults.tbl.
  *
@@ -1290,6 +1340,13 @@ void control_config_common_read_section(int s) {
 
 			if (optional_string("$Disable:")) {
 				stuff_boolean(&item->disabled);
+			}
+
+			if (optional_string("$OnActionHook:")) {
+				SCP_string buf;
+				sprintf(buf, "%s - %s", "controlconfigdefault.tbl", item->text.c_str());
+
+				Script_system.ParseChunk(&Lua_hooks[static_cast<IoActionId>(item_id)], buf.c_str());
 			}
 		}
 	}

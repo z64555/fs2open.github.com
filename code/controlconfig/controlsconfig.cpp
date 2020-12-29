@@ -2534,9 +2534,29 @@ int check_control(int id, int key)
 			if (Ignored_keys[id] > 0) {
 				Ignored_keys[id]--;
 			}
+
+			//Only call lua in here when it's a continuous button
+			//We are false anyway, no need to check override
+			if (Control_config[id].type == CC_TYPE_CONTINUOUS) {
+				control_run_lua(static_cast<IoActionId>(id), 0);
+			}
+
 			return 0;
 		}
+
+		//Only call lua in here when it's a continuous button
+		if (Control_config[id].type == CC_TYPE_CONTINUOUS) {
+			if (control_run_lua(static_cast<IoActionId>(id), 1))
+				return 0;
+		}
+
 		return 1;
+	}
+
+	//Only call lua in here when it's a continuous button
+	//We are false anyway, no need to check override
+	if (Control_config[id].type == CC_TYPE_CONTINUOUS) {
+		control_run_lua(static_cast<IoActionId>(id), 0);
 	}
 
 	if (Control_config[id].continuous_ongoing) {
@@ -2647,6 +2667,7 @@ void scale_invert(const CC_bind &bind,
 	}
 }
 
+int axes_last_value[Action::NUM_VALUES];
 void control_get_axes_readings(int *axis_v, float frame_time)
 {
 	int axe[CID_JOY_MAX + 1][JOY_NUM_AXES] = {{0}};
@@ -2683,6 +2704,23 @@ void control_get_axes_readings(int *axis_v, float frame_time)
 		if (!item.second.empty()) {
 			scale_invert(item.second, action, item.type, frame_time, axe, axis_v);
 		}
+
+		//Call Lua hooks
+		if (control_run_lua(static_cast<IoActionId>(action + JOY_AXIS_BEGIN), axis_v[action])) {
+			Assert(item.type == CC_TYPE_AXIS_ABS || item.type == CC_TYPE_AXIS_REL);
+
+			switch (item.type) {
+			case CC_TYPE_AXIS_ABS:
+				axis_v[action] = axes_last_value[action];
+				break;
+			case CC_TYPE_AXIS_REL:
+				axis_v[action] = 0;
+				break;
+			}
+		}
+
+		//Store values for possible lua override
+		axes_last_value[action] = axis_v[action];
 	}
 }
 

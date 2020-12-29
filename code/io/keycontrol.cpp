@@ -2330,6 +2330,12 @@ int button_function(int n)
 		return 0;
 	}
 
+	//Keys can now be used. Execute ccd.tbl hooks
+	if (control_run_lua(static_cast<IoActionId>(n), 0)) {
+		//Lua told us to override
+		return 0;
+	}
+
 	// Goober5000 - if the ship doesn't have subspace drive, jump key doesn't work: so test and exit early
 	if (Player_ship->flags[Ship::Ship_Flags::No_subspace_drive])
 	{

@@ -611,6 +611,14 @@ extern char *Joy_axis_text[JOY_NUM_AXES];
 
 extern bool Generate_controlconfig_table;
 
+extern int axes_last_value[Action::NUM_VALUES];
+/*
+* Button hooks can happen more than once a frame, and that is intended.
+* Axis hooks happen exactly once a frame.
+* But due to implementation, continuous hooks could happen an unspecified number of times. So we need to cache if a hook occurred, and what it's override setting was
+*/
+extern SCP_map<IoActionId, bool> Controls_lua_override_cache;
+
 /*!
  * @brief Checks if either binding in the CCB has the given cid
  *
@@ -754,6 +762,13 @@ void control_get_axes_readings(int *axis_v, float frame_time);
  * @details Updates the ::used timestamp, triggers a script hook, and marks ::continous_ongoing as true
  */
 void control_used(int id);
+
+/**
+ * @brief Runs a given controlbindings lua hook added in ccd.tbl
+ *
+ * @return Whether the control should be overridden
+ */
+bool control_run_lua(IoActionId id, int value);
 
 /**
  * @brief Clears the bindings of all controls
