@@ -1158,6 +1158,8 @@ add_file_folder("Scripting\\\\Api\\\\Libs"
 	scripting/api/libs/bitops.h
 	scripting/api/libs/cfile.cpp
 	scripting/api/libs/cfile.h
+	scripting/api/libs/controls.cpp
+	scripting/api/libs/controls.h
 	scripting/api/libs/engine.cpp
 	scripting/api/libs/engine.h
 	scripting/api/libs/graphics.cpp
@@ -1203,8 +1205,6 @@ add_file_folder("Scripting\\\\Api\\\\Objs"
 	scripting/api/objs/cockpit_display.h
 	scripting/api/objs/control_info.cpp
 	scripting/api/objs/control_info.h
-	scripting/api/objs/controls.cpp
-	scripting/api/objs/controls.h
 	scripting/api/objs/debris.cpp
 	scripting/api/objs/debris.h
 	scripting/api/objs/enums.cpp
