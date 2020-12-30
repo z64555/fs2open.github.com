@@ -1163,7 +1163,7 @@ size_t find_control_by_text(SCP_string& text) {
 SCP_map<IoActionId, bool> Controls_lua_override_cache;
 bool control_run_lua(IoActionId id, int value) {
 
-	auto& hook_it = Lua_hooks.find(id);
+	auto hook_it = Lua_hooks.find(id);
 
 	if (hook_it == Lua_hooks.end() || !hook_it->second.first) {
 		return false;
@@ -1174,7 +1174,7 @@ bool control_run_lua(IoActionId id, int value) {
 	bool isContinuous = Control_config[id].type == CC_TYPE_CONTINUOUS;
 
 	if (isContinuous) {
-		auto& cache_it = Controls_lua_override_cache.find(id);
+		auto cache_it = Controls_lua_override_cache.find(id);
 		if (cache_it != Controls_lua_override_cache.end()) {
 			//Found a cached value. Return and stop evaluating
 			return cache_it->second;
@@ -1210,7 +1210,7 @@ void control_reset_hook() {
 }
 
 void control_enable_hook(IoActionId id, bool enable) {
-	auto& hook_it = Lua_hooks.find(id);
+	auto hook_it = Lua_hooks.find(id);
 
 	if (hook_it == Lua_hooks.end()) {
 		return;
