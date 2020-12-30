@@ -2,7 +2,7 @@
 //
 
 #include "controls.h"
-#include "enums.h"
+#include "../objs/enums.h"
 
 #include "io/mouse.h"
 #include "io/cursor.h"
