@@ -528,6 +528,8 @@ public:
 // Items used during gameplay
 	int  used;                  //!< has control been used yet in mission?  If so, this is the timestamp
 	bool disabled = true;       //!< whether this action should be available at all
+	bool locked = false;
+	bool scriptEnabledByDefault = false;
 	bool continuous_ongoing;    //!< whether this action is a continuous one and is currently ongoing
 
 public:
@@ -769,6 +771,16 @@ void control_used(int id);
  * @return Whether the control should be overridden
  */
 bool control_run_lua(IoActionId id, int value);
+
+/**
+ * @brief Enables or disables the respective Lua hook
+ */
+void control_enable_hook(IoActionId id, bool enable);
+
+/**
+ * @brief Resets every hooks enable state to the tabled value. Call on Mission start
+ */
+void control_reset_hook();
 
 /**
  * @brief Clears the bindings of all controls

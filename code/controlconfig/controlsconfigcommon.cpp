@@ -74,7 +74,7 @@ SCP_vector<CCI> Control_config;
 //! Vector of presets. Each preset is a collection of bindings that can be copied into Control_config's bindings. [0] is the default preset.
 SCP_vector<CC_preset> Control_config_presets;
 
-SCP_map<IoActionId, script_hook> Lua_hooks;
+SCP_map<IoActionId, std::pair<bool, script_hook>> Lua_hooks;
 
 /**
  * Initializes the Control_config vector and the hardcoded defaults preset
@@ -1163,18 +1163,18 @@ size_t find_control_by_text(SCP_string& text) {
 SCP_map<IoActionId, bool> Controls_lua_override_cache;
 bool control_run_lua(IoActionId id, int value) {
 
-	auto hook_it = Lua_hooks.find(id);
+	auto& hook_it = Lua_hooks.find(id);
 
-	if (hook_it == Lua_hooks.end()) {
+	if (hook_it == Lua_hooks.end() || !hook_it->second.first) {
 		return false;
 	}
 	
-	script_hook& hook = hook_it->second;
+	script_hook& hook = hook_it->second.second;
 	bool isAxis = Control_config[id].is_axis();
 	bool isContinuous = Control_config[id].type == CC_TYPE_CONTINUOUS;
 
 	if (isContinuous) {
-		auto cache_it = Controls_lua_override_cache.find(id);
+		auto& cache_it = Controls_lua_override_cache.find(id);
 		if (cache_it != Controls_lua_override_cache.end()) {
 			//Found a cached value. Return and stop evaluating
 			return cache_it->second;
@@ -1201,6 +1201,22 @@ bool control_run_lua(IoActionId id, int value) {
 	}
 
 	return override;
+}
+
+void control_reset_hook() {
+	for (auto& hook : Lua_hooks) {
+		hook.second.first = Control_config[hook.first].scriptEnabledByDefault;
+	}
+}
+
+void control_enable_hook(IoActionId id, bool enable) {
+	auto& hook_it = Lua_hooks.find(id);
+
+	if (hook_it == Lua_hooks.end()) {
+		return;
+	}
+
+	hook_it->second.first = enable;
 }
 
 /**
@@ -1342,11 +1358,23 @@ void control_config_common_read_section(int s) {
 				stuff_boolean(&item->disabled);
 			}
 
+			if (optional_string("+Locked")) {
+				item->locked = true;
+			}
+
+			if (optional_string("Locked:")) {
+				stuff_boolean(&item->locked);
+			}
+
 			if (optional_string("$OnActionHook:")) {
 				SCP_string buf;
 				sprintf(buf, "%s - %s", "controlconfigdefault.tbl", item->text.c_str());
 
-				Script_system.ParseChunk(&Lua_hooks[static_cast<IoActionId>(item_id)], buf.c_str());
+				auto* hook = &Lua_hooks[static_cast<IoActionId>(item_id)];
+				Script_system.ParseChunk(&hook->second, buf.c_str());
+
+				item->scriptEnabledByDefault = optional_string("+EnableHookByDefault");
+				hook->first = item->scriptEnabledByDefault;
 			}
 		}
 	}
@@ -2267,6 +2295,8 @@ CCI& CCI::operator=(const CCI& A) {
 	type = A.type;
 	used = A.used;
 	disabled = A.disabled;
+	locked = A.locked;
+	scriptEnabledByDefault = A.scriptEnabledByDefault;
 	continuous_ongoing = A.continuous_ongoing;
 
 	return *this;

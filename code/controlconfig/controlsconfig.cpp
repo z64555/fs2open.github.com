@@ -2460,7 +2460,7 @@ int check_control_used(int id, int key)
 		return 0;
 	}
 
-	if (item.disabled)
+	if (item.disabled || item.locked)
 		return 0;
 
 	short z = item.get_btn(CID_KEYBOARD);	// Get the key that's bound to this control

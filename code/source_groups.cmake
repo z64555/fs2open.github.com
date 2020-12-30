@@ -1203,6 +1203,8 @@ add_file_folder("Scripting\\\\Api\\\\Objs"
 	scripting/api/objs/cmd_brief.h
 	scripting/api/objs/cockpit_display.cpp
 	scripting/api/objs/cockpit_display.h
+	scripting/api/objs/control_binding.cpp
+	scripting/api/objs/control_binding.h
 	scripting/api/objs/control_info.cpp
 	scripting/api/objs/control_info.h
 	scripting/api/objs/debris.cpp
