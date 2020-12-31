@@ -128,7 +128,7 @@ void load_preset_files() {
 		if (it == Control_config_presets.end()) {
 			Control_config_presets.push_back(preset);
 
-		} if ((it->name != preset.name) || (it->type != Preset_t::pst)) {
+		} else if ((it->name != preset.name) || (it->type != Preset_t::pst)) {
 			// Complain and ignore if the preset names or the type differs
 			Warning(LOCATION, "PST => Preset '%s' is a duplicate of an existing preset, ignoring", preset.name.c_str());
 		

@@ -1164,53 +1164,79 @@ void stuff_CCF(char& flags, size_t item_id) {
 
 	SCP_string szTempBuffer;
 	flags = 0;
+
 	stuff_string(szTempBuffer, F_NAME);
-	if (szTempBuffer.find(ValToCCF(CCF_AXIS_BTN)) != SCP_string::npos)
-		flags |= CCF_AXIS_BTN;
 
-	if (szTempBuffer.find(ValToCCF(CCF_RELATIVE)) != SCP_string::npos)
-		flags |= CCF_RELATIVE;
+#ifndef NDEBUG
+	SCP_string flag_str;
+	size_t pos = 0;
+	size_t len = 0;
 
-	if (szTempBuffer.find(ValToCCF(CCF_INVERTED)) != SCP_string::npos)
-		flags |= CCF_INVERTED;
+	auto ADD_FLAG = [&](char id) {
+		flag_str = ValToCCF(id);
+		pos = szTempBuffer.find(flag_str);
+		len = flag_str.length();
+		if (pos != SCP_string::npos) {
+			flags |= id;
+			szTempBuffer.erase(pos, len);
+		}
+	};
+#else
+	auto ADD_FLAG = [&](char id) {
+		if (szTempBuffer.find(ValToCCF(id)) != SCP_string::npos)
+			flags |= id;
+	};
+#endif
 
-	if (szTempBuffer.find(ValToCCF(CCF_AXIS)) != SCP_string::npos)
-		flags |= CCF_AXIS;
+	ADD_FLAG(CCF_AXIS_BTN);
+	ADD_FLAG(CCF_RELATIVE);
+	ADD_FLAG(CCF_INVERTED);
+	ADD_FLAG(CCF_AXIS);
+	ADD_FLAG(CCF_HAT);
+	ADD_FLAG(CCF_BALL);
 
-	if (szTempBuffer.find(ValToCCF(CCF_HAT)) != SCP_string::npos)
-		flags |= CCF_HAT;
+#ifndef NDEBUG
+	// Complain about any unknown flag strings
+	replace_all(szTempBuffer, ",", " ");
+	drop_white_space(szTempBuffer);
 
-	if (szTempBuffer.find(ValToCCF(CCF_BALL)) != SCP_string::npos)
-		flags |= CCF_BALL;
-
+	if (!szTempBuffer.empty()) {
+		error_display(0, "Unknown flags passed to config item %i, ignoring: \n'%s'", static_cast<int>(item_id), szTempBuffer.c_str());
+	}
+#endif
 
 	// Validate Flags
 	// This should all be recoverable, but complaining to the modder enforces the good practice of
 	// associating the binding with the input type (digital or analog)
+	char mask = 0;
 	switch (Control_config[item_id].type) {
 	case CC_TYPE_TRIGGER:
 	case CC_TYPE_CONTINUOUS:
 		// Digital control. May not have:
-		if ((flags & (CCF_AXIS | CCF_BALL)) != 0) {
-			error_display(0, "Illegal analog flags passed to digital config item %i, ignoring...", static_cast<int>(item_id));
+		mask = flags & (CCF_AXIS | CCF_BALL);
+		if (mask != 0) {
+			error_display(0, "Illegal analog flags passed to digital config item %i, ignoring:\n'%s'", static_cast<int>(item_id), ValToCCF(mask));
 			flags &= ~(CCF_AXIS | CCF_BALL);
 		}
 		break;
 
 	case CC_TYPE_AXIS_ABS:
 		// Absolute Analog control. Must not have:
-		if ((flags & (CCF_AXIS_BTN | CCF_HAT)) != 0) {
-			error_display(0, "Illegal digital flags passed to analog config item %i, ignoring...", static_cast<int>(item_id));
+		mask = flags & (CCF_AXIS_BTN | CCF_HAT);
+		if (mask != 0) {
+			error_display(0, "Illegal digital flags passed to analog config item %i, ignoring:\n'%s'", static_cast<int>(item_id), ValToCCF(mask));
 			flags &= ~(CCF_AXIS_BTN | CCF_HAT);
 		}
 
-		if ((flags & CCF_RELATIVE) != 0) {
-			error_display(0, "Illegal RELATIVE flag passed to absolute analog config item %i, ignoring...", static_cast<int>(item_id));
+		mask = flags & CCF_RELATIVE;
+		if (mask != 0) {
+			error_display(0, "Illegal RELATIVE flag passed to absolute analog config item %i, ignoring:\n'%s'", static_cast<int>(item_id), ValToCCF(mask));
 			flags &= ~CCF_RELATIVE;
 		}
 
 		// Must have
-		if ((flags & (CCF_AXIS | CCF_BALL)) == 0) {
+		mask = flags & (CCF_AXIS | CCF_BALL);
+		if (mask == 0) {
 			error_display(0, "Missing analog flag 'AXIS' or 'BALL'! Assuming it is an axis...");
 			flags |= CCF_AXIS;
 		}
@@ -1218,18 +1244,21 @@ void stuff_CCF(char& flags, size_t item_id) {
 
 	case CC_TYPE_AXIS_REL:
 		// Relative Analog control. Must not have:
-		if ((flags & (CCF_AXIS_BTN | CCF_HAT)) != 0) {
-			error_display(0, "Illegal digital flags passed to analog config item %i, ignoring...", static_cast<int>(item_id));
+		mask = flags & (CCF_AXIS_BTN | CCF_HAT);
+		if (mask != 0) {
+			error_display(0, "Illegal digital flags passed to analog config item %i, ignoring:\n'%s'", static_cast<int>(item_id), ValToCCF(mask));
 			flags &= ~(CCF_AXIS_BTN | CCF_HAT);
 		}
 
 		// Must have
-		if ((flags & (CCF_AXIS | CCF_BALL)) == 0) {
+		mask = flags & (CCF_AXIS | CCF_BALL);
+		if (mask == 0) {
 			error_display(0, "Missing analog flag 'AXIS' or 'BALL'! Assuming it is an axis...");
 			flags |= CCF_AXIS;
 		}
 
-		if ((flags & CCF_RELATIVE) == 0) {
+		mask = flags & CCF_RELATIVE;
+		if (mask == 0) {
 			error_display(0, "Missing RELATIVE flag for relative analog config item %i, adding...", static_cast<int>(item_id));
 			flags |= CCF_RELATIVE;
 		}
