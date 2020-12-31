@@ -1215,7 +1215,7 @@ void stuff_CCF(char& flags, size_t item_id) {
 		// Digital control. May not have:
 		mask = flags & (CCF_AXIS | CCF_BALL);
 		if (mask != 0) {
-			error_display(0, "Illegal analog flags passed to digital config item %i, ignoring:\n'%s'", static_cast<int>(item_id), ValToCCF(mask));
+			error_display(0, "Illegal analog flags passed to digital config item %i, ignoring:\n'%s'", static_cast<int>(item_id), ValToCCF(mask).c_str());
 			flags &= ~(CCF_AXIS | CCF_BALL);
 		}
 		break;
@@ -1224,13 +1224,13 @@ void stuff_CCF(char& flags, size_t item_id) {
 		// Absolute Analog control. Must not have:
 		mask = flags & (CCF_AXIS_BTN | CCF_HAT);
 		if (mask != 0) {
-			error_display(0, "Illegal digital flags passed to analog config item %i, ignoring:\n'%s'", static_cast<int>(item_id), ValToCCF(mask));
+			error_display(0, "Illegal digital flags passed to analog config item %i, ignoring:\n'%s'", static_cast<int>(item_id), ValToCCF(mask).c_str());
 			flags &= ~(CCF_AXIS_BTN | CCF_HAT);
 		}
 
 		mask = flags & CCF_RELATIVE;
 		if (mask != 0) {
-			error_display(0, "Illegal RELATIVE flag passed to absolute analog config item %i, ignoring:\n'%s'", static_cast<int>(item_id), ValToCCF(mask));
+			error_display(0, "Illegal RELATIVE flag passed to absolute analog config item %i, ignoring:\n'%s'", static_cast<int>(item_id), ValToCCF(mask).c_str());
 			flags &= ~CCF_RELATIVE;
 		}
 
@@ -1246,7 +1246,7 @@ void stuff_CCF(char& flags, size_t item_id) {
 		// Relative Analog control. Must not have:
 		mask = flags & (CCF_AXIS_BTN | CCF_HAT);
 		if (mask != 0) {
-			error_display(0, "Illegal digital flags passed to analog config item %i, ignoring:\n'%s'", static_cast<int>(item_id), ValToCCF(mask));
+			error_display(0, "Illegal digital flags passed to analog config item %i, ignoring:\n'%s'", static_cast<int>(item_id), ValToCCF(mask).c_str());
 			flags &= ~(CCF_AXIS_BTN | CCF_HAT);
 		}
 
