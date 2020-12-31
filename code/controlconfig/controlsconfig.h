@@ -517,6 +517,12 @@ public:
 	SCP_vector<CCB> bindings;
 	SCP_string name;
 	Preset_t type;
+
+public:
+	CC_preset() = default;
+	CC_preset(const CC_preset& A) = default;
+
+	CC_preset& operator=(const CC_preset&);
 };
 
 /*!

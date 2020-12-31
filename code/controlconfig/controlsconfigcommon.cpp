@@ -1522,18 +1522,35 @@ void control_config_common_read_section(int s) {
 
 	required_string("#End");
 
+	// Override the hardcoded defaults if this is an override section and the preset name is "default"
+	// Error case of preset sections named "default" is handled in the beginning of this function
+	if ((s == 0) && (new_preset.name == "default")) {
+		Control_config_presets[0] = new_preset;
+		mprintf(("[controlconfigdefaults.tbl] Overrode default preset.", new_preset.name.c_str()));
+	}
+
 	auto duplicate = preset_find_duplicate(new_preset);
 
 	if (duplicate == Control_config_presets.end()) {
 		// No duplicate, add new preset
 		Control_config_presets.push_back(new_preset);
+		mprintf(("[controlconfigdefaults.tbl] Added Preset '%s'", new_preset.name.c_str()));
 
 	} else if (duplicate->name != new_preset.name) {
-		// Rename the duplicate with the new_preset name
-		// The .tbl takes precedence over any player presets
-		duplicate->name = new_preset.name;
-
+		if (s == 0) {
+			// Rename the duplicate with the new_preset name
+			// The .tbl takes precedence over any player presets
+			duplicate->name = new_preset.name;
+			mprintf(("[controlconfigdefaults.tbl] Renamed duplicate '%s' preset to '%s'", duplicate->name.c_str(), new_preset.name.c_str()));
+		
+		} else {
+			// Presets are not allowed to rename
+			Warning(LOCATION, "Ignoring Preset '%s'. (Duplicate of '%s' and is not an Override)", new_preset.name.c_str(), duplicate->name.c_str());
+			mprintf(("[controlconfigdefaults.tbl] Ignoring Preset '%s'. (Duplicate of '%s' and is not an Override)", new_preset.name.c_str(), duplicate->name.c_str()));
+		}
 	} // Else, silently ignore the duplicate since it has the same name
+
+	mprintf(("[controlconfigdefaults.tbl] Ignoring duplicate Preset '%s'", new_preset.name.c_str()));
 };
 
 /**
@@ -2596,3 +2613,12 @@ CCI_builder& CCI_builder::operator()(IoActionId action_id, short primary, short 
 
 	return *this;
 }
+
+CC_preset& CC_preset::operator=(const CC_preset& A) {
+	name = A.name;
+	type = A.type;
+
+	std::copy(A.bindings.begin(), A.bindings.end(), bindings.begin());
+
+	return *this;
+};
