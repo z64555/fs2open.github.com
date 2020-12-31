@@ -1526,7 +1526,7 @@ void control_config_common_read_section(int s) {
 	// Error case of preset sections named "default" is handled in the beginning of this function
 	if ((s == 0) && (new_preset.name == "default")) {
 		Control_config_presets[0] = new_preset;
-		mprintf(("[controlconfigdefaults.tbl] Overrode default preset.", new_preset.name.c_str()));
+		mprintf(("[controlconfigdefaults.tbl] Overrode default preset."));
 	}
 
 	auto duplicate = preset_find_duplicate(new_preset);
