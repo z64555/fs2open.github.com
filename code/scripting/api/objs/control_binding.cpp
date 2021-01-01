@@ -86,7 +86,7 @@ ADE_FUNC(isLocked, l_ControlBinding, nullptr, "If this control is locked", "bool
 	return ade_set_args(L, "b", Control_config[cci->Get()].locked);
 }
 
-ADE_FUNC(registerHook, l_ControlBinding, "function() -> void | boolean hook, [boolean enabledByDefault = false, boolean isOverride = false]", "The action of this SEXP", nullptr, nullptr) {
+ADE_FUNC(registerHook, l_ControlBinding, "function() -> void | boolean hook, [boolean enabledByDefault = false, boolean isOverride = false]", "Registers a hook for this keybinding, either as a normal hook, or as an override", nullptr, nullptr) {
 
 	cci_h* cci = nullptr;
 	luacpp::LuaFunction hook;
