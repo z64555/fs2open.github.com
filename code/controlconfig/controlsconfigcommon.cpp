@@ -74,7 +74,12 @@ SCP_vector<CCI> Control_config;
 //! Vector of presets. Each preset is a collection of bindings that can be copied into Control_config's bindings. [0] is the default preset.
 SCP_vector<CC_preset> Control_config_presets;
 
-SCP_map<IoActionId, std::pair<bool, script_hook>> Lua_hooks;
+struct LuaHook {
+	bool enabled = false;
+	luacpp::LuaFunction hook;
+	luacpp::LuaFunction override;
+};
+SCP_map<IoActionId, LuaHook> Lua_hooks;
 
 /**
  * Initializes the Control_config vector and the hardcoded defaults preset
@@ -1163,16 +1168,25 @@ size_t find_control_by_text(SCP_string &text) {
 	return item_id;
 }
 
+/*
+* Button hooks can happen more than once a frame, and that is intended.
+* Axis hooks happen exactly once a frame.
+* But due to implementation, continuous hooks could happen an unspecified number of times. So we need to cache if a hook occurred, and what it's override setting was
+*/
 SCP_map<IoActionId, bool> Controls_lua_override_cache;
+void control_reset_lua_cache() {
+	Controls_lua_override_cache.clear();
+}
+
 bool control_run_lua(IoActionId id, int value) {
 
 	auto hook_it = Lua_hooks.find(id);
 
-	if (hook_it == Lua_hooks.end() || !hook_it->second.first) {
+	if (hook_it == Lua_hooks.end() || !hook_it->second.enabled) {
 		return false;
 	}
 	
-	script_hook& hook = hook_it->second.second;
+	LuaHook& hook = hook_it->second;
 	bool isAxis = Control_config[id].is_axis();
 	bool isContinuous = Control_config[id].type == CC_TYPE_CONTINUOUS;
 
@@ -1191,9 +1205,28 @@ bool control_run_lua(IoActionId id, int value) {
 		Script_system.SetHookVar("Value", 'f', f2fl(value));
 
 	//Check Override if it exists
-	bool override = Script_system.IsOverride(hook);
+	bool override = false;
+	if (hook.override.isValid()) {
+		auto return_vals = hook.override.call(Script_system.GetLuaSession());
+
+		if (return_vals.size() != 1) {
+			Warning(LOCATION,
+				"Wrong number of return values for Lua keybinding override '%s'! Expected 1, got " SIZE_T_ARG ".",
+				ValToAction(id),
+				return_vals.size());
+		}
+		else if (return_vals[0].getValueType() != luacpp::ValueType::BOOLEAN) {
+			Warning(LOCATION, "Wrong return type detected for Lua keybinding override '%s', expected a boolean.", ValToAction(id));
+		}
+		else {
+			override = return_vals[0].getValue<bool>();
+		}
+	}
+
 	//Run Main Hook
-	Script_system.RunBytecode(hook.hook_function);
+	if (hook.hook.isValid()) {
+		hook.hook.call(Script_system.GetLuaSession());
+	}
 
 	if(isAxis)
 		Script_system.RemHookVars({ "Value" });
@@ -1206,9 +1239,22 @@ bool control_run_lua(IoActionId id, int value) {
 	return override;
 }
 
+void control_register_hook(IoActionId id, const luacpp::LuaFunction& hook, bool is_override, bool enabledByDefault) {
+	Control_config[id].scriptEnabledByDefault = enabledByDefault;
+
+	LuaHook* hook_entry = &Lua_hooks[static_cast<IoActionId>(id)];
+	
+	hook_entry->enabled = enabledByDefault;
+
+	if(!is_override)
+		hook_entry->hook = hook;
+	else
+		hook_entry->override = hook;
+}
+
 void control_reset_hook() {
 	for (auto& hook : Lua_hooks) {
-		hook.second.first = Control_config[hook.first].scriptEnabledByDefault;
+		hook.second.enabled = Control_config[hook.first].scriptEnabledByDefault;
 	}
 }
 
@@ -1219,7 +1265,7 @@ void control_enable_hook(IoActionId id, bool enable) {
 		return;
 	}
 
-	hook_it->second.first = enable;
+	hook_it->second.enabled = enable;
 }
 
 /**
@@ -1590,17 +1636,6 @@ void control_config_common_read_section(int s) {
 
 			if (optional_string("Locked:")) {
 				stuff_boolean(&item->locked);
-			}
-
-			if (optional_string("$OnActionHook:")) {
-				SCP_string buf;
-				sprintf(buf, "%s - %s", "controlconfigdefault.tbl", item->text.c_str());
-
-				auto* hook = &Lua_hooks[static_cast<IoActionId>(item_id)];
-				Script_system.ParseChunk(&hook->second, buf.c_str());
-
-				item->scriptEnabledByDefault = optional_string("+EnableHookByDefault");
-				hook->first = item->scriptEnabledByDefault;
 			}
 		}
 	}

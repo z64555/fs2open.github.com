@@ -2,8 +2,8 @@
 //
 
 #include "controls.h"
-#include "../objs/enums.h"
-#include "../objs/control_binding.h"
+#include "scripting/api/objs/enums.h"
+#include "scripting/api/objs/control_binding.h"
 
 #include "io/mouse.h"
 #include "io/cursor.h"

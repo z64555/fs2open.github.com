@@ -3,7 +3,7 @@
 #define FS2_OPEN_CONTROLBINDING_H
 
 #include "scripting/ade_api.h"
-#include "../../../controlconfig/controlsconfig.h"
+#include "controlconfig/controlsconfig.h"
 
 namespace scripting {
 namespace api {

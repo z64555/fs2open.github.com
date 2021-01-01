@@ -12,6 +12,7 @@
 #define CONTROLS_CONFIG_H
 
 #include "globalincs/pstypes.h"
+#include "scripting/scripting.h"
 
 #define CONTROL_CONFIG_XSTR	507
 
@@ -631,12 +632,6 @@ extern char *Joy_axis_text[JOY_NUM_AXES];
 extern bool Generate_controlconfig_table;
 
 extern int axes_last_value[Action::NUM_VALUES];
-/*
-* Button hooks can happen more than once a frame, and that is intended.
-* Axis hooks happen exactly once a frame.
-* But due to implementation, continuous hooks could happen an unspecified number of times. So we need to cache if a hook occurred, and what it's override setting was
-*/
-extern SCP_map<IoActionId, bool> Controls_lua_override_cache;
 
 /*!
  * @brief Checks if either binding in the CCB has the given cid
@@ -790,6 +785,18 @@ void control_used(int id);
  * @return Whether the control should be overridden
  */
 bool control_run_lua(IoActionId id, int value);
+
+/**
+ * @brief Resets the cache for script evaluations for continuous buttons. Should be called once per frame.
+ *
+*/
+void control_reset_lua_cache();
+
+/**
+ * @brief Registers a new hook for the keybinding action system.
+ * Parameters set if it is a normal or an override function, as well as if it is enabled by default or needs to be enabled manually each mission
+ */
+void control_register_hook(IoActionId id, const luacpp::LuaFunction& hook, bool is_override, bool enabledByDefault);
 
 /**
  * @brief Enables or disables the respective Lua hook

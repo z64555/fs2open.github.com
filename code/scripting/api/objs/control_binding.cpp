@@ -86,6 +86,31 @@ ADE_FUNC(isLocked, l_ControlBinding, nullptr, "If this control is locked", "bool
 	return ade_set_args(L, "b", Control_config[cci->Get()].locked);
 }
 
+ADE_FUNC(registerHook, l_ControlBinding, "function hook, [boolean enabledByDefault = false, boolean isOverride = false]", "The action of this SEXP", nullptr, nullptr) {
+
+	cci_h* cci = nullptr;
+	luacpp::LuaFunction hook;
+	bool enabled = false;
+	bool isOverride = false;
+
+	if (!ade_get_args(L, "ou|bb", l_ControlBinding.GetPtr(&cci), &hook, &enabled, &isOverride)) {
+		return ADE_RETURN_NIL;
+	}
+
+	if (!cci->IsValid()) {
+		return ADE_RETURN_NIL;
+	}
+
+	if(!hook.isValid()){
+		LuaError(L, "Action function reference must be valid!");
+		return ADE_RETURN_NIL;
+	}
+
+	control_register_hook(cci->Get(), hook, isOverride, enabled);
+
+	return ADE_RETURN_NIL;
+}
+
 ADE_FUNC(enableScripting, l_ControlBinding, "boolean enable", "Enables scripted control hooks for this keybinding when true, disables if false. Not persistent between missions.", nullptr, nullptr)
 {
 	cci_h* cci = nullptr;
