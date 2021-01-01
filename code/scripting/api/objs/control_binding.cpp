@@ -73,7 +73,7 @@ ADE_FUNC(lock, l_ControlBinding, "boolean lock", "Locks this control binding whe
 	return ADE_RETURN_NIL;
 }
 
-ADE_FUNC(isLock, l_ControlBinding, nullptr, "Locks this control binding when true, disables if false. Persistent between missions.", "boolean lock", "If this control is locked, nil if the handle is invalid")
+ADE_FUNC(isLocked, l_ControlBinding, nullptr, "If this control is locked", "boolean lock", "If this control is locked, nil if the handle is invalid")
 {
 	cci_h* cci = nullptr;
 	if (!ade_get_args(L, "o", l_ControlBinding.GetPtr(&cci)))
