@@ -63,7 +63,7 @@ ADE_FUNC(lock, l_ControlBinding, "boolean lock", "Locks this control binding whe
 		return ADE_RETURN_NIL;
 
 	if (!cci->IsValid()) {
-		LuaError(L, "Cannot enable or disable scripting hooks for an invalid binding.\n");
+		LuaError(L, "Cannot lock hooks for an invalid binding.\n");
 
 		return ADE_RETURN_NIL;
 	}
@@ -71,6 +71,19 @@ ADE_FUNC(lock, l_ControlBinding, "boolean lock", "Locks this control binding whe
 	Control_config[cci->Get()].locked = lock;
 
 	return ADE_RETURN_NIL;
+}
+
+ADE_FUNC(isLock, l_ControlBinding, nullptr, "Locks this control binding when true, disables if false. Persistent between missions.", "boolean lock", "If this control is locked, nil if the handle is invalid")
+{
+	cci_h* cci = nullptr;
+	if (!ade_get_args(L, "o", l_ControlBinding.GetPtr(&cci)))
+		return ADE_RETURN_NIL;
+
+	if (!cci->IsValid()) {
+		return ADE_RETURN_NIL;
+	}
+
+	return ade_set_args(L, "b", Control_config[cci->Get()].locked);
 }
 
 ADE_FUNC(enableScripting, l_ControlBinding, "boolean enable", "Enables scripted control hooks for this keybinding when true, disables if false. Not persistent between missions.", nullptr, nullptr)
