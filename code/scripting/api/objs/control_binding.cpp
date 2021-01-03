@@ -102,7 +102,9 @@ ADE_FUNC(registerHook, l_ControlBinding, "function() => void | boolean hook, [bo
 	}
 
 	if(!hook.isValid()){
-		LuaError(L, "Hook function reference must be valid!");
+		//Nil removes the hook
+		control_register_hook(cci->Get(), luacpp::LuaFunction(), isOverride, false);
+
 		return ADE_RETURN_NIL;
 	}
 
