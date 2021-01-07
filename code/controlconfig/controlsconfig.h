@@ -544,7 +544,7 @@ public:
 	CC_type type;           //!< manner control should be checked in
 
 // Items used during gameplay
-	int  used;                  //!< has control been used yet in mission?  If so, this is the timestamp
+	int  used;                  //!< has control been used yet in mission?  If so, this is the timestamp. For axes, this denotes the last frame's value
 	bool disabled = true;       //!< whether this action should be available at all
 	bool locked = false;		//!< whether this action will be triggered by the respectively bound key
 	bool scriptEnabledByDefault = false; //!< whether this binding will execute it's registered hooks if triggered. Resets each mission
@@ -630,8 +630,6 @@ extern const char **Joy_button_text;
 extern char *Joy_axis_text[JOY_NUM_AXES];
 
 extern bool Generate_controlconfig_table;
-
-extern int axes_last_value[Action::NUM_VALUES];
 
 /*!
  * @brief Checks if either binding in the CCB has the given cid

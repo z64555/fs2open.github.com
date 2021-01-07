@@ -2657,7 +2657,6 @@ void scale_invert(const CC_bind &bind,
 	}
 }
 
-int axes_last_value[Action::NUM_VALUES];
 void control_get_axes_readings(int *axis_v, float frame_time)
 {
 	int axe[CID_JOY_MAX + 1][JOY_NUM_AXES] = {{0}};
@@ -2702,7 +2701,7 @@ void control_get_axes_readings(int *axis_v, float frame_time)
 
 			switch (item.type) {
 			case CC_TYPE_AXIS_ABS:
-				axis_v[action] = axes_last_value[action];
+				axis_v[action] = item.used;
 				break;
 			case CC_TYPE_AXIS_REL:
 				axis_v[action] = 0;
@@ -2717,7 +2716,7 @@ void control_get_axes_readings(int *axis_v, float frame_time)
 		}
 
 		//Store values for possible lua override
-		axes_last_value[action] = axis_v[action];
+		item.used = axis_v[action];
 	}
 }
 

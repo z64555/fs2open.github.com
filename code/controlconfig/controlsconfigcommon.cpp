@@ -703,7 +703,7 @@ void control_config_common_init()
 	}
 
 	for (int i = 0; i < Action::NUM_VALUES; i++) {
-		axes_last_value[i] = 32768;
+		Control_config[i + JOY_AXIS_BEGIN].used = 32768;
 	}
 
 	// TODO It's not memory efficient to keep the presets loaded into memory all the time, but we do need to know which
