@@ -1172,10 +1172,11 @@ size_t find_control_by_text(SCP_string &text) {
 * Button hooks can happen more than once a frame, and that is intended.
 * Axis hooks happen exactly once a frame.
 * But due to implementation, continuous hooks could happen an unspecified number of times. So we need to cache if a hook occurred, and what it's override setting was
+* Bit at IoActionId * 2 sets if this action has been run before, Bit at IoActionId * 2 + 1 sets the cached value
 */
-SCP_map<IoActionId, bool> Controls_lua_override_cache;
+std::bitset<IoActionId::CCFG_MAX * 2> Controls_lua_override_cache;
 void control_reset_lua_cache() {
-	Controls_lua_override_cache.clear();
+	Controls_lua_override_cache.reset();
 }
 
 bool control_run_lua(IoActionId id, int value) {
@@ -1186,15 +1187,14 @@ bool control_run_lua(IoActionId id, int value) {
 		return false;
 	}
 	
-	LuaHook& hook = hook_it->second;
-	bool isAxis = Control_config[id].is_axis();
-	bool isContinuous = Control_config[id].type == CC_TYPE_CONTINUOUS;
+	const LuaHook& hook = hook_it->second;
+	const bool isAxis = Control_config[id].is_axis();
+	const bool isContinuous = Control_config[id].type == CC_TYPE_CONTINUOUS;
 
 	if (isContinuous) {
-		auto cache_it = Controls_lua_override_cache.find(id);
-		if (cache_it != Controls_lua_override_cache.end()) {
+		if (Controls_lua_override_cache[id * 2]) {
 			//Found a cached value. Return and stop evaluating
-			return cache_it->second;
+			return Controls_lua_override_cache[id * 2 + 1];
 		}
 
 		Script_system.SetHookVar("Pressed", 'b', value != 0);
@@ -1233,7 +1233,9 @@ bool control_run_lua(IoActionId id, int value) {
 
 	if (isContinuous) {
 		Script_system.RemHookVars({ "Pressed" });
-		Controls_lua_override_cache.emplace(id, override);
+
+		Controls_lua_override_cache[id * 2] = true;
+		Controls_lua_override_cache[id * 2 + 1] = override;
 	}
 
 	return override;
@@ -1632,6 +1634,8 @@ void control_config_common_read_section(int s) {
 
 			if (optional_string("+Locked")) {
 				item->locked = true;
+			} else {
+				item->locked = false;
 			}
 
 			if (optional_string("Locked:")) {
