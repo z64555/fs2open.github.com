@@ -1174,7 +1174,44 @@ size_t find_control_by_text(SCP_string &text) {
 * But due to implementation, continuous hooks could happen an unspecified number of times. So we need to cache if a hook occurred, and what it's override setting was
 * Bit at IoActionId * 2 sets if this action has been run before, Bit at IoActionId * 2 + 1 sets the cached value
 */
-std::bitset<IoActionId::CCFG_MAX * 2> Controls_lua_override_cache;
+class controls_lua_override_cache {
+	std::bitset<IoActionId::CCFG_MAX> lua_was_called; //!< The cache storing if an id had been cached before
+	std::bitset<IoActionId::CCFG_MAX> lua_override_cache; //!< The cache storing the actual cached value
+
+public:
+	/**
+	* @brief Resets the override cache and clears all values
+	*/
+	void reset() {
+		lua_was_called.reset();
+		lua_override_cache.reset();
+	}
+
+	/**
+	* @returns true if there is a cached value for this id, false otherwise
+	*/
+	const bool& isCached(IoActionId id) const {
+		return lua_was_called[id];
+	}
+
+	/**
+	* @returns the cached value for this id
+	*/
+	const bool& operator[](IoActionId id) const {
+		Assert(isCached(id), "A lua override check for IoActionId %d's hook was requested, but the hook hasn't been cached.");
+		return lua_override_cache[id];
+	}
+
+	/**
+	* @brief Adds a new value to the cache
+	*/
+	void emplace(IoActionId id, bool override) {
+		lua_was_called[id] = true;
+		lua_override_cache[id] = override;
+	}
+
+} Controls_lua_override_cache;
+
 void control_reset_lua_cache() {
 	Controls_lua_override_cache.reset();
 }
@@ -1192,9 +1229,9 @@ bool control_run_lua(IoActionId id, int value) {
 	const bool isContinuous = Control_config[id].type == CC_TYPE_CONTINUOUS;
 
 	if (isContinuous) {
-		if (Controls_lua_override_cache[id * 2]) {
+		if (Controls_lua_override_cache.isCached(id)) {
 			//Found a cached value. Return and stop evaluating
-			return Controls_lua_override_cache[id * 2 + 1];
+			return Controls_lua_override_cache[id];
 		}
 
 		Script_system.SetHookVar("Pressed", 'b', value != 0);
@@ -1234,8 +1271,7 @@ bool control_run_lua(IoActionId id, int value) {
 	if (isContinuous) {
 		Script_system.RemHookVars({ "Pressed" });
 
-		Controls_lua_override_cache[id * 2] = true;
-		Controls_lua_override_cache[id * 2 + 1] = override;
+		Controls_lua_override_cache.emplace(id, override);
 	}
 
 	return override;
