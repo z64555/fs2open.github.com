@@ -21,7 +21,7 @@ class cci_h {
 	cci_h(int n_id);
 
 	/*
-	* @returns If this object holds a valid ActionId
+	* @returns true if this object holds a valid IoActionId, false otherwise
 	*/
 	bool IsValid();
 
