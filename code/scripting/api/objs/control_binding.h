@@ -9,8 +9,8 @@ namespace scripting {
 namespace api {
 
 /**
- * A lua wrapper class for IoActionId
- * @detail A class wrapping the Control_Config's ActionID's to Lua. Lua can request a control-binding object by name and will get this class.
+ * @brief A class wrapping the Control_config's ActionID to Lua
+ * @details A class wrapping the Control_Config's ActionID's to Lua. Lua can request a control-binding object by name and will get this class.
  * This class, only holding the IoActionId as an identifier, can then be used to access and modify the control binding with this id.
  */
 class cci_h {
