@@ -1198,7 +1198,7 @@ public:
 	* @returns the cached value for this id
 	*/
 	bool operator[](IoActionId id) const {
-		Assert(isCached(id), "A lua override check for IoActionId %d's hook was requested, but the hook hasn't been cached.", id);
+		Assertion(isCached(id), "A lua override check for IoActionId %d's hook was requested, but the hook hasn't been cached.", id);
 		return lua_override_cache[id];
 	}
 
