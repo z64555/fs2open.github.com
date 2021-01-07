@@ -1190,15 +1190,15 @@ public:
 	/**
 	* @returns true if there is a cached value for this id, false otherwise
 	*/
-	const bool& isCached(IoActionId id) const {
+	bool isCached(IoActionId id) const {
 		return lua_was_called[id];
 	}
 
 	/**
 	* @returns the cached value for this id
 	*/
-	const bool& operator[](IoActionId id) const {
-		Assert(isCached(id), "A lua override check for IoActionId %d's hook was requested, but the hook hasn't been cached.");
+	bool operator[](IoActionId id) const {
+		Assert(isCached(id), "A lua override check for IoActionId %d's hook was requested, but the hook hasn't been cached.", id);
 		return lua_override_cache[id];
 	}
 
