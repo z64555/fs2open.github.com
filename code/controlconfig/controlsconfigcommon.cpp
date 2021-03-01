@@ -657,7 +657,7 @@ const char *textify_scancode(int code)
 		}
 	}
 
-	strcat_s(text, SDL_GetKeyName(SDL_GetKeyFromScancode(fs2_to_sdl(keycode))));
+	strcat_s(text, utf8_to_current(SDL_GetKeyName(SDL_GetKeyFromScancode(fs2_to_sdl(keycode)))).c_str());
 	return text;
 }
 
