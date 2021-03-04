@@ -657,7 +657,9 @@ const char *textify_scancode(int code)
 		}
 	}
 
-	strcat_s(text, utf8_to_current(SDL_GetKeyName(SDL_GetKeyFromScancode(fs2_to_sdl(keycode)))).c_str());
+	SCP_string name;
+	convert_encoding(name, SDL_GetKeyName(SDL_GetKeyFromScancode(fs2_to_sdl(keycode))), ENCODING_UTF8);
+	strcat_s(text, name.c_str());
 	return text;
 }
 
