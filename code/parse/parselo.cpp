@@ -2285,7 +2285,7 @@ void coerce_to_utf8(SCP_string &buffer, const char *str)
 	// we can convert it
 	if (isLatin1)
 	{
-		unicode::convert_encoding(buffer, str, unicode::Encoding_iso8859_1, unicode::Encoding_utf8);
+		unicode::convert_encoding(buffer, str, unicode::Encoding::Encoding_iso8859_1, unicode::Encoding::Encoding_utf8);
 	}
 
 	// unknown encoding, so just truncate
