@@ -1,0 +1,40 @@
+name: Trigger a Release Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseVersion:
+        description: Release Version
+        required: true
+        default: 'release_<year>_<major>_<minor>[_RCn]'
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare environment
+        run: |
+          git config --global user.email "SirKnightlySCP@gmail.com"
+          git config --global user.name "SirKnightly"
+      - name: Checkout nightly script
+        uses: actions/checkout@v2
+      - name: Decrypt config
+        env:
+          CONFIG_PASSWORD: ${{ secrets.CONFIG_PASSWORD }}
+        run: |
+          gpg --quiet --batch --yes --decrypt --passphrase="$CONFIG_PASSWORD" --output $GITHUB_WORKSPACE/config.yml config.github.yml.gpg
+      - name: Checkout FSO code
+        uses: actions/checkout@v2
+        with:
+          repository: scp-fs2open/fs2open.github.com
+          path: fs2open.github.com
+          ssh-key: ${{ secrets.SIRKNIGHTLY_PRIVATE_KEY }}
+          submodules: true
+          fetch-depth: 0
+      - name: Commit and tag
+        run: |
+          git commit -m "Automated build commit"
+          git tag -a ${{ github.event.inputs.releaseVersion }} -m "Build script tag"
+      - name: Push to trigger
+        run: |
+          git push --tags
