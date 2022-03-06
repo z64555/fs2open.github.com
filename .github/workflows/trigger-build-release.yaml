@@ -16,13 +16,11 @@ jobs:
         run: |
           git config --global user.email "SirKnightlySCP@gmail.com"
           git config --global user.name "SirKnightly"
-      - name: Checkout nightly script
-        uses: actions/checkout@v2
-      - name: Decrypt config
-        env:
-          CONFIG_PASSWORD: ${{ secrets.CONFIG_PASSWORD }}
-        run: |
-          gpg --quiet --batch --yes --decrypt --passphrase="$CONFIG_PASSWORD" --output $GITHUB_WORKSPACE/config.yml config.github.yml.gpg
+     # - name: Decrypt config
+     #   env:
+     #     CONFIG_PASSWORD: ${{ secrets.CONFIG_PASSWORD }}
+     #   run: |
+     #     gpg --quiet --batch --yes --decrypt --passphrase="$CONFIG_PASSWORD" --output $GITHUB_WORKSPACE/config.yml ci/pre/config.github.yml.gpg
       - name: Checkout FSO code
         uses: actions/checkout@v2
         with:
