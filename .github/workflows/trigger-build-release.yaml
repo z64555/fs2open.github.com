@@ -3,10 +3,21 @@ name: Trigger a Release Build
 on:
   workflow_dispatch:
     inputs:
-      releaseVersion:
-        description: Release Version
+      releaseMajor:
+        description: Major revision
         required: true
-        default: 'release_<year>_<major>_<minor>[_RCn]'
+        default: 22
+      releaseMinor:
+        description: Minor revision
+        required: true
+        default: 1
+      releaseBuild:
+        description: Point revision
+        required: true
+        default: 0
+      releaseCanidate:
+        description: Release Canidate (str)
+        default: ''
 
 jobs:
   trigger:
@@ -16,12 +27,24 @@ jobs:
         run: |
           git config --global user.email "SirKnightlySCP@gmail.com"
           git config --global user.name "SirKnightly"
+
       - name: Checkout repo
         uses: actions/checkout@v2
+
+      - name: Create version_override.cmake
+        run: |
+          echo "set(FSO_VERSION_MAJOR ${{ releaseMajor }})" >  version_override.cmake
+          echo "set(FSO_VERSION_MINOR ${{ releaseMinor }})" >> version_override.cmake
+          echo "set(FSO_VERSION_BUILD ${{ releaseBuild }})" >> version_override.cmake
+          echo "set(FSO_VERSION_REVISION 0)" >> version_override.cmake
+          echo "set(FSO_VERSION_REVISION_STR ${{ releaseCanidate }})" >> version_override.cmake
+
       - name: Commit and tag
         run: |
+          git add .
           git commit -m "Automated build commit"
           git tag -a ${{ github.event.inputs.releaseVersion }} -m "Build script tag"
+
       - name: Push to trigger
         run: |
           git push --tags
