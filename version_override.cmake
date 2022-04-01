@@ -1,0 +1,5 @@
+set_if_not_defined(FSO_VERSION_MAJOR 1)
+set_if_not_defined(FSO_VERSION_MINOR 2)
+set_if_not_defined(FSO_VERSION_BUILD 3)
+set_if_not_defined(FSO_VERSION_REVISION 0)
+set_if_not_defined(FSO_VERSION_REVISION_STR "test")
