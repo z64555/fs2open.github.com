@@ -31,23 +31,51 @@
 #define	GM_CAMPAIGN_MODE				(1 << 10)			// are we currently in a campaign.
 #define GM_LAB							(1 << 11)			// We are currently in the F3 lab
 
-#define	VM_EXTERNAL						(1 << 0)				//	Set if not viewing from player position.
-#define	VM_TRACK						(1 << 1)				//	Set if viewer is tracking target.
-#define	VM_DEAD_VIEW					(1 << 2)				//	Set if viewer is watching from dead view.
-#define	VM_CHASE							(1 << 3)				//	Chase view.
-#define	VM_OTHER_SHIP					(1 << 4)				//	View from another ship.
-#define	VM_CAMERA_LOCKED			(1 << 5)				// Set if player does not have control of the camera
-#define	VM_WARP_CHASE					(1	<< 6)				// View while warping out (form normal view mode)
-#define	VM_PADLOCK_UP					(1 << 7)
-#define	VM_PADLOCK_REAR				(1 << 8)
-#define	VM_PADLOCK_LEFT				(1 << 9)
-#define	VM_PADLOCK_RIGHT				(1 << 10)
-#define	VM_WARPIN_ANCHOR				(1 << 11)			// special warpin camera mode
-#define VM_TOPDOWN					(1 << 12)				//Camera is looking down on ship
-#define VM_FREECAMERA				(1 << 13)				//Camera is not attached to any particular object, probably under SEXP control
-#define VM_CENTERING				(1 << 14)				// View is springing to center
 
-#define	VM_PADLOCK_ANY (VM_PADLOCK_UP|VM_PADLOCK_REAR|VM_PADLOCK_LEFT|VM_PADLOCK_RIGHT)
+const int VM_EXTERNAL       = (1 << 0);	// Set if not viewing from player position.
+const int VM_TRACK          = (1 << 1); // Set if viewer is tracking target.
+const int VM_DEAD_VIEW      = (1 << 2); // Set if viewer is watching from dead view.
+const int VM_CHASE          = (1 << 3); // Chase view.
+const int VM_OTHER_SHIP     = (1 << 4); // View from another ship.
+const int VM_CAMERA_LOCKED  = (1 << 5); // Set if player does not have control of the camera
+const int VM_WARP_CHASE     = (1 << 6); // View while warping out (form normal view mode)
+const int VM_PADLOCK_UP     = (1 << 7);
+const int VM_PADLOCK_REAR   = (1 << 8);
+const int VM_PADLOCK_LEFT   = (1 << 9);
+const int VM_PADLOCK_RIGHT  = (1 << 10);
+const int VM_WARPIN_ANCHOR  = (1 << 11); // special warpin camera mode
+const int VM_TOPDOWN        = (1 << 12); // Camera is looking down on ship
+const int VM_FREECAMERA     = (1 << 13); // Camera is not attached to any particular object, probably under SEXP control
+const int VM_CENTERING      = (1 << 14); // View is springing to center
+
+const int VM_PADLOCK_ANY = (VM_PADLOCK_UP|VM_PADLOCK_REAR|VM_PADLOCK_LEFT|VM_PADLOCK_RIGHT);
+
+
+enum class view_mode {
+	VM_FIRST = 0,		// First person mode.  Camera is inside the cockpit.
+	VM_FIRST_OTHER,		// First person mode.  Camera is inside the cockpit of target.
+
+	VM_THIRD,			// Third person chase mode.  Camera follows behind player.
+	VM_THIRD_OTHER,		// Third person chase mode.  Camera follows behind target.
+	VM_THIRD_DROP,		// Third person drop mode.  Camera position is independant of player or target.
+};
+
+enum class view_submode {
+	VM_PADLOCK_FORWARD = 0,		// Camera looks forward
+	VM_PADLOCK_REAR,			// Camera looks rearward
+	VM_PADLOCK_UP,				// Camera looks upward
+	VM_PADLOCK_DOWN,			// Camera looks downward
+	VM_PADLOCK_LEFT,			// Camera looks left
+	VM_PADLOCK_RIGHT,			// Camera looks right
+
+	VM_PADLOCK_FREE,			// Camera pan/tilt controlled by yaw/pitch controls
+	VM_PADLOCK_TRACK,			// Camera tracks target
+};
+
+// Super modes.  Common combinations of view_mode and view_submodes
+enum class view_supermode {
+	VM_DEFAULT = 0,		// VM_FIRST | VM_PADLOCK_FORWARD
+};
 
 //-----Cutscene stuff
 //No bars
