@@ -26,6 +26,8 @@ int Game_mode;
 int Game_restoring = 0;		// If set, this means we are restoring data from disk
 
 int	Viewer_mode;		//	Viewer's mode, see VM_xxxx flags.
+enum class view_mode view_mode;
+enum class view_submode view_submode;
 
 //CUTSCENE STUFF
 //Cutscene flags

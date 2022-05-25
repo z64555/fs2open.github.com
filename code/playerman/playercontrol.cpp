@@ -148,41 +148,45 @@ void view_modify(angles *ma, angles *da, float max_p, float max_h)
 	float h = 0.0f;
 	float p = 0.0f;
 
-	if (Viewer_mode & VM_CENTERING) {
+	if (view_submode == view_submode::VM_RETURN) {
 		// Center view then bail
 		ma->p = 0.0f;
 		ma->h = 0.0f;
 		ma->b = 0.0f;
 		return;
 
-	} else if (Viewer_mode & VM_CAMERA_LOCKED) {
-		if (Viewer_mode & VM_EXTERNAL) {
+	}
+	
+	if (view_submode != view_submode::VM_FREE) {
+		if (view_mode != view_mode::VM_FIRST) {
 			// External camera is locked in place, nothing to do here
 			return;
 		}
 
-		if (Viewer_mode & VM_PADLOCK_ANY) {
-			// Do Padlock view then bail
-			if (Viewer_mode & VM_PADLOCK_UP) {
-				ma->h = 0.0f;
-				ma->p = -max_p;
-
-			} else if (Viewer_mode & VM_PADLOCK_REAR) {
-				ma->h = -PI;
-				ma->p = 0.0f;
-
-			} else if (Viewer_mode & VM_PADLOCK_RIGHT) {
-				ma->h = max_h;
-				ma->p = 0.0f;
-
-			} else if (Viewer_mode & VM_PADLOCK_LEFT) {
-				ma->h = -max_h;
-				ma->p = 0.0f;
-			} // Else, don't do any ajustments. player_set_padlock_state will reset the states
-
+		// Maybe Do Padlock view then bail
+		if (view_submode == view_submode::VM_PADLOCK_UP) {
+			ma->h = 0.0f;
+			ma->p = -max_p;
 			return;
 
-		} else if (headtracking::isEnabled()) {
+		} else if (view_submode == view_submode::VM_PADLOCK_REAR) {
+			ma->h = -PI;
+			ma->p = 0.0f;
+			return;
+
+		} else if (view_submode == view_submode::VM_PADLOCK_LEFT) {
+			ma->h = -max_h;
+			ma->p = 0.0f;
+			return;
+
+		} else if (view_submode == view_submode::VM_PADLOCK_RIGHT) {
+			ma->h = max_h;
+			ma->p = 0.0f;
+			return;
+
+		} // Else, don't do any ajustments. player_set_padlock_state will reset the states
+
+		if ((view_submode == view_submode::VM_HEAD) && headtracking::isEnabled()) {
 			// Do TrackIR
 			vec3d trans = ZERO_VECTOR;
 
@@ -211,7 +215,7 @@ void view_modify(angles *ma, angles *da, float max_p, float max_h)
 			*/
 		}	// Else, don't do any slewing
 
-	} else {
+	} else { // (view_submode == view_submode::VM_FREE)
 		// Camera is unlocked - Pitch and Yaw axes control X and Y slew axes
 		t = (check_control_timef(YAW_RIGHT) - check_control_timef(YAW_LEFT));
 		u = (check_control_timef(PITCH_FORWARD) - check_control_timef(PITCH_BACK));
@@ -343,67 +347,61 @@ void do_view_slew()
 	view_modify(&chase_slew_angles, &Viewer_slew_angles_delta, PI_2, PI2/3);
 
 	// Check Track target
-	if (Viewer_mode & VM_TRACK) {
+	if (view_submode == view_submode::VM_TRACK) {
 		// Player's vision will track current target.
 		do_view_track_target();
-		Viewer_mode |= VM_CAMERA_LOCKED;
 		return;
 	}
 
 	// Check Padlock controls
 	if (check_control(PADLOCK_UP)) {
-		Viewer_mode |= (VM_PADLOCK_UP | VM_CAMERA_LOCKED);
-		Viewer_mode &= ~(VM_CENTERING);
+		view_submode = view_submode::VM_PADLOCK_UP;
 		return;
 
 	} else if (check_control(PADLOCK_DOWN)) {
-		Viewer_mode |= (VM_PADLOCK_REAR | VM_CAMERA_LOCKED);
-		Viewer_mode &= ~(VM_CENTERING);
+		view_submode = view_submode::VM_PADLOCK_REAR;
 		return;
 
 	} else if (check_control(PADLOCK_RIGHT)) {
-		Viewer_mode |= (VM_PADLOCK_RIGHT | VM_CAMERA_LOCKED);
-		Viewer_mode &= ~(VM_CENTERING);
+		view_submode = view_submode::VM_PADLOCK_RIGHT;
 		return;
 
 	} else if (check_control(PADLOCK_LEFT)) {
-		Viewer_mode |= (VM_PADLOCK_LEFT | VM_CAMERA_LOCKED);
-		Viewer_mode &= ~(VM_CENTERING);
+		view_submode = view_submode::VM_PADLOCK_LEFT;
 		return;
 
-	} else if (Viewer_mode & VM_PADLOCK_ANY) {
+	} else if (view_submode != view_submode::VM_FREE) {	// || (view_submode != view_submode::VM_TRACK)
 		// clear padlock views and center the view once 
 		// the player lets go of a padlock control
-		Viewer_mode &= ~(VM_PADLOCK_ANY);
-		Viewer_mode |= (VM_CENTERING | VM_CAMERA_LOCKED);
+		view_submode = view_submode::VM_RETURN;
 	}
 
-	if (Viewer_mode & VM_CENTERING) {
+	if (view_submode == view_submode::VM_RETURN) {
 		// If we're centering the view, check to see if we're actually centered and bypass any view modifications
 		// until the view has finally been centered.
 		if ((Viewer_slew_angles.h == 0.0f) && (Viewer_slew_angles.p == 0.0f)) {
 			// View has been centered, allow the player to freelook again.
-			Viewer_mode &= ~VM_CENTERING;
+			view_submode = view_submode::VM_PADLOCK_FORWARD;
 		}
-		Viewer_mode |= VM_CAMERA_LOCKED;
-	}
 
-	if (!(Viewer_mode & VM_PADLOCK_ANY)) {
+	} else {
+		// Maybe slew the camera
 		if (headtracking::isEnabled()) {
 			// Can't do slewing if TrackIR is enabled
-			Viewer_mode |= VM_CAMERA_LOCKED;
 			return;
 		}
 		
-		if (check_control_timef(VIEW_SLEW)) {
-			// Enable freelook mode
-			Viewer_mode &= ~VM_CAMERA_LOCKED;
+		// Enable or Disable freelook mode
+		if (IS_NEAR_ZERO(check_control_timef(VIEW_SLEW), FLT_EPSILON)) {
+			// Enable
+			view_submode = view_submode::VM_FREE;
 
-		} else if (check_control_timef(VIEW_CENTER) || !(Viewer_mode & VM_CAMERA_LOCKED)) {
+		} else if (IS_NEAR_ZERO(check_control_timef(VIEW_CENTER), FLT_EPSILON) ||
+					!IS_NEAR_ZERO(check_control_timef(VIEW_SLEW), FLT_EPSILON)) {
 			// Start centering the view if:
 			//  VIEW_CENTER was pressed, or
 			//  The player let go of VIEW_SLEW
-			Viewer_mode |= (VM_CENTERING | VM_CAMERA_LOCKED);
+			view_submode = view_submode::VM_RETURN;
 		}
 	}
 }

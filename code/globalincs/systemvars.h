@@ -68,9 +68,15 @@ enum class view_submode {
 	VM_PADLOCK_LEFT,			// Camera looks left
 	VM_PADLOCK_RIGHT,			// Camera looks right
 
-	VM_PADLOCK_FREE,			// Camera pan/tilt controlled by yaw/pitch controls
-	VM_PADLOCK_TRACK,			// Camera tracks target
+	VM_FREE,			// Camera pan/tilt controlled by yaw/pitch controls
+	VM_HEAD,			// Camera pan/tilt controlled by headtracking system
+	VM_TRACK,			// Camera tracks target
+
+	VM_RETURN,			// Camera is returning from a Padlock state // Note: not sure if this is how I want to do about it.
 };
+
+extern enum class view_mode view_mode;
+extern enum class view_submode view_submode;
 
 // Super modes.  Common combinations of view_mode and view_submodes
 enum class view_supermode {
